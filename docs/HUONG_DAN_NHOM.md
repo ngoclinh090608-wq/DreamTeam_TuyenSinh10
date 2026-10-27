@@ -69,7 +69,26 @@ Commit nhỏ, thường xuyên; message ghi **mã UC + việc đã làm**.
 
 ---
 
-## 5. Quy ước code (để cả dự án giống nhau)
+## 5. CI — kiểm tra tự động trên GitHub
+
+Mỗi lần `git push` và mỗi Pull Request vào `main`, GitHub Actions tự chạy (tab **Actions**, file `.github/workflows/ci.yml`):
+
+1. Kiểm tra cú pháp tất cả file PHP.
+2. Kiểm tra `database/install.sql` đã được build lại (`php database/build.php`) sau khi sửa file trong `database/`.
+3. Nhập `install.sql` vào MariaDB sạch — SQL hỏng sẽ báo lỗi ở đây.
+4. Chạy web và **kiểm thử chức năng** (`tests/kiem_thu_uc09_15.sh`, 98 ca cho UC9–UC15).
+
+Trong Pull Request sẽ thấy ✅ (qua) hoặc ❌ (lỗi). **Chỉ gộp khi ✅.** Nếu ❌: bấm **Details** để xem bước nào lỗi, sửa trên nhánh của mình rồi `git push` lại.
+
+Chạy bộ kiểm thử trên máy trước khi push (Git Bash, XAMPP đang bật, đã nhập `install.sql`):
+```bash
+bash tests/kiem_thu_uc09_15.sh
+```
+Script tự sao lưu và khôi phục dữ liệu nên không làm mất dữ liệu trên máy. Khi làm xong UC của mình, mỗi bạn nên viết thêm ca kiểm thử theo cùng mẫu (hàm `kiem`, `dung`) để CI kiểm tra luôn phần mình.
+
+---
+
+## 6. Quy ước code (để cả dự án giống nhau)
 
 Xem code UC9–UC15 làm mẫu (`papers/`, `councils/`, `assignments/`, `grading/`).
 
@@ -91,7 +110,7 @@ Hai người cùng sửa một chỗ sẽ bị **conflict** khi gộp.
 
 ---
 
-## 6. Gặp lỗi thường gặp
+## 7. Gặp lỗi thường gặp
 
 | Hiện tượng | Cách xử lý |
 |---|---|
