@@ -113,5 +113,3 @@ DreamTeam_TuyenSinh10/
 ├── tests/              kiểm thử
 └── docs/               sơ đồ, tài liệu, biên bản
 ```
-
-**Tài liệu tham khảo giao diện:** 3 bản HTML lưu từ `tuyensinh10.cantho.gov.vn` do người dùng cung cấp. Chỉ dùng để nghiên cứu bố cục và tương tác cơ bản.
