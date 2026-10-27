@@ -18,6 +18,8 @@ Bộ giao diện PHP dành cho **Dream Team**, phát triển dựa trên bố c�
     - `/assignments/` — UC11 Phân công coi thi (giao diện mẫu)
     - `/councils/` — UC10 Hội đồng thi
     - `/papers/` — UC09 Lô bài thi
+    - `/grading/` — UC12 Lịch sử chỉnh sửa điểm, UC13 Cập nhật kết quả chấm, UC14 Thống kê (**đã nối CSDL, ghi dữ liệu thật**)
+    - `/publication/diem-thi.php` — UC15 Công bố điểm thi (**đã nối CSDL, ghi dữ liệu thật**)
 
 Để chạy bằng PHP thay vì Apache (nếu máy có PHP trong PATH):
 
@@ -37,6 +39,34 @@ Sau đó mở `http://127.0.0.1:8080/`.
 - Giao diện co giãn trên điện thoại/máy tính.
 - `.htaccess` và `router.php` giúp cấm tải trực tiếp thư mục nội bộ (cần kiểm tra lại khi chuyển lên hosting thật).
 
+### UC12 – UC15: Chấm thi và công bố điểm (Ngọc Linh) — đã chạy với CSDL
+
+Cần nhập `database/install.sql` trước (mục 5). Các chức năng này **có ghi vào database**.
+
+| UC | Trang | Làm gì |
+|---|---|---|
+| UC12 Xem lịch sử chỉnh sửa điểm | `/grading/lich-su.php` | Chọn kỳ thi, môn thi, nhập mã phách → xem kết quả chấm hiện tại và lịch sử sửa điểm |
+| UC13 Cập nhật kết quả chấm thi | `/grading/cap-nhat.php` | Nhập mã phách → nhập điểm mới + lý do → xác nhận. Sửa điểm và ghi `LichSuChinhSuaDiem` trong 1 transaction. Có nút Hủy bỏ |
+| UC14 Thống kê kết quả chấm thi | `/grading/thong-ke.php` | Chọn kỳ thi, môn thi → tổng bài đã chấm, điểm trung bình, cao nhất, thấp nhất |
+| UC15 Công bố điểm thi | `/publication/diem-thi.php` | Chọn kỳ thi, môn thi → xem danh sách và trạng thái → Công bố (có bước xác nhận). Chặn khi đã công bố hoặc còn bài chưa chấm |
+
+Dữ liệu mẫu để thử (kỳ thi `Kỳ thi tuyển sinh lớp 10 năm 2026`):
+
+| Muốn thử | Nhập |
+|---|---|
+| Có lịch sử chỉnh sửa | Môn **Toán**, mã phách `P0052` |
+| Chưa có lịch sử ("Kết quả chấm thi này chưa có lịch sử chỉnh sửa điểm.") | Môn **Ngữ văn**, mã phách `P0023` |
+| Không tìm thấy | Môn **Toán**, mã phách `P0023` (phách này thuộc môn Văn) |
+| Thiếu điều kiện tra cứu | Để trống mã phách rồi bấm Tra cứu |
+| UC13 báo điểm không hợp lệ | Mã phách `P0023`, điểm `11` hoặc để trống lý do |
+| UC15 công bố thành công | Môn **Ngoại ngữ** (18/18 bài đã chấm, chưa công bố) |
+| UC15 bị chặn "đã công bố" | Môn **Ngữ văn** hoặc **Toán** |
+
+Muốn đưa dữ liệu về như ban đầu sau khi thử: trong phpMyAdmin xóa database `dreamteam_tuyensinh10` rồi nhập lại `install.sql`.
+
+Mã nguồn: logic trong `services/grading_service.php`, form POST có CSRF (`services/csrf.php`), giao diện dùng chung `includes/grading_ui.php`, CSS tiền tố `grading-` cuối `assets/css/style.css`.
+UC22 (Cẩm Vân) giữ giao diện mẫu cũ, chuyển sang `/publication/tuyen-sinh.php`; `/publication/` giờ là trang chọn UC15 / UC22.
+
 ## 3. Phân chia phần code cho nhóm
 
 | Thành viên | Thư mục | Chức năng demo gợi ý |
@@ -44,7 +74,7 @@ Sau đó mở `http://127.0.0.1:8080/`.
 | Nguyễn Quốc Thiên | `aspirations/`, `candidates/`, `admission-info/` | UC02 Nguyện vọng |
 | Nguyễn Thị Thúy Vy | `exam/` | UC07 Phân phòng thi |
 | Trần Thị Cẩm Vân | `papers/`, `councils/`, `assignments/`, `staff/` | UC11 Phân công coi thi |
-| Nguyễn Thị Ngọc Linh | `grading/`, `publication/` | UC13 Chấm thi |
+| Nguyễn Thị Ngọc Linh | `grading/`, `publication/diem-thi.php` | UC12 – UC15 Chấm thi, công bố điểm (**đã xong**) |
 | Tô Nguyễn Khánh Duy | `appeals/`, `admission/` | UC17 Xét tuyển NV |
 | Nguyễn Thị Cẩm Vân | `enrollment/`, `statistics/`, `publication/` | UC20 Nhập học |
 
@@ -69,7 +99,10 @@ Cài đặt:
 2. Mở `http://localhost/phpmyadmin` → tab **Nhập (Import)** → chọn `database/install.sql` → Thực hiện (tự tạo database `dreamteam_tuyensinh10`, 30 bảng, dữ liệu mẫu).
 3. Mở lại `http://localhost/DreamTeam_TuyenSinh10/admin/`: các thẻ số liệu và bảng đã đọc từ database. Nếu chưa nhập DB, giao diện tự dùng dữ liệu giả như cũ.
 
-Các trang danh sách đọc dữ liệu qua `services/live_data.php` (chỉ đọc, giữ nguyên layout). Khi làm chức năng thật, thay truy vấn của module mình bằng service riêng trong `services/`. Sau khi sửa file trong `database/tables/` hoặc `database/seed/`, chạy `php database/build.php` để tạo lại `install.sql`.
+Các trang danh sách đọc dữ liệu qua `services/live_data.php` (chỉ đọc, giữ nguyên layout). Khi làm chức năng thật, thay truy vấn của module mình bằng service riêng trong `services/`. Sau khi sửa file trong `database/tables/`, `views/`, `functions/`, `procedures/` hoặc `seed/`, chạy `php database/build.php` để tạo lại `install.sql`.
+
+View, function, procedure đã viết (chi tiết ở `database/README.md`): `vw_KetQuaThiTheoMon`, `vw_ThongKeKetQuaMonThi`, `fn_DemBaiThiTheoMon`, `fn_DemBaiThiChuaCham`, `fn_DiemTrungBinhTheoMon`, `sp_CapNhatDiemThi`, `sp_CongBoKetQuaChamThi`, `sp_XemLichSuChinhSuaDiem`.
+Nếu đã nhập database từ trước, không cần nhập lại cả `install.sql`: trong phpMyAdmin chọn database `dreamteam_tuyensinh10` → **Nhập** từng file trong `database/views/`, `database/functions/`, `database/procedures/` (chạy lại nhiều lần không sao).
 
 ## 6. Bảo mật / demo
 

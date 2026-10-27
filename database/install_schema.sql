@@ -388,4 +388,209 @@ CREATE TABLE KetQuaTuyenSinh (
   CONSTRAINT fk_kqts_kqxt FOREIGN KEY (maKetQuaXetTuyen) REFERENCES KetQuaXetTuyen(maKetQua)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 4.8. vw_KetQuaThiTheoMon (Nguyễn Thị Ngọc Linh)
+-- Điểm từng môn của thí sinh và trạng thái công bố. Bài chưa chấm có diemThi = NULL.
+CREATE OR REPLACE VIEW vw_KetQuaThiTheoMon AS
+SELECT t.maThiSinh, t.hoTen, b.maKyThi, m.tenMonThi, b.maBaiThi,
+       k.diemThi, b.trangThaiCham, k.trangThaiCongBo
+FROM BaiThi b
+JOIN ThiSinh t ON t.maThiSinh = b.maThiSinh
+JOIN MonThi m ON m.maMonThi = b.maMonThi
+LEFT JOIN KetQuaChamThi k ON k.maBaiThi = b.maBaiThi;
+
+-- 4.9. vw_ThongKeKetQuaMonThi (Nguyễn Thị Ngọc Linh) – dùng cho UC14.
+-- Thêm cột maKyThi so với báo cáo để thống kê đúng theo từng kỳ thi.
+CREATE OR REPLACE VIEW vw_ThongKeKetQuaMonThi AS
+SELECT b.maKyThi, m.maMonThi, m.tenMonThi,
+       COUNT(k.maKetQuaChamThi) AS soBaiDaCham,
+       CAST(AVG(k.diemThi) AS DECIMAL(9,2)) AS diemTrungBinh,
+       MAX(k.diemThi) AS diemCaoNhat,
+       MIN(k.diemThi) AS diemThapNhat
+FROM BaiThi b
+JOIN MonThi m ON m.maMonThi = b.maMonThi
+LEFT JOIN KetQuaChamThi k ON k.maBaiThi = b.maBaiThi
+GROUP BY b.maKyThi, m.maMonThi, m.tenMonThi;
+
+-- 6.10. fn_DemBaiThiTheoMon (Nguyễn Thị Ngọc Linh): số bài thi theo kỳ thi và môn.
+DROP FUNCTION IF EXISTS fn_DemBaiThiTheoMon;
+DELIMITER $$
+CREATE FUNCTION fn_DemBaiThiTheoMon(p_maKyThi VARCHAR(20), p_maMonThi VARCHAR(20))
+RETURNS INT READS SQL DATA
+BEGIN
+  RETURN (SELECT COUNT(*) FROM BaiThi WHERE maKyThi = p_maKyThi AND maMonThi = p_maMonThi);
+END$$
+DELIMITER ;
+
+-- 6.11. fn_DemBaiThiChuaCham (Nguyễn Thị Ngọc Linh): số bài của kỳ thi chưa có kết quả chấm.
+DROP FUNCTION IF EXISTS fn_DemBaiThiChuaCham;
+DELIMITER $$
+CREATE FUNCTION fn_DemBaiThiChuaCham(p_maKyThi VARCHAR(20))
+RETURNS INT READS SQL DATA
+BEGIN
+  RETURN (SELECT COUNT(*) FROM BaiThi b
+          LEFT JOIN KetQuaChamThi k ON k.maBaiThi = b.maBaiThi
+          WHERE b.maKyThi = p_maKyThi AND (k.maKetQuaChamThi IS NULL OR b.trangThaiCham <> 'Đã chấm'));
+END$$
+DELIMITER ;
+
+-- 6.13. fn_DiemTrungBinhTheoMon (Nguyễn Thị Ngọc Linh): điểm trung bình các bài đã chấm của một môn trong kỳ.
+-- Trả về NULL nếu môn chưa có bài nào được chấm.
+DROP FUNCTION IF EXISTS fn_DiemTrungBinhTheoMon;
+DELIMITER $$
+CREATE FUNCTION fn_DiemTrungBinhTheoMon(p_maKyThi VARCHAR(20), p_maMonThi VARCHAR(20))
+RETURNS DECIMAL(9,2) READS SQL DATA
+BEGIN
+  RETURN (SELECT AVG(k.diemThi) FROM KetQuaChamThi k JOIN BaiThi b ON b.maBaiThi = k.maBaiThi
+          WHERE b.maKyThi = p_maKyThi AND b.maMonThi = p_maMonThi);
+END$$
+DELIMITER ;
+
+-- 5.26. sp_CapNhatDiemThi (Nguyễn Thị Ngọc Linh) – UC13.
+-- Sửa điểm và ghi LichSuChinhSuaDiem trong cùng một transaction. Lỗi thì hoàn tác, điểm cũ giữ nguyên.
+DROP PROCEDURE IF EXISTS sp_CapNhatDiemThi;
+DELIMITER $$
+CREATE PROCEDURE sp_CapNhatDiemThi(
+  IN  p_maKetQuaChamThi VARCHAR(20),
+  IN  p_diemMoi DECIMAL(5,2),
+  IN  p_lyDoChinhSua VARCHAR(255),
+  IN  p_nguoiThucHien VARCHAR(100),
+  OUT p_diemTruocChinhSua DECIMAL(5,2),
+  OUT p_diemSauChinhSua DECIMAL(5,2),
+  OUT p_thongBao VARCHAR(200)
+)
+proc: BEGIN
+  DECLARE v_diemCu DECIMAL(5,2) DEFAULT NULL;
+  DECLARE v_thangDiem DECIMAL(5,2) DEFAULT NULL;
+  DECLARE v_soLichSu INT DEFAULT 0;
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    SET p_diemTruocChinhSua = NULL, p_diemSauChinhSua = NULL;
+    SET p_thongBao = 'Không thể lưu kết quả chấm thi.';
+  END;
+
+  SET p_diemTruocChinhSua = NULL, p_diemSauChinhSua = NULL;
+  IF p_lyDoChinhSua IS NULL OR TRIM(p_lyDoChinhSua) = '' THEN
+    SET p_thongBao = 'Kết quả chấm thi không hợp lệ: lý do chỉnh sửa không được để trống.';
+    LEAVE proc;
+  END IF;
+
+  START TRANSACTION;
+  SELECT k.diemThi, m.thangDiem INTO v_diemCu, v_thangDiem
+  FROM KetQuaChamThi k
+  JOIN BaiThi b ON b.maBaiThi = k.maBaiThi
+  JOIN MonThi m ON m.maMonThi = b.maMonThi
+  WHERE k.maKetQuaChamThi = p_maKetQuaChamThi
+  FOR UPDATE;
+
+  IF v_thangDiem IS NULL THEN
+    ROLLBACK;
+    SET p_thongBao = 'Không tìm thấy kết quả chấm thi phù hợp.';
+    LEAVE proc;
+  END IF;
+  IF p_diemMoi IS NULL OR p_diemMoi < 0 OR p_diemMoi > v_thangDiem THEN
+    ROLLBACK;
+    SET p_thongBao = CONCAT('Kết quả chấm thi không hợp lệ: điểm phải nằm trong thang điểm 0 – ', TRIM(TRAILING '.' FROM TRIM(TRAILING '0' FROM v_thangDiem)), '.');
+    LEAVE proc;
+  END IF;
+  IF p_diemMoi = v_diemCu THEN
+    ROLLBACK;
+    SET p_thongBao = 'Kết quả chấm thi không hợp lệ: điểm mới trùng với điểm hiện tại.';
+    LEAVE proc;
+  END IF;
+
+  UPDATE KetQuaChamThi SET diemThi = p_diemMoi WHERE maKetQuaChamThi = p_maKetQuaChamThi;
+
+  SELECT COALESCE(MAX(CAST(SUBSTRING(maLichSu, 3) AS UNSIGNED)), 0) INTO v_soLichSu
+  FROM LichSuChinhSuaDiem WHERE maLichSu LIKE 'LS%' FOR UPDATE;
+  INSERT INTO LichSuChinhSuaDiem (maLichSu, diemTruocChinhSua, diemSauChinhSua, thoiGianChinhSua, nguoiThucHien, lyDoChinhSua, maKetQuaChamThi)
+  VALUES (CONCAT('LS', LPAD(v_soLichSu + 1, 3, '0')), v_diemCu, p_diemMoi, NOW(),
+          COALESCE(NULLIF(TRIM(p_nguoiThucHien), ''), 'Hội đồng chấm thi'), TRIM(p_lyDoChinhSua), p_maKetQuaChamThi);
+  COMMIT;
+
+  SET p_diemTruocChinhSua = v_diemCu, p_diemSauChinhSua = p_diemMoi;
+  SET p_thongBao = 'Cập nhật kết quả chấm thi thành công.';
+END$$
+DELIMITER ;
+
+-- 5.27. sp_CongBoKetQuaChamThi (Nguyễn Thị Ngọc Linh) – UC15.
+-- Đổi trạng thái công bố các kết quả chấm của một kỳ thi. Điểm thi không thay đổi.
+-- p_maMonThi: thêm so với báo cáo để công bố theo từng môn; truyền NULL để áp dụng cho cả kỳ thi.
+-- Khi công bố: chặn nếu đã công bố hết hoặc còn bài chưa chấm.
+DROP PROCEDURE IF EXISTS sp_CongBoKetQuaChamThi;
+DELIMITER $$
+CREATE PROCEDURE sp_CongBoKetQuaChamThi(
+  IN  p_maKyThi VARCHAR(20),
+  IN  p_maMonThi VARCHAR(20),
+  IN  p_trangThaiMoi VARCHAR(50),
+  OUT p_soBaiDuocCapNhat INT,
+  OUT p_thongBao VARCHAR(200)
+)
+proc: BEGIN
+  DECLARE v_daCham INT DEFAULT 0;
+  DECLARE v_chuaCham INT DEFAULT 0;
+  DECLARE v_canDoi INT DEFAULT 0;
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    SET p_soBaiDuocCapNhat = 0;
+    SET p_thongBao = 'Không thể công bố điểm thi.';
+  END;
+
+  SET p_soBaiDuocCapNhat = 0;
+  IF p_trangThaiMoi IS NULL OR p_trangThaiMoi NOT IN ('Đã công bố', 'Chưa công bố') THEN
+    SET p_thongBao = 'Trạng thái công bố không hợp lệ.';
+    LEAVE proc;
+  END IF;
+
+  START TRANSACTION;
+  SELECT COALESCE(SUM(k.maKetQuaChamThi IS NOT NULL AND b.trangThaiCham = 'Đã chấm'), 0),
+         COALESCE(SUM(k.maKetQuaChamThi IS NULL OR b.trangThaiCham <> 'Đã chấm'), 0),
+         COALESCE(SUM(k.maKetQuaChamThi IS NOT NULL AND k.trangThaiCongBo <> p_trangThaiMoi), 0)
+    INTO v_daCham, v_chuaCham, v_canDoi
+  FROM BaiThi b LEFT JOIN KetQuaChamThi k ON k.maBaiThi = b.maBaiThi
+  WHERE b.maKyThi = p_maKyThi AND (p_maMonThi IS NULL OR b.maMonThi = p_maMonThi)
+  FOR UPDATE;
+
+  IF v_daCham = 0 THEN
+    ROLLBACK;
+    SET p_thongBao = 'Chưa có dữ liệu kết quả chấm thi của kỳ thi hoặc môn thi được chọn.';
+    LEAVE proc;
+  END IF;
+  IF v_canDoi = 0 THEN
+    ROLLBACK;
+    SET p_thongBao = IF(p_trangThaiMoi = 'Đã công bố', 'Kết quả thi đã được công bố.', 'Kết quả thi chưa được công bố.');
+    LEAVE proc;
+  END IF;
+  IF p_trangThaiMoi = 'Đã công bố' AND v_chuaCham > 0 THEN
+    ROLLBACK;
+    SET p_thongBao = CONCAT('Kết quả chấm thi chưa được cập nhật đầy đủ (còn ', v_chuaCham, ' bài chưa chấm), không thể công bố.');
+    LEAVE proc;
+  END IF;
+
+  UPDATE KetQuaChamThi k JOIN BaiThi b ON b.maBaiThi = k.maBaiThi
+  SET k.trangThaiCongBo = p_trangThaiMoi
+  WHERE b.maKyThi = p_maKyThi AND (p_maMonThi IS NULL OR b.maMonThi = p_maMonThi)
+    AND k.trangThaiCongBo <> p_trangThaiMoi;
+  SET p_soBaiDuocCapNhat = ROW_COUNT();
+  COMMIT;
+
+  SET p_thongBao = IF(p_trangThaiMoi = 'Đã công bố', 'Công bố điểm thi thành công.', 'Đã chuyển kết quả thi về trạng thái chưa công bố.');
+END$$
+DELIMITER ;
+
+-- 5.28. sp_XemLichSuChinhSuaDiem (Nguyễn Thị Ngọc Linh) – UC12.
+-- Nhật ký thay đổi điểm của một bài thi, mới nhất trước. Không có dòng nào nghĩa là chưa có lịch sử chỉnh sửa.
+DROP PROCEDURE IF EXISTS sp_XemLichSuChinhSuaDiem;
+DELIMITER $$
+CREATE PROCEDURE sp_XemLichSuChinhSuaDiem(IN p_maBaiThi VARCHAR(20))
+BEGIN
+  SELECT l.thoiGianChinhSua, l.diemTruocChinhSua, l.diemSauChinhSua, l.nguoiThucHien, l.lyDoChinhSua
+  FROM LichSuChinhSuaDiem l
+  JOIN KetQuaChamThi k ON k.maKetQuaChamThi = l.maKetQuaChamThi
+  WHERE k.maBaiThi = p_maBaiThi
+  ORDER BY l.thoiGianChinhSua DESC, l.maLichSu DESC;
+END$$
+DELIMITER ;
+
 SET FOREIGN_KEY_CHECKS=1;

@@ -14,7 +14,7 @@ Kết nối PHP đọc biến môi trường DB_HOST, DB_PORT, DB_NAME, DB_USER,
 
 ## Cấu trúc
 - `tables/`  một file mỗi bảng, đánh số theo thứ tự khóa ngoại (001...030)
-- `views/`, `functions/`, `procedures/`  dành cho 14 view, 18 function, 44 procedure của Tuần 8 (chưa viết)
+- `views/`, `functions/`, `procedures/`  dành cho 14 view, 18 function, 44 procedure của Tuần 8. Đặt tên file theo số mục trong báo cáo (vd `views/09_vw_ThongKeKetQuaMonThi.sql`, `procedures/26_sp_CapNhatDiemThi.sql`) để build.php gộp đúng thứ tự. Function/procedure dùng `DROP ... IF EXISTS` + `DELIMITER $$` để chạy lại được.
 - `seed/seed.sql`  dữ liệu mẫu mô phỏng
 - `build.php`  gộp thành `install_schema.sql` (chỉ cấu trúc) và `install.sql` (cấu trúc + dữ liệu mẫu). Sau khi sửa file nào trong tables/ hoặc seed/ thì chạy `php database/build.php` rồi commit lại cả hai file install.
 
@@ -27,3 +27,25 @@ phân phòng và phân công coi thi đủ 2 giám thị cho mỗi phòng/môn, 
 - Bảng Phach, KetQuaThongKe, BaoCaoThongKe đã bỏ (cô đồng ý), cần xóa khỏi mục lục báo cáo Tuần 8. Số phách lưu ở BaiThi.soPhach; thống kê (UC14, UC21) tính trực tiếp bằng view/truy vấn.
 - Hệ số điểm từng môn, điểm ưu tiên/khuyến khích (BR12) chưa có cột nào lưu; cần bổ sung khi viết UC17.
 - Bảng tài khoản đăng nhập chưa có trong thiết kế; hiện dùng chế độ DEMO.
+
+## View / Function / Procedure đã viết
+
+| Mục báo cáo | Tên | Người viết | Dùng cho |
+|---|---|---|---|
+| 4.8 | `vw_KetQuaThiTheoMon` | Ngọc Linh | Điểm từng môn của thí sinh + trạng thái công bố |
+| 4.9 | `vw_ThongKeKetQuaMonThi` | Ngọc Linh | UC14 (thêm cột `maKyThi` so với báo cáo) |
+| 6.10 | `fn_DemBaiThiTheoMon(maKyThi, maMonThi)` | Ngọc Linh | UC14, UC15 |
+| 6.11 | `fn_DemBaiThiChuaCham(maKyThi)` | Ngọc Linh | UC15 |
+| 6.13 | `fn_DiemTrungBinhTheoMon(maKyThi, maMonThi)` | Ngọc Linh | UC14 |
+| 5.26 | `sp_CapNhatDiemThi` | Ngọc Linh | UC13: sửa điểm + ghi lịch sử trong 1 transaction |
+| 5.27 | `sp_CongBoKetQuaChamThi` | Ngọc Linh | UC15 (thêm tham số `maMonThi`, truyền NULL = cả kỳ thi) |
+| 5.28 | `sp_XemLichSuChinhSuaDiem` | Ngọc Linh | UC12 |
+
+Ví dụ gọi thử trong phpMyAdmin (tab SQL):
+
+```sql
+CALL sp_XemLichSuChinhSuaDiem('BT001');
+CALL sp_CapNhatDiemThi('KQC002', 8.5, 'Cộng sót điểm câu 3', NULL, @truoc, @sau, @tb); SELECT @truoc, @sau, @tb;
+CALL sp_CongBoKetQuaChamThi('KT2026', 'NN', 'Đã công bố', @n, @tb); SELECT @n, @tb;
+SELECT * FROM vw_ThongKeKetQuaMonThi;
+```
