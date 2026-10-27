@@ -15,9 +15,9 @@ Bộ giao diện PHP dành cho **Dream Team**, phát triển dựa trên bố c�
     - `/auth/login.php` — Trang đăng nhập mẫu, 2 tab
     - `/results/` — Tra cứu mẫu (`DEMO001`)
     - `/admin/` — Dashboard quản trị
-    - `/assignments/` — UC11 Phân công coi thi (giao diện mẫu)
-    - `/councils/` — UC10 Hội đồng thi
-    - `/papers/` — UC09 Lô bài thi
+    - `/papers/` — UC09 Tra cứu thông tin lô bài thi (**đã nối CSDL**)
+    - `/councils/` — UC10 Quản lý Hội đồng thi (**đã nối CSDL, ghi dữ liệu thật**)
+    - `/assignments/` — UC11 Phân công coi thi (**đã nối CSDL, ghi dữ liệu thật**)
     - `/grading/` — UC12 Lịch sử chỉnh sửa điểm, UC13 Cập nhật kết quả chấm, UC14 Thống kê (**đã nối CSDL, ghi dữ liệu thật**)
     - `/publication/diem-thi.php` — UC15 Công bố điểm thi (**đã nối CSDL, ghi dữ liệu thật**)
 
@@ -38,6 +38,34 @@ Sau đó mở `http://127.0.0.1:8080/`.
 - 16 module dashboard (xem danh sách theo tên thư mục), chia sẻ **`includes/header.php`**, **`includes/footer.php`**, **`includes/sidebar.php`**, **`assets/css/style.css`**, **`assets/js/app.js`**.
 - Giao diện co giãn trên điện thoại/máy tính.
 - `.htaccess` và `router.php` giúp cấm tải trực tiếp thư mục nội bộ (cần kiểm tra lại khi chuyển lên hosting thật).
+
+### UC09 – UC11: Lô bài thi, Hội đồng thi, Phân công coi thi (Trần Thị Cẩm Vân) — đã chạy với CSDL
+
+Làm theo đặc tả trong báo cáo giữa kỳ (`BaoCaoGK_NhomDreamTeam`, mục 3.3). Cần nhập `database/install.sql` trước.
+
+| UC | Trang | Làm gì |
+|---|---|---|
+| UC09 Tra cứu thông tin lô bài thi | `/papers/` | Nhập mã lô hoặc chọn điểm thi / phòng / môn → danh sách lô phù hợp → “Xem” để thấy số bài, số bài đã đánh phách và danh sách bài thi để đối chiếu |
+| UC10 Quản lý Hội đồng thi | `/councils/` | Danh sách → Xem → Cập nhật (đúng basic flow). Có thêm Thêm mới và Xóa (chặn xóa khi hội đồng còn cán bộ) |
+| UC11 Phân công coi thi | `/assignments/` | Chọn điểm thi → phòng → môn → tick cán bộ + vai trò → Xác nhận → lưu trong 1 transaction. Có nút Hủy từng phân công để điều chỉnh |
+
+Quy tắc UC11: mỗi phòng, mỗi môn phải có đủ **Giám thị 1** và **Giám thị 2**; không phân công trùng cán bộ trong cùng phòng + môn; một cán bộ không coi cùng một môn ở 2 phòng (trùng lịch); chỉ cán bộ thuộc Hội đồng coi thi của kỳ thi mới được chọn.
+
+Thử nhanh:
+
+| Muốn thử | Làm |
+|---|---|
+| UC09 điều kiện không hợp lệ | Bấm Tra cứu khi để trống hết, hoặc chọn Điểm thi Trường THCS Mẫu A + Phòng 201 |
+| UC09 không tìm thấy | Mã lô `XYZ` |
+| UC09 xem chi tiết | Môn Toán → Xem `LO_P101_TOAN` (5 bài) |
+| UC10 thông tin không hợp lệ | Xem HD02 → Cập nhật → đổi tên thành “Hội đồng chấm thi” (trùng HD03) hoặc để trống |
+| UC10 không cho xóa | Xem HD02 → Xóa (đang có 6 cán bộ) |
+| UC11 trùng lịch | Điểm thi THCS Mẫu A, Phòng 101, Toán → tick Võ Hoàng Long làm Giám thị 1 |
+| UC11 chưa đủ 2 giám thị | Hủy Giám thị 2 của phòng đó rồi bấm Tiếp tục mà không chọn ai |
+
+**Lưu ý dữ liệu mẫu:** Hội đồng coi thi chỉ có 6 cán bộ (CB03–CB08) cho 8 chỗ giám thị mỗi môn, và seed đang xếp trùng lịch (vd CB03, CB04 coi Toán ở cả P101 và P202). Vì vậy sau khi hủy một phân công sẽ không còn ai rảnh để phân công lại. Muốn demo lưu thành công, thêm 1–2 cán bộ vào HD02 (bảng CanBo) hoặc bổ sung vào `database/seed/seed.sql`.
+
+Mã nguồn: `services/paper_batch_service.php`, `services/council_service.php`, `services/assignment_service.php`; hàm giao diện chung `includes/ui.php`.
 
 ### UC12 – UC15: Chấm thi và công bố điểm (Ngọc Linh) — đã chạy với CSDL
 
@@ -64,7 +92,7 @@ Dữ liệu mẫu để thử (kỳ thi `Kỳ thi tuyển sinh lớp 10 năm 202
 
 Muốn đưa dữ liệu về như ban đầu sau khi thử: trong phpMyAdmin xóa database `dreamteam_tuyensinh10` rồi nhập lại `install.sql`.
 
-Mã nguồn: logic trong `services/grading_service.php`, form POST có CSRF (`services/csrf.php`), giao diện dùng chung `includes/grading_ui.php`, CSS tiền tố `grading-` cuối `assets/css/style.css`.
+Mã nguồn: logic trong `services/grading_service.php`, form POST có CSRF (`services/csrf.php`), giao diện dùng chung `includes/ui.php` (+ tab riêng trong `includes/grading_ui.php`), CSS tiền tố `ui-` cuối `assets/css/style.css`.
 UC22 (Cẩm Vân) giữ giao diện mẫu cũ, chuyển sang `/publication/tuyen-sinh.php`; `/publication/` giờ là trang chọn UC15 / UC22.
 
 ## 3. Phân chia phần code cho nhóm
@@ -73,7 +101,7 @@ UC22 (Cẩm Vân) giữ giao diện mẫu cũ, chuyển sang `/publication/tuyen
 |---|---|---|
 | Nguyễn Quốc Thiên | `aspirations/`, `candidates/`, `admission-info/` | UC02 Nguyện vọng |
 | Nguyễn Thị Thúy Vy | `exam/` | UC07 Phân phòng thi |
-| Trần Thị Cẩm Vân | `papers/`, `councils/`, `assignments/`, `staff/` | UC11 Phân công coi thi |
+| Trần Thị Cẩm Vân | `papers/`, `councils/`, `assignments/`, `staff/` | UC09 – UC11 Lô bài thi, Hội đồng thi, Phân công coi thi (**đã xong**) |
 | Nguyễn Thị Ngọc Linh | `grading/`, `publication/diem-thi.php` | UC12 – UC15 Chấm thi, công bố điểm (**đã xong**) |
 | Tô Nguyễn Khánh Duy | `appeals/`, `admission/` | UC17 Xét tuyển NV |
 | Nguyễn Thị Cẩm Vân | `enrollment/`, `statistics/`, `publication/` | UC20 Nhập học |

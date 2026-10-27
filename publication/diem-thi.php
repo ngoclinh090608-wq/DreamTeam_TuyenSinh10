@@ -6,8 +6,8 @@ declare(strict_types=1);
  */
 require_once dirname(__DIR__) . '/includes/grading_ui.php';
 
-$maKyThi = grading_input('kyThi');
-$maMonThi = grading_input('monThi');
+$maKyThi = ui_input('kyThi');
+$maMonThi = ui_input('monThi');
 $daChon = isset($_GET['xem']) || $_SERVER['REQUEST_METHOD'] === 'POST';
 $buocXacNhan = ($_GET['buoc'] ?? '') === 'xac-nhan';
 
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'cong_
         try {
             $n = capNhatTrangThaiCongBo($maKyThi, $maMonThi);
             flash_set('success', sprintf('Công bố điểm thi thành công. %d bài thi đã chuyển sang trạng thái “Đã công bố”, học sinh có thể tra cứu điểm.', $n));
-            grading_redirect('publication/diem-thi.php', ['kyThi' => $maKyThi, 'monThi' => $maMonThi, 'xem' => 1]);
+            ui_redirect('publication/diem-thi.php', ['kyThi' => $maKyThi, 'monThi' => $maMonThi, 'xem' => 1]);
         } catch (GradingException $e) {
             $loi = $e->getMessage();
         } catch (Throwable $e) {
@@ -48,11 +48,11 @@ foreach ($dsMonThi as $m) if ($m['maMonThi'] === $maMonThi) $tenMon = $m['tenMon
 $duocCongBo = $pv && $pv['loiCongBo'] === null;
 $q = ['kyThi' => $maKyThi, 'monThi' => $maMonThi, 'xem' => 1];
 
-grading_page_start('publication', 'Công bố điểm thi', 'Công bố · Điểm thi', 'Chọn kỳ thi và môn thi, kiểm tra danh sách kết quả rồi công bố để học sinh tra cứu điểm. Điểm thi không thay đổi khi công bố.', 'UC15');
+ui_page_start('publication', 'Công bố điểm thi', 'Công bố · Điểm thi', 'Chọn kỳ thi và môn thi, kiểm tra danh sách kết quả rồi công bố để học sinh tra cứu điểm. Điểm thi không thay đổi khi công bố.', 'UC15');
 grading_tabs('publication', 'diem-thi.php');
-grading_flashes();
-if (isset($_GET['huy'])) grading_notice('info', 'Đã hủy công bố. Trạng thái kết quả thi được giữ nguyên.');
-if ($loiHeThong) grading_notice('error', $loiHeThong);
+ui_flashes();
+if (isset($_GET['huy'])) ui_notice('info', 'Đã hủy công bố. Trạng thái kết quả thi được giữ nguyên.');
+if ($loiHeThong) ui_notice('error', $loiHeThong);
 ?>
 <section class="panel table-panel">
   <div class="table-toolbar"><div class="table-title"><h2>Kết quả chấm thi theo môn</h2><p>Bấm “Chọn” để xem danh sách và công bố.</p></div></div>
@@ -61,10 +61,10 @@ if ($loiHeThong) grading_notice('error', $loiHeThong);
     <tbody>
     <?php if (!$tongQuan): ?><tr><td colspan="6" class="muted center">Chưa có bài thi nào.</td></tr><?php endif; ?>
     <?php foreach ($tongQuan as $t): $chon = $t['maKyThi'] === $maKyThi && $t['maMonThi'] === $maMonThi && $daChon; ?>
-      <tr<?= $chon ? ' class="grading-row-on"' : '' ?>><td><?= e($t['tenKyThi']) ?></td><td><strong><?= e($t['tenMonThi']) ?></strong></td>
+      <tr<?= $chon ? ' class="ui-row-on"' : '' ?>><td><?= e($t['tenKyThi']) ?></td><td><strong><?= e($t['tenMonThi']) ?></strong></td>
         <td><?= $t['daCham'] ?>/<?= $t['tong'] ?><?= $t['chuaCham'] ? ' <span class="status status-pending">còn ' . $t['chuaCham'] . ' chưa chấm</span>' : '' ?></td>
         <td><?= $t['daCongBo'] ?>/<?= $t['daCongBo'] + $t['chuaCongBo'] ?></td>
-        <td><?= grading_status_badge($t['trangThai']) ?></td>
+        <td><?= ui_status_badge($t['trangThai']) ?></td>
         <td><a class="btn btn-outline btn-sm" href="?<?= e(http_build_query(['kyThi' => $t['maKyThi'], 'monThi' => $t['maMonThi'], 'xem' => 1])) ?>">Chọn</a></td></tr>
     <?php endforeach; ?>
     </tbody>
@@ -73,29 +73,29 @@ if ($loiHeThong) grading_notice('error', $loiHeThong);
 
 <section class="panel">
   <div class="panel-heading"><div><h2>Chọn phạm vi công bố</h2><p>Các trường có dấu * là bắt buộc.</p></div></div>
-  <form method="get" class="grading-search grading-search-two" novalidate>
+  <form method="get" class="ui-search ui-search-two" novalidate>
     <input type="hidden" name="xem" value="1">
-    <?php grading_select('kyThi', 'Kỳ thi', $dsKyThi, 'maKyThi', 'tenKyThi', $maKyThi, '-- Chọn kỳ thi --'); ?>
-    <?php grading_select('monThi', 'Môn thi', $dsMonThi, 'maMonThi', 'tenMonThi', $maMonThi, '-- Chọn môn thi --'); ?>
-    <div class="field grading-search-btn"><button class="btn btn-primary" type="submit">Xem danh sách</button></div>
+    <?php ui_select('kyThi', 'Kỳ thi', $dsKyThi, 'maKyThi', 'tenKyThi', $maKyThi, '-- Chọn kỳ thi --'); ?>
+    <?php ui_select('monThi', 'Môn thi', $dsMonThi, 'maMonThi', 'tenMonThi', $maMonThi, '-- Chọn môn thi --'); ?>
+    <div class="field ui-search-btn"><button class="btn btn-primary" type="submit">Xem danh sách</button></div>
   </form>
 </section>
 
-<?php if ($loi) grading_notice(str_starts_with($loi, 'Vui lòng') ? 'warning' : 'error', $loi); ?>
+<?php if ($loi) ui_notice(str_starts_with($loi, 'Vui lòng') ? 'warning' : 'error', $loi); ?>
 
 <?php if ($pv): $tk = $pv['thongKe']; ?>
-  <?php if ($pv['loiCongBo'] !== null && !$loi) grading_notice($pv['loiCongBo'] === 'Kết quả thi đã được công bố.' ? 'info' : 'warning', $pv['loiCongBo']); ?>
+  <?php if ($pv['loiCongBo'] !== null && !$loi) ui_notice($pv['loiCongBo'] === 'Kết quả thi đã được công bố.' ? 'info' : 'warning', $pv['loiCongBo']); ?>
 
   <?php if ($buocXacNhan && $duocCongBo): ?>
-  <section class="panel grading-confirm-panel" id="xac-nhan">
+  <section class="panel ui-confirm-panel" id="xac-nhan">
     <div class="panel-heading"><div><h2>Xác nhận công bố điểm thi</h2><p>Sau khi công bố, học sinh có thể tra cứu điểm.</p></div></div>
-    <p class="grading-confirm">Bạn có chắc chắn muốn công bố điểm thi môn <strong><?= e($tenMon) ?></strong> – <?= e($tenKy) ?>?<br><?= $tk['chuaCongBo'] ?> bài thi sẽ chuyển sang trạng thái “Đã công bố”.</p>
-    <form method="post" action="?<?= e(http_build_query($q)) ?>" class="grading-actions">
+    <p class="ui-confirm">Bạn có chắc chắn muốn công bố điểm thi môn <strong><?= e($tenMon) ?></strong> – <?= e($tenKy) ?>?<br><?= $tk['chuaCongBo'] ?> bài thi sẽ chuyển sang trạng thái “Đã công bố”.</p>
+    <form method="post" action="?<?= e(http_build_query($q)) ?>" class="ui-actions">
       <?= csrf_field() ?>
       <input type="hidden" name="kyThi" value="<?= e($maKyThi) ?>">
       <input type="hidden" name="monThi" value="<?= e($maMonThi) ?>">
       <button class="btn btn-primary" type="submit" name="action" value="cong_bo">✓ Xác nhận công bố</button>
-      <a class="btn btn-outline grading-btn-cancel" href="?<?= e(http_build_query($q + ['huy' => 1])) ?>">Không công bố</a>
+      <a class="btn btn-outline ui-btn-cancel" href="?<?= e(http_build_query($q + ['huy' => 1])) ?>">Không công bố</a>
     </form>
   </section>
   <?php endif; ?>
@@ -116,10 +116,10 @@ if ($loiHeThong) grading_notice('error', $loiHeThong);
       <tbody>
       <?php if (!$pv['rows']): ?><tr><td colspan="6" class="muted center">Chưa có bài thi.</td></tr><?php endif; ?>
       <?php foreach ($pv['rows'] as $i => $r): ?>
-        <tr><td class="muted"><?= $i + 1 ?></td><td><span class="code-tag"><?= e($r['soPhach'] ?? '—') ?></span></td><td><?= e($r['maThiSinh']) ?></td><td><strong><?= e(grading_fmt_diem($r['diemThi'])) ?></strong></td><td><?= grading_status_badge($r['trangThaiCham']) ?></td><td><?= $r['maKetQuaChamThi'] === null ? '<span class="muted">—</span>' : grading_status_badge($r['trangThaiCongBo']) ?></td></tr>
+        <tr><td class="muted"><?= $i + 1 ?></td><td><span class="code-tag"><?= e($r['soPhach'] ?? '—') ?></span></td><td><?= e($r['maThiSinh']) ?></td><td><strong><?= e(grading_fmt_diem($r['diemThi'])) ?></strong></td><td><?= ui_status_badge($r['trangThaiCham']) ?></td><td><?= $r['maKetQuaChamThi'] === null ? '<span class="muted">—</span>' : ui_status_badge($r['trangThaiCongBo']) ?></td></tr>
       <?php endforeach; ?>
       </tbody>
     </table></div>
   </section>
 <?php endif; ?>
-<?php grading_page_end();
+<?php ui_page_end();
