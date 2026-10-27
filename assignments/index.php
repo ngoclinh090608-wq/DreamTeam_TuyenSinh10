@@ -27,7 +27,7 @@ try {
     if ($action === 'kiem_tra') {
         $xacNhan = kiemTraTruocXacNhan($maDiemThi, $maPhong, $maMonThi, $chon);
     } elseif ($action === 'luu') {
-        $daThem = luuPhanCongCoiThi($maDiemThi, $maPhong, $maMonThi, $chon);
+        $daThem = luuThongTinPhanCong($maDiemThi, $maPhong, $maMonThi, $chon);
         flash_set('success', 'Phân công coi thi thành công: ' . implode(', ', array_map(fn($c) => "{$c['hoTen']} – {$c['vaiTro']}", $daThem)) . '.');
         ui_redirect('assignments/', $sel);
     } elseif ($action === 'huy') {
@@ -43,16 +43,16 @@ try {
 $dsDiemThi = $dsPhong = $dsMon = $hienCo = $canBo = $tongQuan = [];
 $phong = null;
 try {
-    $dsDiemThi = pc_ds_diem_thi();
+    $dsDiemThi = layDanhSachDiemThi();
     $dsMon = pc_ds_mon();
     if ($maDiemThi !== '') {
-        $dsPhong = pc_ds_phong($maDiemThi);
+        $dsPhong = layDanhSachPhongThi($maDiemThi);
         $tongQuan = tongQuanPhanCong($maDiemThi);
         if ($maPhong !== '') $phong = pc_phong(db(), $maDiemThi, $maPhong);
     }
     if ($phong && $maMonThi !== '') {
         $hienCo = layPhanCongPhong($maPhong, $maMonThi);
-        $canBo = layCanBoCoThePhanCong($phong['maKyThi'], $maPhong, $maMonThi);
+        $canBo = layDanhSachCanBoGiamThi($phong['maKyThi'], $maPhong, $maMonThi);
     }
 } catch (Throwable $e) {
     error_log('UC11: ' . $e->getMessage());

@@ -11,6 +11,7 @@ require_once __DIR__ . '/business_exception.php';
 const HD_LOAI = ['Ra đề', 'Coi thi', 'Chấm thi', 'Phúc khảo', 'Tuyển sinh'];
 const HD_KHONG_THE_LUU = 'Không thể lưu thông tin Hội đồng thi.';
 const HD_KHONG_TIM_THAY = 'Không tìm thấy Hội đồng thi được chọn.';
+const HD_CAP_NHAT_THANH_CONG = 'Cập nhật thành công.';
 
 function hd_ds_ky_thi(): array {
     return db()->query('SELECT maKyThi, tenKyThi FROM KyThi ORDER BY thoiGianKetThuc DESC, maKyThi')->fetchAll();
@@ -93,8 +94,8 @@ function hd_trong_transaction(callable $fn): mixed {
     }
 }
 
-/** Bước 8–10: cập nhật thông tin Hội đồng thi. */
-function capNhatHoiDongThi(string $ma, array $in): void {
+/** Bước 8–10: lưu thông tin Hội đồng thi đã cập nhật (tên theo class diagram Tuần 07). */
+function luuThongTinHoiDongThi(string $ma, array $in): void {
     hd_trong_transaction(function (PDO $pdo) use ($ma, $in) {
         $st = $pdo->prepare('SELECT 1 FROM HoiDongThi WHERE maHoiDongThi = ? FOR UPDATE');
         $st->execute([$ma]);

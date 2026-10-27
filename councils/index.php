@@ -19,8 +19,8 @@ $loi = null; $chiTietLoi = []; $loiHeThong = ui_csrf_error();
 if ($action !== '' && !$loiHeThong) {
     try {
         if ($action === 'cap_nhat') {
-            capNhatHoiDongThi($ma, $form);
-            flash_set('success', 'Cập nhật thông tin Hội đồng thi thành công.');
+            luuThongTinHoiDongThi($ma, $form);
+            flash_set('success', HD_CAP_NHAT_THANH_CONG);
             ui_redirect('councils/', ['ma' => $ma]);
         } elseif ($action === 'them') {
             $maMoi = themHoiDongThi($form);

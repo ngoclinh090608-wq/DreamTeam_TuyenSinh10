@@ -23,12 +23,12 @@ const PC_KHONG_THE_LUU = 'Không thể lưu thông tin phân công coi thi.';
 // ---------- Danh sách cho các bước chọn ----------
 
 /** Bước 2: danh sách điểm thi. */
-function pc_ds_diem_thi(): array {
+function layDanhSachDiemThi(): array {
     return db()->query('SELECT d.maDiemThi, d.tenDiemThi, d.maKyThi FROM DiemThi d ORDER BY d.maDiemThi')->fetchAll();
 }
 
 /** Bước 4: phòng thi thuộc điểm thi đã chọn. */
-function pc_ds_phong(string $maDiemThi): array {
+function layDanhSachPhongThi(string $maDiemThi): array {
     $st = db()->prepare("SELECT maPhong, CONCAT(tenPhong, ' (', maPhong, ')') AS tenHienThi FROM PhongThi WHERE maDiemThi = ? ORDER BY maPhong");
     $st->execute([$maDiemThi]);
     return $st->fetchAll();
@@ -62,7 +62,7 @@ function layPhanCongPhong(string $maPhong, string $maMonThi, ?PDO $pdo = null): 
  * Bước 8: cán bộ thuộc Hội đồng coi thi của kỳ thi, kèm tình trạng với phòng + môn đang chọn.
  * Mỗi dòng có: daOPhongNay (đã phân công phòng này), phongKhac (đã coi môn này ở phòng khác), coThe.
  */
-function layCanBoCoThePhanCong(string $maKyThi, string $maPhong, string $maMonThi, ?PDO $pdo = null): array {
+function layDanhSachCanBoGiamThi(string $maKyThi, string $maPhong, string $maMonThi, ?PDO $pdo = null): array {
     $st = ($pdo ?? db())->prepare(
         "SELECT c.maCanBo, c.hoTen, c.chucVu,
                 MAX(pc.maPhong = ?) AS daOPhongNay,
@@ -111,7 +111,7 @@ function kiemTraPhanCong(PDO $pdo, string $maDiemThi, string $maPhong, string $m
 
     $hienCo = layPhanCongPhong($maPhong, $maMonThi, $pdo);
     $dsCanBo = [];
-    foreach (layCanBoCoThePhanCong($phong['maKyThi'], $maPhong, $maMonThi, $pdo) as $c) $dsCanBo[$c['maCanBo']] = $c;
+    foreach (layDanhSachCanBoGiamThi($phong['maKyThi'], $maPhong, $maMonThi, $pdo) as $c) $dsCanBo[$c['maCanBo']] = $c;
 
     if (!$chon) $loi[] = 'Vui lòng chọn cán bộ/giám thị cần phân công.';
     foreach ($chon as $ma => $vaiTro) {
@@ -147,7 +147,7 @@ function kiemTraTruocXacNhan(string $maDiemThi, string $maPhong, string $maMonTh
 // ---------- Lưu (bước 12) ----------
 
 /** Lưu phân công trong một transaction. Lỗi thì không thay đổi phân công trước đó. Trả về các dòng đã thêm. */
-function luuPhanCongCoiThi(string $maDiemThi, string $maPhong, string $maMonThi, array $chon): array {
+function luuThongTinPhanCong(string $maDiemThi, string $maPhong, string $maMonThi, array $chon): array {
     $pdo = db();
     $pdo->beginTransaction();
     try {
