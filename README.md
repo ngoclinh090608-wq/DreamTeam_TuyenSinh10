@@ -106,6 +106,8 @@ UC22 (Cẩm Vân) giữ giao diện mẫu cũ, chuyển sang `/publication/tuyen
 | Tô Nguyễn Khánh Duy | `appeals/`, `admission/` | UC17 Xét tuyển NV |
 | Nguyễn Thị Cẩm Vân | `enrollment/`, `statistics/`, `publication/` | UC20 Nhập học |
 
+**Cách làm việc nhóm (nhánh riêng, Pull Request, quy ước code): xem [`docs/HUONG_DAN_NHOM.md`](docs/HUONG_DAN_NHOM.md).**
+
 Chỉ là cách ghép nhóm chức năng. Tên, thứ tự và nghiệp vụ phải rà soát theo **báo cáo tuần 08 bản `(1)`** đã chốt.
 
 ## 4. Quy tắc thống nhất giao diện
