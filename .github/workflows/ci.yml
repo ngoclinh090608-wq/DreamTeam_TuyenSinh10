@@ -1,0 +1,83 @@
+# CI – cổng kiểm tra tự động cho mỗi lần push và mỗi Pull Request vào main.
+# Các bước: kiểm tra cú pháp PHP → kiểm tra install.sql đã build lại → nhập CSDL → chạy web → kiểm thử chức năng.
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  kiem-tra:
+    name: Kiểm tra code
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      mariadb:
+        image: mariadb:10.4          # cùng phiên bản với XAMPP của nhóm
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '3306'
+      DB_USER: root
+      DB_PASS: root
+      DB_NAME: dreamteam_tuyensinh10
+
+    steps:
+      - name: Lấy code
+        uses: actions/checkout@v4
+
+      - name: Cài PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, mbstring
+          coverage: none
+
+      - name: 1. Kiểm tra cú pháp tất cả file PHP
+        run: |
+          loi=0
+          while IFS= read -r -d '' f; do
+            php -l "$f" > /dev/null || loi=1
+          done < <(find . -name '*.php' -not -path './.git/*' -print0)
+          if [ "$loi" -ne 0 ]; then echo "::error::Có file PHP sai cú pháp (xem ở trên)."; exit 1; fi
+          echo "Tất cả file PHP đúng cú pháp."
+
+      - name: 2. Kiểm tra install.sql đã được build lại
+        run: |
+          php database/build.php
+          if ! git diff --quiet -- database/install.sql database/install_schema.sql; then
+            echo "::error::database/install.sql chưa cập nhật. Hãy chạy 'php database/build.php' rồi commit lại cả install.sql và install_schema.sql."
+            git diff --stat -- database/
+            exit 1
+          fi
+          echo "install.sql khớp với các file trong database/."
+
+      - name: 3. Nhập CSDL từ install.sql
+        run: |
+          mysql -h 127.0.0.1 -uroot -proot --default-character-set=utf8mb4 < database/install.sql
+          mysql -h 127.0.0.1 -uroot -proot -N -e "SELECT COUNT(*) AS soBang FROM information_schema.tables WHERE table_schema='dreamteam_tuyensinh10'"
+
+      - name: 4. Chạy web bằng PHP built-in server
+        run: |
+          php -S 127.0.0.1:8080 router.php > /tmp/php-server.log 2>&1 &
+          for i in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:8080/ && break; sleep 1; done
+          curl -s -o /dev/null -w "Trang chủ: HTTP %{http_code}\n" http://127.0.0.1:8080/
+
+      - name: 5. Kiểm thử chức năng UC09 – UC15
+        env:
+          BASE_URL: http://127.0.0.1:8080
+          SAO_LUU: '0'
+        run: bash tests/kiem_thu_uc09_15.sh
+
+      - name: Log PHP server (khi có lỗi)
+        if: failure()
+        run: tail -n 100 /tmp/php-server.log || true

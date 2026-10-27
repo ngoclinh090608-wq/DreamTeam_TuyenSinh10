@@ -173,6 +173,7 @@ DreamTeam_TuyenSinh10/
 ├── assets/             css/style.css, js/app.js, images/logo.svg
 ├── database/           tables/, views/, procedures/, functions/, seed/
 ├── storage/            file tạm/log (không commit)
-├── tests/              kiểm thử
+├── tests/              kiem_thu_uc09_15.sh (CI chạy tự động)
+├── .github/workflows/  ci.yml (GitHub Actions)
 └── docs/               sơ đồ, tài liệu, biên bản
 ```
