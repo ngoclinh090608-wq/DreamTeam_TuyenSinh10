@@ -1,0 +1,10 @@
+Options -Indexes
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Never expose internal PHP, SQL, tests, and documents over HTTP.
+    RewriteRule ^(config|includes|services|database|storage|tests|docs)(/|$) - [F,L,NC]
+    RewriteRule ^(\.env.*|\.git.*|README\.md|router\.php|composer\.(json|lock))$ - [F,L,NC]
+</IfModule>
+<FilesMatch "^(\.env.*|\.git.*|.*\.sql|.*\.log)$">
+    Require all denied
+</FilesMatch>

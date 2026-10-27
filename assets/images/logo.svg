@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 90 90" role="img" aria-label="Logo đồ án Dream Team">
+<defs><linearGradient id="b" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#3098e4"/><stop offset="1" stop-color="#0d528c"/></linearGradient></defs>
+<rect width="90" height="90" rx="24" fill="url(#b)"/>
+<path d="M21 33L45 22l24 11-24 11-24-11Z" fill="#fff"/>
+<path d="M28 42v12c8 11 26 12 34 0V42l-17 8-17-8Z" fill="#d8efff"/>
+<path d="M69 36v23" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+<circle cx="69" cy="63" r="5" fill="#ffcc79"/>
+</svg>

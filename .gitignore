@@ -1,0 +1,19 @@
+# Secrets / local environment
+.env
+.env.*
+!.env.example
+/config/database.local.php
+/storage/*
+!/storage/.gitkeep
+*.log
+*.bak
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Log ứng dụng
+/storage/logs/
+
+# Cấu hình Claude Code cục bộ
+.claude/
