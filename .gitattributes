@@ -1,0 +1,3 @@
+# Script bash và workflow luôn dùng xuống dòng LF (Git Bash / Linux CI không chạy được file CRLF).
+*.sh   text eol=lf
+*.yml  text eol=lf
