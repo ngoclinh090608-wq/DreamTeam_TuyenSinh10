@@ -19,7 +19,7 @@ proc: BEGIN
   BEGIN
     ROLLBACK;
     SET p_soBaiDuocCapNhat = 0;
-    SET p_thongBao = 'Không thể công bố điểm thi.';
+    SET p_thongBao = 'Không thể công bố điểm thi tại thời điểm hiện tại. Vui lòng thử lại sau.';
   END;
 
   SET p_soBaiDuocCapNhat = 0;
@@ -39,17 +39,17 @@ proc: BEGIN
 
   IF v_daCham = 0 THEN
     ROLLBACK;
-    SET p_thongBao = 'Chưa có dữ liệu kết quả chấm thi của kỳ thi hoặc môn thi được chọn.';
+    SET p_thongBao = 'Kết quả chấm thi chưa đủ điều kiện công bố.';
     LEAVE proc;
   END IF;
   IF v_canDoi = 0 THEN
     ROLLBACK;
-    SET p_thongBao = IF(p_trangThaiMoi = 'Đã công bố', 'Kết quả thi đã được công bố.', 'Kết quả thi chưa được công bố.');
+    SET p_thongBao = IF(p_trangThaiMoi = 'Đã công bố', 'Kết quả chấm thi đã được công bố.', 'Kết quả chấm thi chưa được công bố.');
     LEAVE proc;
   END IF;
   IF p_trangThaiMoi = 'Đã công bố' AND v_chuaCham > 0 THEN
     ROLLBACK;
-    SET p_thongBao = CONCAT('Kết quả chấm thi chưa được cập nhật đầy đủ (còn ', v_chuaCham, ' bài chưa chấm), không thể công bố.');
+    SET p_thongBao = 'Kết quả chấm thi chưa đủ điều kiện công bố.';
     LEAVE proc;
   END IF;
 

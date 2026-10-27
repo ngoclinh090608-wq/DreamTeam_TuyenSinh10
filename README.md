@@ -69,26 +69,26 @@ Mã nguồn: `services/paper_batch_service.php`, `services/council_service.php`,
 
 ### UC12 – UC15: Chấm thi và công bố điểm (Ngọc Linh) — đã chạy với CSDL
 
-Cần nhập `database/install.sql` trước (mục 5). Các chức năng này **có ghi vào database**.
+Câu thông báo và luồng bám **nguyên văn báo cáo giữa kỳ** (`BaoCaoGK_NhomDreamTeam`, mục 3.4). Cần nhập `database/install.sql` trước (mục 5). Các chức năng này **có ghi vào database**.
 
 | UC | Trang | Làm gì |
 |---|---|---|
-| UC12 Xem lịch sử chỉnh sửa điểm | `/grading/lich-su.php` | Chọn kỳ thi, môn thi, nhập mã phách → xem kết quả chấm hiện tại và lịch sử sửa điểm |
-| UC13 Cập nhật kết quả chấm thi | `/grading/cap-nhat.php` | Nhập mã phách → nhập điểm mới + lý do → xác nhận. Sửa điểm và ghi `LichSuChinhSuaDiem` trong 1 transaction. Có nút Hủy bỏ |
+| UC12 Xem lịch sử chỉnh sửa điểm | `/grading/lich-su.php` | Chọn kỳ thi, môn thi, nhập mã phách → Tra cứu → xem kết quả chấm → bấm **Xem lịch sử chỉnh sửa** |
+| UC13 Cập nhật kết quả chấm thi | `/grading/cap-nhat.php` | Nhập mã phách → nhập điểm mới (0–10, bước 0.25) + lý do → Xác nhận cập nhật / Hủy bỏ. Sửa điểm và ghi `LichSuChinhSuaDiem` trong 1 transaction |
 | UC14 Thống kê kết quả chấm thi | `/grading/thong-ke.php` | Chọn kỳ thi, môn thi → tổng bài đã chấm, điểm trung bình, cao nhất, thấp nhất |
-| UC15 Công bố điểm thi | `/publication/diem-thi.php` | Chọn kỳ thi, môn thi → xem danh sách và trạng thái → Công bố (có bước xác nhận). Chặn khi đã công bố hoặc còn bài chưa chấm |
+| UC15 Công bố điểm thi | `/publication/diem-thi.php` | Chọn kỳ thi, môn thi → Tra cứu → bấm Công bố điểm thi → hệ thống kiểm tra điều kiện → xác nhận / Hủy bỏ |
 
 Dữ liệu mẫu để thử (kỳ thi `Kỳ thi tuyển sinh lớp 10 năm 2026`):
 
 | Muốn thử | Nhập |
 |---|---|
 | Có lịch sử chỉnh sửa | Môn **Toán**, mã phách `P0052` |
-| Chưa có lịch sử ("Kết quả chấm thi này chưa có lịch sử chỉnh sửa điểm.") | Môn **Ngữ văn**, mã phách `P0023` |
+| Chưa có lịch sử ("Kết quả chấm thi này chưa có lịch sử chỉnh sửa điểm.") | Môn **Ngữ văn**, mã phách `P0023`, bấm Xem lịch sử chỉnh sửa |
 | Không tìm thấy | Môn **Toán**, mã phách `P0023` (phách này thuộc môn Văn) |
 | Thiếu điều kiện tra cứu | Để trống mã phách rồi bấm Tra cứu |
-| UC13 báo điểm không hợp lệ | Mã phách `P0023`, điểm `11` hoặc để trống lý do |
+| UC13 "Điểm cập nhật không hợp lệ." / "Vui lòng nhập lý do chỉnh sửa điểm." | Mã phách `P0023`, điểm `11` hoặc `8.3` (sai bước 0.25), hoặc để trống lý do |
 | UC15 công bố thành công | Môn **Ngoại ngữ** (18/18 bài đã chấm, chưa công bố) |
-| UC15 bị chặn "đã công bố" | Môn **Ngữ văn** hoặc **Toán** |
+| UC15 "Kết quả chấm thi đã được công bố." / "Kết quả chấm thi chưa đủ điều kiện công bố." | Môn **Ngữ văn** (đã công bố) / môn **Toán** khi còn 3 bài chưa chấm |
 
 Muốn đưa dữ liệu về như ban đầu sau khi thử: trong phpMyAdmin xóa database `dreamteam_tuyensinh10` rồi nhập lại `install.sql`.
 

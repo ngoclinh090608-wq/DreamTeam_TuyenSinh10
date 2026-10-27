@@ -462,16 +462,19 @@ proc: BEGIN
   DECLARE v_diemCu DECIMAL(5,2) DEFAULT NULL;
   DECLARE v_thangDiem DECIMAL(5,2) DEFAULT NULL;
   DECLARE v_soLichSu INT DEFAULT 0;
+  DECLARE v_dangGhiLichSu BOOL DEFAULT FALSE;
   DECLARE EXIT HANDLER FOR SQLEXCEPTION
   BEGIN
     ROLLBACK;
     SET p_diemTruocChinhSua = NULL, p_diemSauChinhSua = NULL;
-    SET p_thongBao = 'Không thể lưu kết quả chấm thi.';
+    SET p_thongBao = IF(v_dangGhiLichSu,
+      'Không thể ghi nhận lịch sử chỉnh sửa điểm. Kết quả chấm thi chưa được cập nhật.',
+      'Không thể cập nhật kết quả chấm thi. Vui lòng thực hiện lại.');
   END;
 
   SET p_diemTruocChinhSua = NULL, p_diemSauChinhSua = NULL;
   IF p_lyDoChinhSua IS NULL OR TRIM(p_lyDoChinhSua) = '' THEN
-    SET p_thongBao = 'Kết quả chấm thi không hợp lệ: lý do chỉnh sửa không được để trống.';
+    SET p_thongBao = 'Vui lòng nhập lý do chỉnh sửa điểm.';
     LEAVE proc;
   END IF;
 
@@ -488,19 +491,21 @@ proc: BEGIN
     SET p_thongBao = 'Không tìm thấy kết quả chấm thi phù hợp.';
     LEAVE proc;
   END IF;
-  IF p_diemMoi IS NULL OR p_diemMoi < 0 OR p_diemMoi > v_thangDiem THEN
+  -- 9.1: điểm âm, vượt thang điểm hoặc sai bước nhảy 0.25
+  IF p_diemMoi IS NULL OR p_diemMoi < 0 OR p_diemMoi > v_thangDiem OR MOD(p_diemMoi * 100, 25) <> 0 THEN
     ROLLBACK;
-    SET p_thongBao = CONCAT('Kết quả chấm thi không hợp lệ: điểm phải nằm trong thang điểm 0 – ', TRIM(TRAILING '.' FROM TRIM(TRAILING '0' FROM v_thangDiem)), '.');
+    SET p_thongBao = 'Điểm cập nhật không hợp lệ.';
     LEAVE proc;
   END IF;
   IF p_diemMoi = v_diemCu THEN
     ROLLBACK;
-    SET p_thongBao = 'Kết quả chấm thi không hợp lệ: điểm mới trùng với điểm hiện tại.';
+    SET p_thongBao = 'Điểm cập nhật không hợp lệ.';
     LEAVE proc;
   END IF;
 
   UPDATE KetQuaChamThi SET diemThi = p_diemMoi WHERE maKetQuaChamThi = p_maKetQuaChamThi;
 
+  SET v_dangGhiLichSu = TRUE;
   SELECT COALESCE(MAX(CAST(SUBSTRING(maLichSu, 3) AS UNSIGNED)), 0) INTO v_soLichSu
   FROM LichSuChinhSuaDiem WHERE maLichSu LIKE 'LS%' FOR UPDATE;
   INSERT INTO LichSuChinhSuaDiem (maLichSu, diemTruocChinhSua, diemSauChinhSua, thoiGianChinhSua, nguoiThucHien, lyDoChinhSua, maKetQuaChamThi)
@@ -534,7 +539,7 @@ proc: BEGIN
   BEGIN
     ROLLBACK;
     SET p_soBaiDuocCapNhat = 0;
-    SET p_thongBao = 'Không thể công bố điểm thi.';
+    SET p_thongBao = 'Không thể công bố điểm thi tại thời điểm hiện tại. Vui lòng thử lại sau.';
   END;
 
   SET p_soBaiDuocCapNhat = 0;
@@ -554,17 +559,17 @@ proc: BEGIN
 
   IF v_daCham = 0 THEN
     ROLLBACK;
-    SET p_thongBao = 'Chưa có dữ liệu kết quả chấm thi của kỳ thi hoặc môn thi được chọn.';
+    SET p_thongBao = 'Kết quả chấm thi chưa đủ điều kiện công bố.';
     LEAVE proc;
   END IF;
   IF v_canDoi = 0 THEN
     ROLLBACK;
-    SET p_thongBao = IF(p_trangThaiMoi = 'Đã công bố', 'Kết quả thi đã được công bố.', 'Kết quả thi chưa được công bố.');
+    SET p_thongBao = IF(p_trangThaiMoi = 'Đã công bố', 'Kết quả chấm thi đã được công bố.', 'Kết quả chấm thi chưa được công bố.');
     LEAVE proc;
   END IF;
   IF p_trangThaiMoi = 'Đã công bố' AND v_chuaCham > 0 THEN
     ROLLBACK;
-    SET p_thongBao = CONCAT('Kết quả chấm thi chưa được cập nhật đầy đủ (còn ', v_chuaCham, ' bài chưa chấm), không thể công bố.');
+    SET p_thongBao = 'Kết quả chấm thi chưa đủ điều kiện công bố.';
     LEAVE proc;
   END IF;
 

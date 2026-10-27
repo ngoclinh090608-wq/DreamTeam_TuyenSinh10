@@ -16,7 +16,7 @@ try {
     $loi = $e->getMessage();
 } catch (Throwable $e) {
     error_log('UC14: ' . $e->getMessage());
-    $loiHeThong = 'Không thể thực hiện thống kê kết quả chấm thi tại thời điểm hiện tại.';
+    $loiHeThong = TB_LOI_THONG_KE;
 }
 $thang = null; $tenMon = '';
 foreach ($dsMonThi as $m) if ($m['maMonThi'] === $maMonThi) { $thang = $m['thangDiem']; $tenMon = $m['tenMonThi']; }
@@ -35,7 +35,7 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
   </form>
 </section>
 
-<?php if ($loi) ui_notice(str_starts_with($loi, 'Vui lòng') ? 'warning' : 'info', $loi); ?>
+<?php if ($loi) ui_notice($loi === TB_CHON_KY_MON ? 'warning' : 'info', $loi); ?>
 
 <?php if ($tk): ?>
 <h2 class="ui-section-title">Kết quả thống kê môn <?= e($tenMon) ?></h2>
