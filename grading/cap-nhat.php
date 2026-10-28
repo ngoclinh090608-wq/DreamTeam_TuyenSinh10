@@ -6,6 +6,7 @@ declare(strict_types=1);
  * → “Xác nhận cập nhật” hoặc “Hủy bỏ” → lưu điểm + ghi lịch sử (1 transaction).
  */
 require_once dirname(__DIR__) . '/includes/grading_ui.php';
+$nguoiDung = require_role(['HD_CHAM_THI']);   // UC13 – Hội đồng chấm thi
 
 $soPhach = grading_chuan_hoa_phach(ui_input('soPhach'));
 $diemMoi = ui_input('diemMoi');
@@ -17,7 +18,7 @@ if ($loiHeThong) $action = '';
 
 if ($action === 'luu') {
     try {
-        $r = capNhatDiem($soPhach, $diemMoi, $lyDo);
+        $r = capNhatDiem($soPhach, $diemMoi, $lyDo, $nguoiDung['hoTen']);   // ghi nhận người thực hiện
         flash_set('success', TB_CAP_NHAT_THANH_CONG);
         flash_set('info', sprintf('Điểm thi sau khi cập nhật của bài %s: %s (trước khi sửa: %s).', $r['soPhach'], grading_fmt_diem($r['diemSau']), grading_fmt_diem($r['diemTruoc'])));
         ui_redirect('grading/cap-nhat.php', ['soPhach' => $r['soPhach']]);
@@ -79,7 +80,7 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
     <p>Đổi điểm bài <strong><?= e($ketQua['soPhach']) ?></strong> môn <strong><?= e($ketQua['tenMonThi']) ?></strong>:</p>
     <p class="ui-change"><span><?= e(grading_fmt_diem($ketQua['diemThi'])) ?></span> → <strong><?= e(grading_fmt_diem(str_replace(',', '.', $diemMoi))) ?></strong></p>
     <p><strong>Lý do:</strong> <?= e($lyDo) ?></p>
-    <p class="muted">Người chỉnh sửa: <?= e(GRADING_NGUOI_THUC_HIEN) ?></p>
+    <p class="muted">Người chỉnh sửa: <?= e($nguoiDung['hoTen']) ?></p>
   </div>
   <form method="post" class="ui-actions">
     <?= csrf_field() ?>

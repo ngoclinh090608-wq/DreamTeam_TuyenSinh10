@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Kiểm thử chức năng UC09 – UC15 (gọi trang thật qua HTTP, so câu thông báo theo báo cáo giữa kỳ).
+# Kiểm thử đăng nhập, phân quyền và chức năng UC09 – UC15 (gọi trang thật qua HTTP, so câu thông báo theo báo cáo giữa kỳ).
 #
 # Chạy trên máy (Git Bash, XAMPP đang bật Apache + MySQL, đã nhập database/install.sql):
 #     bash tests/kiem_thu_uc09_15.sh
@@ -29,6 +29,8 @@ DB_ARGS=(-h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" --default-character-set=utf8m
 S="$(mktemp -d)"
 # Git Bash trên Windows: curl.exe cần đường dẫn dạng C:/... thay vì /tmp/...
 command -v cygpath >/dev/null 2>&1 && S="$(cygpath -m "$S")"
+export MSYS_NO_PATHCONV=1   # Git Bash: không tự đổi tham số "/..." thành đường dẫn Windows
+NUL="$S/bo_qua.out"   # thay cho /dev/null: curl.exe trên Windows không ghi được /dev/null
 J="$S/cookie.txt"
 V="$S/vals"; mkdir -p "$V"
 OUT="$S/ketqua.tsv"; : > "$OUT"
@@ -42,7 +44,7 @@ trg(){ printf "SET NAMES utf8mb4;\nDROP TRIGGER IF EXISTS trg_kt;\nDELIMITER \$\
 boTrg(){ db_exec "DROP TRIGGER IF EXISTS trg_kt;"; }
 
 # ---- Sao lưu và tự khôi phục ----
-BANG="KetQuaChamThi LichSuChinhSuaDiem HoiDongThi PhanCongCoiThi CanBo MonThi"
+BANG="KetQuaChamThi LichSuChinhSuaDiem HoiDongThi PhanCongCoiThi CanBo MonThi TaiKhoan"
 if ! "$MYSQL" "${DB_ARGS[@]}" -e "SELECT 1 FROM $DB_NAME.ThiSinh LIMIT 1" >/dev/null 2>&1; then
   echo "Không kết nối được CSDL $DB_NAME ($DB_HOST:$DB_PORT). Hãy bật MySQL và nhập database/install.sql." >&2; exit 2
 fi
@@ -57,7 +59,7 @@ khoi_phuc(){
 }
 trap khoi_phuc EXIT
 
-if ! curl -s -o /dev/null "$B/"; then echo "Không mở được $B — hãy bật Apache (hoặc PHP server)." >&2; exit 2; fi
+if ! curl -s -o "$NUL" "$B/"; then echo "Không mở được $B — hãy bật Apache (hoặc PHP server)." >&2; exit 2; fi
 
 # ---- Hàm kiểm tra ----
 v(){ printf '%s' "$2" > "$V/$1"; }   # lưu giá trị tiếng Việt ra file để gửi qua curl
@@ -73,8 +75,66 @@ dung(){ if [ "$3" = "$4" ]; then ok "$1" "$2" "$4"; else ko "$1" "$2" "$4" "th�
 get(){ curl -s -c "$J" -b "$J" "$B/$1"; }
 tok(){ get "$1" | grep -o 'name="csrf_token" value="[^"]*"' | head -1 | sed 's/.*value="//;s/"//'; }
 post(){ local url="$1"; shift; curl -s -c "$J" -b "$J" -L "$B/$url" --data-urlencode "csrf_token=$T" "$@"; }
+# Đăng nhập bằng tài khoản demo (mật khẩu chung dreamteam2026), phiên mới mỗi lần.
+MAT_KHAU_DEMO="${MAT_KHAU_DEMO:-dreamteam2026}"
+dang_nhap(){ rm -f "$J"; TK_HIEN_TAI="$1"; local t; t=$(tok "auth/login.php"); curl -s -o "$NUL" -c "$J" -b "$J" "$B/auth/login.php" --data-urlencode "csrf_token=$t" --data-urlencode "tenDangNhap=$1" --data-urlencode "matKhau=${2:-$MAT_KHAU_DEMO}"; }
+
+# ================= Đăng nhập, đăng xuất, đổi mật khẩu, phân quyền =================
+ma_http(){ curl -s -o "$NUL" -c "$J" -b "$J" -w '%{http_code}' "$B/$1"; }
+vi_tri(){ curl -s -o "$NUL" -c "$J" -b "$J" -w '%{redirect_url}' "$B/$1"; }
+rm -f "$J"
+dung DN "Chưa đăng nhập → chuyển tới trang đăng nhập" "$(vi_tri grading/lich-su.php | grep -c 'auth/login.php?next=')" 1
+dung DN "Chưa đăng nhập → không vào được UC10" "$(vi_tri councils/ | grep -c 'auth/login.php')" 1
+get "auth/login.php" | kiem DN "Trang đăng nhập mở được" "Đăng nhập hệ thống"
+T=$(tok "auth/login.php")
+post "auth/login.php" -d "tenDangNhap=&matKhau=" | kiem DN "Bỏ trống" "Vui lòng nhập tên đăng nhập và mật khẩu."
+post "auth/login.php" -d "tenDangNhap=hdchamthi&matKhau=sai" | kiem DN "Sai mật khẩu" "Tên đăng nhập hoặc mật khẩu không đúng."
+post "auth/login.php" -d "tenDangNhap=khongcoai&matKhau=dreamteam2026" | kiem DN "Tài khoản không tồn tại" "Tên đăng nhập hoặc mật khẩu không đúng."
+curl -s -c "$J" -b "$J" "$B/auth/login.php" -d "csrf_token=sai&tenDangNhap=hdchamthi&matKhau=dreamteam2026" | kiem DN "CSRF sai bị chặn" "Phiên làm việc đã hết hạn"
+for i in 1 2 3 4; do post "auth/login.php" -d "tenDangNhap=gvcn&matKhau=sai$i" > /dev/null; done
+post "auth/login.php" -d "tenDangNhap=gvcn&matKhau=sai5" | kiem DN "Sai 5 lần → khóa tạm" "Vui lòng thử lại sau 15 phút."
+post "auth/login.php" -d "tenDangNhap=gvcn&matKhau=dreamteam2026" | kiem DN "Đang khóa tạm: đúng mật khẩu vẫn chặn" "Vui lòng thử lại sau 15 phút."
+sql "UPDATE TaiKhoan SET khoaDen = NULL, soLanSai = 0 WHERE tenDangNhap = 'gvcn'; UPDATE TaiKhoan SET trangThai = 'Bị khóa' WHERE tenDangNhap = 'hdrade';"
+post "auth/login.php" -d "tenDangNhap=hdrade&matKhau=dreamteam2026" | kiem DN "Tài khoản bị khóa" "Tài khoản đã bị khóa."
+sql "UPDATE TaiKhoan SET trangThai = 'Hoạt động' WHERE tenDangNhap = 'hdrade';"
+dung DN "Đăng nhập đúng → quay lại trang đang mở (next)" "$(curl -s -o "$NUL" -c "$J" -b "$J" -w '%{redirect_url}' "$B/auth/login.php" --data-urlencode "csrf_token=$T" -d "tenDangNhap=hdchamthi&matKhau=dreamteam2026" --data-urlencode "next=$(printf '%s' "$B" | sed -E 's#https?://[^/]+##')/grading/thong-ke.php" | grep -c 'grading/thong-ke.php')" 1
+get "admin/" | kiem DN "Thanh trên hiện tên người đăng nhập" "Phan Thùy Dương"
+get "admin/" | khong DN "Sidebar ẩn mục không có quyền (papers)" "/papers/\""
+dung DN "Không có quyền → HTTP 403" "$(ma_http papers/)" 403
+get "papers/" | kiem DN "Không có quyền → câu thông báo" "Bạn không có quyền thực hiện chức năng này."
+T=$(tok "grading/thong-ke.php")
+post "councils/?ma=HD02&sua=1" -d "action=cap_nhat&maKyThi=KT2026&tenHoiDongThi=Bi+sua" --data-urlencode "loaiHoiDong@$V/coithi" > /dev/null
+dung DN "POST khi không có quyền không sửa được dữ liệu" "$(gtri "SELECT COUNT(*) FROM HoiDongThi WHERE tenHoiDongThi = 'Bi sua'")" 0
+dung DN "Chặn chuyển hướng ra trang ngoài" "$(rm -f "$J"; T=$(tok auth/login.php); curl -s -o "$NUL" -c "$J" -b "$J" -w '%{redirect_url}' "$B/auth/login.php" --data-urlencode "csrf_token=$T" -d "tenDangNhap=quantri&matKhau=dreamteam2026" --data-urlencode "next=https://vi-du-ngoai.com" | grep -c 'vi-du-ngoai')" 0
+# Đổi mật khẩu (tài khoản gvcn, khôi phục lại sau)
+dang_nhap gvcn
+T=$(tok "auth/doi-mat-khau.php")
+post "auth/doi-mat-khau.php" -d "matKhauCu=sai&matKhauMoi=matkhaumoi1&nhapLai=matkhaumoi1" | kiem DMK "Sai mật khẩu hiện tại" "Mật khẩu hiện tại không đúng."
+post "auth/doi-mat-khau.php" -d "matKhauCu=dreamteam2026&matKhauMoi=ngan&nhapLai=ngan" | kiem DMK "Mật khẩu mới quá ngắn" "ít nhất 8 ký tự"
+post "auth/doi-mat-khau.php" -d "matKhauCu=dreamteam2026&matKhauMoi=matkhaumoi1&nhapLai=khac12345" | kiem DMK "Nhập lại không khớp" "Nhập lại mật khẩu mới không khớp."
+post "auth/doi-mat-khau.php" -d "matKhauCu=dreamteam2026&matKhauMoi=matkhaumoi1&nhapLai=matkhaumoi1" | kiem DMK "Đổi thành công" "Đổi mật khẩu thành công."
+rm -f "$J"; T=$(tok auth/login.php)
+post "auth/login.php" -d "tenDangNhap=gvcn&matKhau=dreamteam2026" | kiem DMK "Mật khẩu cũ không dùng được nữa" "Tên đăng nhập hoặc mật khẩu không đúng."
+dang_nhap gvcn matkhaumoi1
+get "admin/" | kiem DMK "Đăng nhập bằng mật khẩu mới" "Giáo viên chủ nhiệm lớp 9"
+sql "UPDATE TaiKhoan t JOIN TaiKhoan q ON q.tenDangNhap = 'quantri' SET t.matKhau = q.matKhau WHERE t.tenDangNhap = 'gvcn';"
+# Đăng xuất
+dang_nhap hdchamthi
+T=$(tok "admin/")
+post "auth/logout.php" | kiem DX "Đăng xuất → về trang đăng nhập" "Bạn đã đăng xuất."
+dung DX "Sau khi đăng xuất không vào được trang" "$(vi_tri grading/thong-ke.php | grep -c 'auth/login.php')" 1
+# Ma trận quyền UC09–UC15 (HTTP 200 = được vào, 403 = bị chặn)
+quyen(){ dang_nhap "$1"; shift; while [ $# -gt 1 ]; do dung QUYEN "$TK_HIEN_TAI vào /$1" "$(ma_http "$1")" "$2"; shift 2; done; }
+quyen catphach       papers/ 200 councils/ 403 assignments/ 403 grading/ 403 publication/diem-thi.php 403
+quyen bantuyensinh   papers/ 403 councils/ 200 assignments/ 403 grading/ 403 publication/diem-thi.php 200 publication/tuyen-sinh.php 403
+quyen hdcoithi       papers/ 403 councils/ 403 assignments/ 200 grading/ 403 publication/diem-thi.php 403
+quyen hdchamthi      papers/ 403 councils/ 403 assignments/ 403 grading/lich-su.php 200 grading/cap-nhat.php 200 grading/thong-ke.php 200 publication/diem-thi.php 403
+quyen hdtuyensinh    publication/ 200 publication/diem-thi.php 403 publication/tuyen-sinh.php 200 grading/ 403
+quyen quantri        admin/ 200 papers/ 403 councils/ 403 grading/ 403 publication/ 403
+quyen SBD0001        admin/ 200 aspirations/ 200 grading/ 403 councils/ 403
 
 # ================= UC09 Tra cứu thông tin lô bài thi =================
+dang_nhap catphach
 get "papers/?traCuu=1" | kiem UC09 "Không nhập điều kiện" "Điều kiện tra cứu không hợp lệ."
 get "papers/?traCuu=1&maLo=LO%40%231" | kiem UC09 "Mã lô sai định dạng" "Điều kiện tra cứu không hợp lệ."
 get "papers/?traCuu=1&diemThi=DT01&phong=P201" | kiem UC09 "Phòng không thuộc điểm thi" "Phòng thi đã chọn không thuộc điểm thi đã chọn."
@@ -85,6 +145,7 @@ get "papers/?traCuu=1&monThi=TOAN&lo=LO_P101_TOAN" | kiem UC09 "Xem chi tiết l
 get "papers/?lo=KHONG_CO" | kiem UC09 "Lô không tồn tại" "Không thể truy xuất thông tin của lô bài thi được chọn."
 
 # ================= UC10 Quản lý Hội đồng thi =================
+dang_nhap bantuyensinh
 get "councils/" | kiem UC10 "Danh sách hội đồng" "?ma=HD05"
 get "councils/?ma=HD02" | kiem UC10 "Xem chi tiết HD02" "6 cán bộ"
 get "councils/?ma=HD99" | kiem UC10 "Mã không tồn tại" "Không tìm thấy Hội đồng thi được chọn."
@@ -104,6 +165,7 @@ post "councils/?ma=HD05&sua=1" -d "action=cap_nhat&maKyThi=KT2026&tenHoiDongThi=
 boTrg
 
 # ================= UC11 Phân công coi thi =================
+dang_nhap hdcoithi
 SEL="diemThi=DT01&phong=P101&monThi=TOAN"
 get "assignments/" | kiem UC11 "Bước 1: danh sách điểm thi" "Điểm thi Trường THCS Mẫu A"
 get "assignments/?diemThi=DT01" | kiem UC11 "Bước 3: phòng theo điểm thi" "Phòng 102 (P102)"
@@ -132,6 +194,7 @@ boTrg
 [ "$(gtri "SELECT COUNT(*) FROM PhanCongCoiThi WHERE maPhong='P101' AND maMonThi='TOAN'")" = 0 ] && ok UC11 "Transaction hoàn tác cả dòng 1" "0 dòng" || ko UC11 "Transaction hoàn tác cả dòng 1" "0 dòng" "còn dữ liệu"
 
 # ================= UC12 Xem lịch sử chỉnh sửa điểm =================
+dang_nhap hdchamthi
 G="grading/lich-su.php?traCuu=1&kyThi=KT2026"
 get "$G&monThi=TOAN&soPhach=" | kiem UC12 "Thiếu điều kiện (4.1)" "Vui lòng nhập đầy đủ điều kiện tra cứu."
 get "$G&monThi=&soPhach=P0052" | kiem UC12 "Thiếu môn thi (4.1)" "Vui lòng nhập đầy đủ điều kiện tra cứu."
@@ -163,6 +226,7 @@ curl -s -c "$J" -b "$J" -L "$B/$C" -d "csrf_token=sai&soPhach=P0023&action=luu&d
 LS0=$(gtri "SELECT COUNT(*) FROM LichSuChinhSuaDiem")
 post "$C" -d "soPhach=P0023&action=luu&diemMoi=8.75" --data-urlencode "lyDo@$V/lydo" | kiem UC13 "Lưu thành công (13)" "Cập nhật kết quả chấm thi thành công."
 [ "$(gtri "SELECT diemThi FROM KetQuaChamThi WHERE maBaiThi='BT002'")" = 8.75 ] && [ "$(gtri "SELECT COUNT(*) FROM LichSuChinhSuaDiem")" = $((LS0+1)) ] && ok UC13 "DB: điểm 8.75 + thêm 1 lịch sử" "đúng" || ko UC13 "DB: điểm 8.75 + thêm 1 lịch sử" "đúng" "sai"
+dung UC13 "Lịch sử ghi tên người đăng nhập" "$(gtri "SELECT nguoiThucHien FROM LichSuChinhSuaDiem ORDER BY thoiGianChinhSua DESC, maLichSu DESC LIMIT 1")" "Phan Thùy Dương"
 trg UPDATE KetQuaChamThi
 post "$C" -d "soPhach=P0004&action=luu&diemMoi=5" --data-urlencode "lyDo@$V/lydo" | kiem UC13 "Lỗi cập nhật điểm (11.1)" "Không thể cập nhật kết quả chấm thi. Vui lòng thực hiện lại."
 trg INSERT LichSuChinhSuaDiem
@@ -185,6 +249,7 @@ get "$K&monThi=TOAN" | kiem UC14 "Lỗi CSDL (5.2)" "Không thể thực hiện 
 db_exec "RENAME TABLE KetQuaChamThi_kt TO KetQuaChamThi;"
 
 # ================= UC15 Công bố điểm thi =================
+dang_nhap bantuyensinh
 U="publication/diem-thi.php?xem=1&kyThi=KT2026"
 get "$U&monThi=" | kiem UC15 "Thiếu môn thi" "Vui lòng chọn đầy đủ Kỳ thi và Môn thi."
 get "$U&monThi=NN" | kiem UC15 "Bước 4: danh sách + nút Công bố" "Công bố điểm thi</a>"
@@ -204,20 +269,22 @@ post "$U&monThi=NN" -d "action=cong_bo&kyThi=KT2026&monThi=NN" | kiem UC15 "Bấ
 [ "$(gtri "SELECT COUNT(*) FROM KetQuaChamThi k JOIN BaiThi b USING(maBaiThi) WHERE b.maMonThi='NN' AND k.trangThaiCongBo='Đã công bố'")" = 18 ] && ok UC15 "DB: 18 bài NN đã công bố, điểm không đổi" "18" || ko UC15 "DB: 18 bài NN đã công bố" "18" "sai"
 
 # ================= Chung: trang mở được, không lỗi PHP, chặn thư mục nội bộ =================
-for p in "" admin/ papers/ councils/ assignments/ grading/ grading/lich-su.php grading/cap-nhat.php grading/thong-ke.php publication/ publication/diem-thi.php publication/tuyen-sinh.php; do
-  code=$(curl -s -o "$S/page.html" -w '%{http_code}' "$B/$p")
-  if [ "$code" = 200 ] && ! grep -qi "fatal error\|warning:\|notice:\|deprecated:" "$S/page.html"; then ok CHUNG "Trang /$p" "200, không lỗi PHP"; else ko CHUNG "Trang /$p" "200, không lỗi PHP" "HTTP $code hoặc có lỗi PHP"; fi
+for cap in "-:" "-:auth/login.php" "-:results/" "quantri:admin/" "catphach:papers/" "bantuyensinh:councils/" "hdcoithi:assignments/" "hdchamthi:grading/" "hdchamthi:grading/lich-su.php" "hdchamthi:grading/cap-nhat.php" "hdchamthi:grading/thong-ke.php" "bantuyensinh:publication/" "bantuyensinh:publication/diem-thi.php" "hdtuyensinh:publication/tuyen-sinh.php" "gvcn:auth/doi-mat-khau.php"; do
+  tk="${cap%%:*}"; p="${cap#*:}"
+  if [ "$tk" = "-" ]; then rm -f "$J"; TK_HIEN_TAI=""; elif [ "$tk" != "${TK_HIEN_TAI:-}" ]; then dang_nhap "$tk"; fi
+  code=$(curl -s -c "$J" -b "$J" -o "$S/page.html" -w '%{http_code}' "$B/$p")
+  if [ "$code" = 200 ] && ! grep -qi "fatal error\|warning:\|notice:\|deprecated:" "$S/page.html"; then ok CHUNG "Trang /$p ($tk)" "200, không lỗi PHP"; else ko CHUNG "Trang /$p ($tk)" "200, không lỗi PHP" "HTTP $code hoặc có lỗi PHP"; fi
 done
-dung CHUNG "Chặn truy cập services/" "$(curl -s -o /dev/null -w '%{http_code}' "$B/services/grading_service.php")" 403
-dung CHUNG "Chặn tải database/install.sql" "$(curl -s -o /dev/null -w '%{http_code}' "$B/database/install.sql")" 403
+dung CHUNG "Chặn truy cập services/" "$(curl -s -o "$NUL" -w '%{http_code}' "$B/services/grading_service.php")" 403
+dung CHUNG "Chặn tải database/install.sql" "$(curl -s -o "$NUL" -w '%{http_code}' "$B/database/install.sql")" 403
 
 # ================= Tổng kết =================
 TONG=$(grep -c '' "$OUT"); LOI=$(grep -c $'\tLỖI' "$OUT")
 echo
-echo "KẾT QUẢ KIỂM THỬ UC09–UC15 ($B)"
+echo "KẾT QUẢ KIỂM THỬ: đăng nhập / phân quyền + UC09–UC15 ($B)"
 awk -F'\t' '{ printf "%-6s %-4s %s\n", $1, (index($4,"ĐẠT")==1 ? "ĐẠT" : "LỖI"), $2 }' "$OUT"
 echo
-for uc in UC09 UC10 UC11 UC12 UC13 UC14 UC15 CHUNG; do
+for uc in DN DMK DX QUYEN UC09 UC10 UC11 UC12 UC13 UC14 UC15 CHUNG; do
   printf '  %-6s %3s ca, %s lỗi\n' "$uc" "$(grep -c "^$uc"$'\t' "$OUT")" "$(grep "^$uc"$'\t' "$OUT" | grep -c $'\tLỖI')"
 done
 echo "TỔNG: $TONG ca — ĐẠT $((TONG-LOI)), LỖI $LOI"

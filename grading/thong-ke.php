@@ -2,6 +2,7 @@
 declare(strict_types=1);
 /** UC14 – Thống kê kết quả chấm thi (Actor: Hội đồng chấm thi). Chỉ đọc dữ liệu. */
 require_once dirname(__DIR__) . '/includes/grading_ui.php';
+$nguoiDung = require_role(['HD_CHAM_THI']);   // UC14 – Hội đồng chấm thi
 
 $maKyThi = ui_input('kyThi');
 $maMonThi = ui_input('monThi');

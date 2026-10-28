@@ -388,6 +388,31 @@ CREATE TABLE KetQuaTuyenSinh (
   CONSTRAINT fk_kqts_kqxt FOREIGN KEY (maKetQuaXetTuyen) REFERENCES KetQuaXetTuyen(maKetQua)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Bảng TaiKhoan (bổ sung sau báo cáo Tuần 08): tài khoản đăng nhập và vai trò phân quyền.
+-- vaiTro ứng với 10 actor trong báo cáo giữa kỳ. Mật khẩu lưu dạng băm bcrypt (password_hash), không lưu chữ thường.
+-- Tài khoản cán bộ có thể nối CanBo, tài khoản học sinh nối ThiSinh.
+CREATE TABLE TaiKhoan (
+  maTaiKhoan VARCHAR(20) NOT NULL,
+  tenDangNhap VARCHAR(50) NOT NULL,
+  matKhau VARCHAR(255) NOT NULL,
+  hoTen VARCHAR(100) NOT NULL,
+  vaiTro VARCHAR(30) NOT NULL,
+  maCanBo VARCHAR(20) NULL,
+  maThiSinh VARCHAR(20) NULL,
+  trangThai VARCHAR(20) NOT NULL DEFAULT 'Hoạt động',
+  soLanSai INT NOT NULL DEFAULT 0,
+  khoaDen DATETIME NULL,
+  lanDangNhapCuoi DATETIME NULL,
+  ngayTao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (maTaiKhoan),
+  UNIQUE KEY uq_taikhoan_ten (tenDangNhap),
+  CONSTRAINT ck_taikhoan_vaitro CHECK (vaiTro IN ('HOC_SINH','GVCN','BAN_TUYEN_SINH','HD_TUYEN_SINH','HD_COI_THI','HD_CHAM_THI','CAT_PHACH','HD_PHUC_KHAO','HD_RA_DE','QUAN_TRI')),
+  CONSTRAINT ck_taikhoan_trangthai CHECK (trangThai IN ('Hoạt động','Bị khóa')),
+  CONSTRAINT ck_taikhoan_solansai CHECK (soLanSai >= 0),
+  CONSTRAINT fk_taikhoan_canbo FOREIGN KEY (maCanBo) REFERENCES CanBo(maCanBo),
+  CONSTRAINT fk_taikhoan_thisinh FOREIGN KEY (maThiSinh) REFERENCES ThiSinh(maThiSinh)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- 4.8. vw_KetQuaThiTheoMon (Nguyễn Thị Ngọc Linh)
 -- Điểm từng môn của thí sinh và trạng thái công bố. Bài chưa chấm có diemThi = NULL.
 CREATE OR REPLACE VIEW vw_KetQuaThiTheoMon AS
@@ -1000,3 +1025,18 @@ INSERT INTO KetQuaXetTuyen (maKetQua, maThiSinh, maNguyenVong, diemXetTuyen, tra
 
 INSERT INTO DanhSachKetQuaTuyenSinh (maDanhSach, namTuyenSinh, maDot, trangThaiPheDuyet, trangThaiCongBo) VALUES
   ('DS2026', 2026, 'DOT2026', 'Chưa phê duyệt', 'Chưa công bố');
+
+-- Tài khoản demo: mỗi vai trò một tài khoản, TẤT CẢ dùng chung mật khẩu "dreamteam2026" (đã băm bcrypt).
+-- Chỉ dùng để demo/đồ án, không dùng cho hệ thống thật.
+INSERT INTO TaiKhoan (maTaiKhoan, tenDangNhap, matKhau, hoTen, vaiTro, maCanBo, maThiSinh) VALUES
+  ('TK01', 'quantri',      '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Quản trị viên hệ thống', 'QUAN_TRI', NULL, NULL),
+  ('TK02', 'bantuyensinh', '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Cán bộ Ban Tuyển sinh Sở', 'BAN_TUYEN_SINH', NULL, NULL),
+  ('TK03', 'hdtuyensinh',  '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Ngô Bích Ngọc', 'HD_TUYEN_SINH', 'CB12', NULL),
+  ('TK04', 'hdcoithi',     '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Phạm Quốc Khang', 'HD_COI_THI', 'CB03', NULL),
+  ('TK05', 'hdchamthi',    '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Phan Thùy Dương', 'HD_CHAM_THI', 'CB10', NULL),
+  ('TK06', 'catphach',     '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Cán bộ Bộ phận cắt phách', 'CAT_PHACH', NULL, NULL),
+  ('TK07', 'hdphuckhao',   '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Đỗ Anh Khoa', 'HD_PHUC_KHAO', 'CB11', NULL),
+  ('TK08', 'hdrade',       '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Lê Minh Tuấn', 'HD_RA_DE', 'CB01', NULL),
+  ('TK09', 'gvcn',         '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Giáo viên chủ nhiệm lớp 9', 'GVCN', NULL, NULL),
+  ('TK10', 'SBD0001',      '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Trần Thị Hà', 'HOC_SINH', NULL, 'TS001'),
+  ('TK11', 'SBD0002',      '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Trần Minh Chi', 'HOC_SINH', NULL, 'TS002');
