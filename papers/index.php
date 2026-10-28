@@ -6,6 +6,7 @@ declare(strict_types=1);
  */
 require_once dirname(__DIR__) . '/includes/ui.php';
 require_once dirname(__DIR__) . '/services/paper_batch_service.php';
+$nguoiDung = require_role(['CAT_PHACH']);   // UC09 – Bộ phận cắt phách
 
 $dk = ['maLo' => strtoupper(ui_input('maLo')), 'diemThi' => ui_input('diemThi'), 'phong' => ui_input('phong'), 'monThi' => ui_input('monThi')];
 $daTraCuu = isset($_GET['traCuu']);

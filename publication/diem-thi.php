@@ -6,6 +6,7 @@ declare(strict_types=1);
  * → kiểm tra điều kiện → hộp xác nhận (Xác nhận / Hủy bỏ) → cập nhật “Đã công bố”.
  */
 require_once dirname(__DIR__) . '/includes/grading_ui.php';
+$nguoiDung = require_role(['BAN_TUYEN_SINH']);   // UC15 – Ban Tuyển sinh Sở GD&ĐT
 
 $maKyThi = ui_input('kyThi');
 $maMonThi = ui_input('monThi');
