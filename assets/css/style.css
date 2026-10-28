@@ -96,3 +96,16 @@
 @media(max-width:950px){.ui-search-four{grid-template-columns:1fr 1fr}.ui-form-grid{grid-template-columns:1fr}}
 @media(max-width:720px){.ui-search-four{grid-template-columns:1fr}.ui-list li{flex-direction:column;align-items:flex-start}}
 .ui-stack{display:grid;gap:20px;margin-top:20px}.ui-stack .ui-list{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+/* Đăng nhập, tài khoản */
+.dash-topbar-right{display:flex;align-items:center;gap:10px}
+.topbar-user{display:flex;flex-direction:column;align-items:flex-end;line-height:1.3;margin-right:4px}
+.topbar-user strong{font-size:15px;color:#1a3b59}.topbar-user small{font-size:13px;color:#7f93a8}
+.topbar-logout{margin:0}
+.login-box .ui-notice{font-size:15px;margin:14px 0}
+.login-demo-accounts{display:block}
+.login-demo-accounts summary{cursor:pointer;font-weight:700;font-size:14px;list-style:none}
+.login-demo-accounts summary code,.login-demo-accounts td code{background:#e3effd;border-radius:5px;padding:1px 6px;color:#1765af}
+.login-demo-accounts table{width:100%;margin-top:10px;font-size:13.5px;border-collapse:collapse}
+.login-demo-accounts td{padding:4px 6px;border-top:1px solid #e1ecf8}
+.ui-narrow{max-width:560px}
+@media(max-width:720px){.topbar-user{display:none}}

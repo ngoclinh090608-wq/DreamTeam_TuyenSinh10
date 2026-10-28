@@ -6,6 +6,7 @@ declare(strict_types=1);
  */
 require_once dirname(__DIR__) . '/includes/ui.php';
 require_once dirname(__DIR__) . '/services/assignment_service.php';
+$nguoiDung = require_role(['HD_COI_THI']);   // UC11 – Hội đồng coi thi
 
 $maDiemThi = ui_input('diemThi');
 $maPhong = ui_input('phong');

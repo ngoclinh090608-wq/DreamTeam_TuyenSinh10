@@ -37,7 +37,7 @@ function render_module(string $key): void {
     $modules = require __DIR__ . '/module_config.php';
     if (!isset($modules[$key])) { http_response_code(404); require dirname(__DIR__) . '/404.php'; return; }
     require_once __DIR__ . '/auth.php';
-    require_auth();
+    require_module($key);          // đăng nhập + đúng vai trò theo QUYEN_MODULE
     $module = $modules[$key];
     require_once dirname(__DIR__) . '/services/live_data.php';
     $liveStats = $liveAssign = null; $live = false;

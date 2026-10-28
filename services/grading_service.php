@@ -11,7 +11,7 @@ declare(strict_types=1);
 require_once dirname(__DIR__) . '/config/database.php';
 require_once __DIR__ . '/business_exception.php';
 
-/** Tạm thời khi chưa có đăng nhập thật. */
+/** Mặc định khi gọi từ nơi không có người đăng nhập (trang cập nhật truyền tên tài khoản đang đăng nhập). */
 const GRADING_NGUOI_THUC_HIEN = 'Hội đồng chấm thi';
 const GRADING_DA_CONG_BO = 'Đã công bố';
 const GRADING_DA_CHAM = 'Đã chấm';

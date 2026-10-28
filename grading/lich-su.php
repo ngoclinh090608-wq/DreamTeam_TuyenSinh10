@@ -6,6 +6,7 @@ declare(strict_types=1);
  * → chọn “Xem lịch sử chỉnh sửa” → hiện lịch sử.
  */
 require_once dirname(__DIR__) . '/includes/grading_ui.php';
+$nguoiDung = require_role(['HD_CHAM_THI']);   // UC12 – Hội đồng chấm thi
 
 $maKyThi = ui_input('kyThi');
 $maMonThi = ui_input('monThi');
