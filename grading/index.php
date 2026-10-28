@@ -2,6 +2,7 @@
 declare(strict_types=1);
 /** Trang chính module Chấm thi & điểm: dẫn tới UC12, UC13, UC14. */
 require_once dirname(__DIR__) . '/includes/grading_ui.php';
+$nguoiDung = require_role(['HD_CHAM_THI']);   // UC12–UC14 – Hội đồng chấm thi
 
 ui_page_start('grading', 'Kết quả chấm thi', 'Chấm thi · Sửa điểm · Thống kê', 'Tra cứu lịch sử chỉnh sửa, cập nhật kết quả chấm và thống kê điểm theo kỳ thi, môn thi.', 'UC12 · UC13 · UC14');
 grading_tabs('grading', '');

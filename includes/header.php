@@ -27,7 +27,11 @@ $cfg = app_config();
   <div class="dash-main">
     <header class="dash-topbar">
       <div class="dash-topbar-left"><button class="hamburger" aria-label="Mở menu" data-menu-toggle>☰</button><span class="breadcrumb">Hệ thống <span>/</span> <?= e($page_title) ?></span></div>
-      <div class="dash-topbar-right"><a class="avatar" href="<?= e(url('auth/login.php')) ?>" title="Trở về đăng nhập">DT</a></div>
+      <div class="dash-topbar-right"><?php $__u = function_exists('current_user') ? current_user() : null; if ($__u): ?>
+        <span class="topbar-user"><strong><?= e($__u['hoTen']) ?></strong><small><?= e(ten_vai_tro($__u['vaiTro'])) ?></small></span>
+        <a class="btn btn-outline btn-sm" href="<?= e(url('auth/doi-mat-khau.php')) ?>">Đổi mật khẩu</a>
+        <form method="post" action="<?= e(url('auth/logout.php')) ?>" class="topbar-logout"><?= csrf_field() ?><button class="btn btn-soft btn-sm" type="submit">Đăng xuất</button></form>
+      <?php else: ?><a class="avatar" href="<?= e(url('auth/login.php')) ?>" title="Đăng nhập">DT</a><?php endif; ?></div>
     </header>
     <main id="main" class="dash-content">
 <?php else: ?>
