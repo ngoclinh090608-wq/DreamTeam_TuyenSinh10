@@ -10,5 +10,7 @@ try {
  if(live_rows('appeals','')!==[] || live_rows('enrollment','')!==[] || live_student_dashboard('')!==null)throw new RuntimeException('Unbound account leaks');
  $p->exec("UPDATE ThongTinTuyenSinh SET trangThaiCongBo='Chưa công bố' WHERE maThongTin='TT_THPT_1'");
  foreach(live_rows('admission-info','TS001') as $r)if($r[0]==='TT_THPT_1')throw new RuntimeException('Unpublished admission info leaks');
+ foreach(live_student_admission_info() as $r)if($r['maThongTin']==='TT_THPT_1')throw new RuntimeException('Unpublished admission card leaks');
+ if(live_student_admission_info('%')!==[])throw new RuntimeException('Search wildcard must be literal');
  echo "PASS two students isolated in appeals/enrollment, unbound student denied, unpublished notice hidden\n";
 } finally {$p->rollBack();}

@@ -55,7 +55,8 @@ function render_module(string $key): void {
     $module = $modules[$key];
     $isStudent = has_role($user, ['HOC_SINH']);
     $studentId = $isStudent ? (string)($user['maThiSinh'] ?? '') : null;
-    $studentDashboard = null;
+    $studentDashboard = null; $admissionNotices = null;
+    $admissionSearch = is_string($_GET['q'] ?? null) ? mb_substr(trim($_GET['q']), 0, 120) : '';
     require_once dirname(__DIR__) . '/services/live_data.php';
     $module['rows'] = []; // Never retain illustrative rows after a database failure.
     $liveStats = $liveAssign = null; $live = false;
@@ -66,6 +67,10 @@ function render_module(string $key): void {
         $module['title'] = 'Trang cá nhân'; $module['eyebrow'] = 'Hồ sơ tuyển sinh';
         $module['desc'] = 'Theo dõi hồ sơ và nguyện vọng của bạn.';
     }
+    elseif ($isStudent && $key === 'admission-info') {
+        $admissionNotices = live_student_admission_info($admissionSearch);
+        $live = $admissionNotices !== null;
+    }
     elseif ($kindNow === 'table') { $rows = live_rows($key, $studentId); if ($rows !== null) { $module['rows'] = $rows; $live = true; } }
     elseif ($kindNow === 'dashboard' || $kindNow === 'stats') { $liveStats = live_stats(); $live = $liveStats !== null; }
     elseif ($kindNow === 'assignments') { $liveAssign = live_assignments(); $live = $liveAssign !== null; }
@@ -73,7 +78,8 @@ function render_module(string $key): void {
     if ($isStudent && $key === 'appeals') { $module['title'] = 'Phúc khảo của tôi'; $module['desc'] = 'Theo dõi các yêu cầu phúc khảo của bạn.'; }
     if ($isStudent && $key === 'enrollment') { $module['title'] = 'Tình trạng nhập học'; $module['desc'] = 'Xem tình trạng nhập học gắn với hồ sơ của bạn.'; }
     $page_title = $module['title']; $layout = 'dashboard'; $active = $key;
-    $moduleTemplate = $isStudent && $key === 'admin' ? 'student_dashboard.php' : 'module_page.php';
+    $moduleTemplate = $isStudent && $key === 'admin' ? 'student_dashboard.php'
+        : ($isStudent && $key === 'admission-info' ? 'student_admission_info.php' : 'module_page.php');
     require __DIR__ . '/header.php';
     require __DIR__ . '/' . $moduleTemplate;
     require __DIR__ . '/footer.php';
