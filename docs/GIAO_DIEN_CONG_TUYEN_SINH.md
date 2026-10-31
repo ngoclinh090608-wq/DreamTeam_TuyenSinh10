@@ -38,3 +38,11 @@ Kiểm tra trong môi trường đám mây:
 Ảnh chụp thật và ghi nhận giấy phép chưa hoàn tất vì nguồn ảnh bị chặn mạng. Không thay bằng ảnh AI, ảnh watermark hoặc nguồn chưa xác minh. Quyền truy cập website tham khảo và hai domain Wikimedia đã được lưu trong bản nháp cấu hình môi trường; bản nháp chưa được áp dụng cho phiên hiện tại. Cần lưu cấu hình qua Environment settings và Publish, sau đó thử lại việc tải ảnh và cập nhật SOURCES.md.
 
 Các thay đổi mã nguồn dành cho nhánh `linh`; không đồng bộ hoặc merge sang các nhánh khác.
+
+## Kiểm chứng khi đồng bộ sang vy
+
+- Giữ nguyên toàn bộ code riêng UC05–UC08, SQL, service, phân quyền và xử lý giao dịch của vy; diff so với đầu nhánh vy chỉ chứa 17 file giao diện/tài liệu.
+- 62 file PHP hợp lệ; cú pháp JavaScript và kiểm tra khoảng trắng Git đạt.
+- Hai database test độc lập được tạo cho vy gốc và vy có giao diện mới. Cả hai đều đạt 163/163 ca UC09–UC15.
+- Bộ UC05–UC08 in 31 kết quả: 19 đạt, 12 lỗi trên cả hai bản; kết quả từng ca giống nhau. Phần tổng kết do script tự in chỉ đếm 9 ca vì các hàm trong pipeline chạy ở subshell; không coi con số đó là tổng số ca đã thực thi.
+- UC05 gốc gọi `grading_ds_mon()` trong khi service cung cấp `grading_ds_mon_thi()`. Một số ca UC06/UC07 không tìm được thông báo thành công, dù các kiểm tra dữ liệu tương ứng đạt. Không sửa các lỗi nghiệp vụ/test có sẵn trong lần đồng bộ giao diện này.
