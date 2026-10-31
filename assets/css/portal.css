@@ -527,18 +527,23 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--secondary);
 .student-score-card p { font-size:11px; margin:0; }
 .student-score-card > strong { font-size:24px; }
 .student-dialog-empty { padding:18px; background:var(--bg); border-radius:8px; }
-.student-exam-ticket { padding:20px; background:#eff3ff; border:1px solid #dce4ff; border-radius:12px; margin-bottom:14px; }
-.student-exam-ticket h3 { font-size:15px; color:#41478c; margin:0 0 12px; }
+.student-exam-ticket { padding:20px; background:#f0f3ff; border:1px solid #d8e0ff; border-radius:14px; margin-bottom:14px; box-shadow:0 2px 0 rgb(69 82 156 / 10%); }
+.student-exam-ticket h3 { display:flex; gap:8px; align-items:flex-start; font-size:15px; line-height:1.4; text-transform:uppercase; color:#3f438e; margin:0 0 12px; }
 .student-exam-ticket p { font-size:13px; margin:7px 0; }
-.student-exam-ticket dl { display:grid; grid-template-columns:1fr 1fr; margin:16px 0 0; background:white; border-radius:9px; }
-.student-exam-ticket dl > div { padding:14px 8px; text-align:center; }
+.student-exam-site { color:#6a7890; }
+.student-exam-site span { color:#7386ff; margin-right:5px; }
+.student-exam-transfer { padding:9px 11px; color:#7a5812; background:#fff8df; border-radius:8px; }
+.student-exam-ticket dl { display:grid; grid-template-columns:1fr 1fr; margin:16px 0 0; background:white; border-radius:10px; overflow:hidden; }
+.student-exam-ticket dl > div { padding:15px 8px; text-align:center; }
 .student-exam-ticket dl > div + div { border-left:1px solid var(--border); }
 .student-exam-ticket dt { font-size:10px; text-transform:uppercase; color:var(--muted); }
-.student-exam-ticket dd { margin:6px 0 0; font-weight:700; }
+.student-exam-ticket dd { margin:6px 0 0; font-size:16px; font-weight:700; }
+.student-exam-ticket dl > div:first-child dd { color:#514cff; }
 .student-exam-ticket dd small { display:block; font-weight:400; margin-top:4px; }
 .student-exam-schedule { border-top:1px solid var(--border); padding-top:15px; }
-.student-exam-schedule h3 { font-size:14px; }
-.student-exam-schedule p { font-size:13px; }
+.student-exam-schedule h3 { font-size:14px; margin:0 0 10px; }
+.student-exam-schedule h3 span { color:#6578e8; margin-right:5px; }
+.student-exam-schedule p { font-size:13px; margin:0; padding:14px 16px; color:var(--muted); background:#f4f6fa; border-radius:9px; }
 .student-dialog-open { overflow:hidden; }
 @media(max-width:420px) { .student-score-cards { grid-template-columns:1fr; } .student-score-card:nth-child(odd) { border-right:0; } }
 @media print { .student-dialog { display:none !important; } }
