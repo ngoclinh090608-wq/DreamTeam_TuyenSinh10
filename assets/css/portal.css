@@ -404,3 +404,39 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--secondary);
 .student-admission-card details p { line-height:1.7; overflow-wrap:anywhere; }
 @media(max-width:900px) { .student-overview,.student-admission-grid { grid-template-columns:1fr; } }
 @media(max-width:480px) { .student-profile-fields { grid-template-columns:1fr; } }
+
+/* Dedicated student portal shell; management pages retain their sidebar. */
+.student-body { min-height:100vh; background:radial-gradient(ellipse at 10% 8%,#eaf4fb 0,transparent 42%),radial-gradient(ellipse at 90% 10%,#eff2ff 0,transparent 38%),#fbfcfe; }
+.student-site-header { background:rgba(255,255,255,.96); border-bottom:1px solid var(--border); }
+.student-header-inner { width:min(1180px,calc(100% - 40px)); margin:auto; display:flex; justify-content:space-between; align-items:center; gap:18px; min-height:74px; }
+.student-brand { display:flex; align-items:center; gap:10px; font-weight:800; color:var(--ink); }
+.student-account { display:flex; align-items:center; gap:10px; }
+.student-account strong,.student-account small { display:block; }
+.student-account strong { font-size:14px; }
+.student-account small { font-size:12px; color:var(--muted); }
+.student-avatar { display:grid; place-items:center; width:36px; height:36px; border-radius:50%; background:var(--soft-blue); color:var(--primary-dark); }
+.student-account-menu { position:relative; }
+.student-account-menu summary { cursor:pointer; padding:8px 10px; font-size:13px; list-style:none; border:1px solid var(--border); border-radius:7px; }
+.student-account-menu > div { position:absolute; right:0; top:calc(100% + 8px); min-width:165px; background:white; padding:8px; border:1px solid var(--border); border-radius:8px; box-shadow:var(--shadow); z-index:100; }
+.student-account-menu a,.student-account-menu button { display:block; width:100%; padding:10px; border:0; background:none; text-align:left; color:var(--ink); font:inherit; font-size:14px; cursor:pointer; }
+.student-account-menu a:hover,.student-account-menu button:hover { background:var(--bg); }
+.student-portal-welcome { text-align:center; max-width:800px; margin:38px auto 26px; padding:0 20px; }
+.student-portal-welcome h1 { font-size:clamp(25px,3vw,36px); margin:0 0 10px; }
+.student-portal-welcome h1 span { color:var(--primary); }
+.student-portal-welcome p { max-width:660px; margin:auto; }
+.student-portal-nav { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; width:fit-content; max-width:calc(100% - 30px); margin:0 auto 32px; padding:6px; background:#e9eef5; border:1px solid var(--border); border-radius:12px; }
+.student-portal-nav a { display:flex; gap:8px; align-items:center; padding:10px 17px; border-radius:8px; font-size:14px; font-weight:600; color:var(--muted); }
+.student-portal-nav a.is-active { background:white; color:var(--primary-dark); box-shadow:0 2px 6px rgb(38 62 80 / 9%); }
+.student-portal-content { width:min(1180px,calc(100% - 40px)); margin:0 auto 56px; min-height:48vh; }
+.student-portal-content .page-head { margin-bottom:22px; }
+.student-portal-content .page-head h1 { font-size:25px; }
+.student-site-footer { width:min(1180px,calc(100% - 40px)); display:flex; flex-wrap:wrap; gap:18px 36px; justify-content:space-between; align-items:center; margin:0 auto; padding:26px 0; border-top:1px solid var(--border); color:var(--muted); font-size:13px; }
+.student-site-footer p { margin:5px 0 0; }
+@media(max-width:640px) {
+ .student-header-inner { width:calc(100% - 24px); flex-wrap:wrap; padding:12px 0; }
+ .student-brand { font-size:13px; }
+ .student-account { margin-left:auto; }
+ .student-portal-nav { justify-content:flex-start; }
+ .student-portal-nav a { padding:8px 10px; font-size:13px; }
+ .student-portal-content { width:calc(100% - 24px); }
+}
