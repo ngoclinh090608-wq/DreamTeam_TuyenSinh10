@@ -4,14 +4,14 @@ $kind = $module['kind'] ?? 'table';
 $sample = require __DIR__ . '/sample_data.php';
 $live = $live ?? false; $liveStats = $liveStats ?? null; $liveAssign = $liveAssign ?? null;
 $dashMetrics = $liveStats
-  ? [[sprintf('%02d',$liveStats['thiSinh']),'Hồ sơ thí sinh','Đợt '.$liveStats['nam'],'sky'],[sprintf('%02d',$liveStats['truong']),'Trường THPT tham gia','Danh mục trong CSDL','purple'],[sprintf('%02d',$liveStats['nvToiDa']),'Nguyện vọng tối đa','NV1 · NV2 · NV3','mint'],[sprintf('%02d',$liveStats['nguyenVong']),'Nguyện vọng đã lập','Tổng số nguyện vọng','orange']]
+  ? [[sprintf('%02d',$liveStats['thiSinh']),'Hồ sơ thí sinh','Đợt '.$liveStats['nam'],'sky'],[sprintf('%02d',$liveStats['truong']),'Trường THPT tham gia','Danh sách trường THPT','purple'],[sprintf('%02d',$liveStats['nvToiDa']),'Nguyện vọng tối đa','NV1 · NV2 · NV3','mint'],[sprintf('%02d',$liveStats['nguyenVong']),'Nguyện vọng đã lập','Tổng số nguyện vọng','orange']]
   : [['720','Hồ sơ dự kiến','↗ 12%','sky'],['07','Trường tham gia','Kỳ 2026–2027','purple'],['03','Nguyện vọng tối đa','NV1 · NV2 · NV3','mint'],['--','Nguyện vọng đã lập','Chưa kết nối CSDL','orange']];
 ?>
-<div class="page-head"><div><div class="eyebrow"><span></span><?= e($module['eyebrow']) ?></div><h1><?= e($module['title']) ?></h1><p><?= e($module['desc']) ?></p></div><div class="page-head-actions"><span class="uc-tag"><?= e($module['uc']) ?></span><button class="btn btn-primary" type="button" data-demo-action>+ Thêm mới</button></div></div>
+<div class="page-head"><div><div class="eyebrow"><span></span><?= e($module['eyebrow']) ?></div><h1><?= e($module['title']) ?></h1><p><?= e($module['desc']) ?></p></div><div class="page-head-actions"><span class="uc-tag"><?= e($module['uc']) ?></span></div></div>
 <?php if(!$live): ?>
-<div class="notice notice-blue" role="alert"><div><strong>Không tải được dữ liệu từ cơ sở dữ liệu.</strong> Hãy kiểm tra kết nối và tên database trong cấu hình cục bộ. Không hiển thị dữ liệu mẫu thay thế.</div></div>
+<div class="notice notice-blue" role="alert"><div><strong>Không tải được dữ liệu từ cơ sở dữ liệu.</strong> Hãy kiểm tra kết nối và tên database trong cấu hình cục bộ. Vui lòng thử lại sau hoặc liên hệ quản trị hệ thống.</div></div>
 <?php return; endif; ?>
-<?php if($liveStats): ?><p class="muted">Nguồn dữ liệu: <?= e($liveStats['database']) ?> · <?= (int)$liveStats['baiThi'] ?> bài thi · <?= (int)$liveStats['ketQuaChamThi'] ?> kết quả chấm thi.</p><?php endif; ?>
+
 <?php if($liveStats && in_array($kind, ['dashboard', 'stats'], true)) require __DIR__ . '/school_distribution.php'; ?>
 <?php if($kind === 'dashboard'): ?>
 <div class="metric-grid">
@@ -21,8 +21,8 @@ $dashMetrics = $liveStats
 </div>
 <?php if($liveStats): ?><div class="dash-panels"><div class="panel"><div class="panel-heading"><div><h2>Nguyện vọng 1 so với chỉ tiêu</h2><p>Số thí sinh đăng ký NV1 / chỉ tiêu từng trường THPT</p></div></div>
  <div class="bars"><?php foreach($liveStats['theoTruong'] as [$tn,$nv1,$ct]): $pc = $ct ? min(100,(int)round($nv1/$ct*100)) : 0; ?><div><span><?= e($tn) ?></span><div><i style="width:<?= $pc ?>%"></i></div><strong><?= (int)$nv1 ?>/<?= (int)$ct ?></strong></div><?php endforeach; ?></div>
- </div><?php else: ?><div class="dash-panels"><?php endif; ?><div class="panel"><div class="panel-heading"><div><h2>Truy cập nhanh</h2><p>Các chức năng chính của hệ thống</p></div></div>
- <div class="quick-links"><a href="<?= e(url('aspirations/')) ?>"><span class="quick-icon">✧</span><span>Đăng ký nguyện vọng<small>UC02 · Quốc Thiên</small></span>→</a><a href="<?= e(url('exam/')) ?>"><span class="quick-icon">▣</span><span>Phân phòng thi<small>UC07 · Thúy Vy</small></span>→</a><a href="<?= e(url('assignments/')) ?>"><span class="quick-icon">⇆</span><span>Phân công coi thi<small>UC11 · Trần Cẩm Vân</small></span>→</a><a href="<?= e(url('admission/')) ?>"><span class="quick-icon">◇</span><span>Xét tuyển nguyện vọng<small>UC17 · Khánh Duy</small></span>→</a></div>
+ </div><?php else: ?><div class="dash-panels"><?php endif; ?><div class="panel"><div class="panel-heading"><div><h2>Truy cập nhanh</h2><p>Chức năng dành cho tài khoản của bạn</p></div></div>
+ <?php require __DIR__ . '/dashboard_quick_links.php'; ?>
  </div></div>
 <?php elseif($kind === 'assignments'): ?>
 <div class="dash-panels assign-panels"><section class="panel assignment-form"><div class="panel-heading"><div><h2>Tạo phân công coi thi</h2><p>Chức năng UC11</p></div></div>
