@@ -84,6 +84,37 @@
    filterSchools();
  }));
  $('[data-school-search]')?.addEventListener('input',filterSchools);
+ const schoolDirectory=$('[data-school-directory]');
+ if(schoolDirectory){
+   const source=$('[data-school-source]',schoolDirectory);
+   fetch(schoolDirectory.dataset.schoolsApi,{headers:{Accept:'application/json'}})
+     .then(async response=>{
+       const payload=await response.json();
+       if(!response.ok||payload.success!==true||!Array.isArray(payload.data))throw new Error('School API unavailable');
+       const body=$('[data-school-body]',schoolDirectory); if(!body)return;
+       body.replaceChildren(...payload.data.map(school=>{
+         const row=document.createElement('tr');row.dataset.schoolItem='';row.dataset.region=String(school.region??'');
+         const code=document.createElement('td');const tag=document.createElement('span');tag.className='code-tag';tag.textContent=String(school.id??'');code.append(tag);
+         const name=document.createElement('th');name.scope='row';name.textContent=String(school.name??'');
+         const region=document.createElement('td');region.textContent=String(school.region??'');
+         const quota=document.createElement('td');quota.append(document.createTextNode(String(school.quota??0)+' '));const unit=document.createElement('small');unit.textContent='học sinh';quota.append(unit);
+         row.append(code,name,region,quota);return row;
+       }));
+       if(source)source.textContent='Đã đồng bộ qua REST API';filterSchools();
+     })
+     .catch(()=>{if(source)source.textContent='Đang dùng dữ liệu PHP dự phòng';});
+ }
+ $$('[data-api-try]').forEach(button=>button.addEventListener('click',async()=>{
+   const card=button.closest('[data-api-card]');if(!card)return;const output=$('[data-api-output]',card);if(!output)return;
+   let endpoint=card.dataset.apiEndpoint||'';
+   $$('[data-api-param]',card).forEach(input=>{endpoint=endpoint.replace('{'+input.dataset.apiParam+'}',encodeURIComponent(input.value.trim()));});
+   button.disabled=true;output.textContent='Đang gửi yêu cầu…';
+   try{
+     const response=await fetch(endpoint,{headers:{Accept:'application/json'},credentials:'same-origin'});
+     const payload=await response.json();output.textContent=`HTTP ${response.status}\n`+JSON.stringify(payload,null,2);
+   }catch(error){output.textContent='Không thể gọi API. Kiểm tra Apache, mod_rewrite và kết nối database.';}
+   finally{button.disabled=false;}
+ }));
  $$('[data-student-print]').forEach(button=>button.addEventListener('click',()=>window.print()));
  $$('[data-student-dialog-open]').forEach(button=>button.addEventListener('click',()=>{
    const dialog=document.getElementById(button.dataset.studentDialogOpen);
