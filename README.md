@@ -15,6 +15,7 @@ Bộ giao diện PHP dành cho **Dream Team**, phát triển dựa trên bố c�
     - `/auth/login.php` — Trang đăng nhập mẫu, 2 tab
     - `/results/` — Tra cứu mẫu (`DEMO001`)
     - `/admin/` — Dashboard quản trị
+    - `/grading/nhap-diem.php` — UC05 Nhập điểm thi; `/exam/tao-phong.php`, `/exam/phan-phong.php`, `/exam/phan-cong-ra-de.php` — UC06–UC08 (**đã nối CSDL, ghi dữ liệu thật**)
     - `/papers/` — UC09 Tra cứu thông tin lô bài thi (**đã nối CSDL**)
     - `/councils/` — UC10 Quản lý Hội đồng thi (**đã nối CSDL, ghi dữ liệu thật**)
     - `/assignments/` — UC11 Phân công coi thi (**đã nối CSDL, ghi dữ liệu thật**)
@@ -38,6 +39,53 @@ Sau đó mở `http://127.0.0.1:8080/`.
 - 16 module dashboard (xem danh sách theo tên thư mục), chia sẻ **`includes/header.php`**, **`includes/footer.php`**, **`includes/sidebar.php`**, **`assets/css/style.css`**, **`assets/js/app.js`**.
 - Giao diện co giãn trên điện thoại/máy tính.
 - `.htaccess` và `router.php` giúp cấm tải trực tiếp thư mục nội bộ (cần kiểm tra lại khi chuyển lên hosting thật).
+
+### UC05 – UC08: Nhập điểm, phòng thi, phân phòng, phân công ra đề (Nguyễn Thị Thúy Vy) — đã chạy với CSDL
+
+Làm theo đặc tả và Test Case Tuần 04, tên hàm theo bảng Message – Phương thức Tuần 07. Cần nhập `database/install.sql` trước.
+
+| UC | Trang | Tài khoản | Làm gì |
+|---|---|---|---|
+| UC05 Nhập điểm thi | `/grading/nhap-diem.php` | `hdchamthi` | Lọc kỳ thi, môn thi, phòng thi → chọn túi bài → tải Excel (Phòng thi, Số phách, Điểm) → người chấm điền điểm → import lại → kiểm tra → xác nhận lưu cả túi trong 1 transaction |
+| UC06 Tạo thông tin phòng thi | `/exam/tao-phong.php` | `bantuyensinh` | Chọn kỳ thi, điểm thi → hệ thống tự sinh mã phòng, tên phòng, sức chứa → chỉnh nếu cần → Tạo phòng. Chặn trùng mã phòng (toàn hệ thống) và trùng tên phòng trong cùng điểm thi |
+| UC07 Phân phòng thi cho thí sinh | `/exam/phan-phong.php` | `bantuyensinh` | Chọn kỳ thi, điểm thi đúng trường NV1 → Xem trước phân tự động theo ABC → Xác nhận lưu. Có Chuyển phòng / Hủy phân phòng từng thí sinh |
+| UC08 Xem phân công ra đề thi | `/exam/phan-cong-ra-de.php` | `hdrade` | Chọn kỳ thi → danh sách môn được phân công → Xem chi tiết (kỳ thi, môn, thời gian thực hiện, nhiệm vụ) → Quay lại danh sách. Chỉ đọc |
+
+**UC05 chỉ nhập điểm qua file Excel của túi bài thi** tại `/grading/nhap-diem.php`:
+
+1. Lọc **Kỳ thi → Môn thi → Phòng thi**, bấm **Lọc túi bài**, rồi chọn túi bài cần chấm.
+2. Bấm **Tải file túi bài (.xlsx)**. File chứa đúng ba cột **Phòng thi, Số phách, Điểm**; phòng thi và số phách được điền sẵn, điểm để trống. Chỉ xuất các bài chưa có điểm, không xuất thông tin thí sinh. Túi có bài chưa đánh phách phải hoàn tất đánh phách trước.
+3. Người chấm điền cột **Điểm** trong Excel, giữ nguyên phòng thi / số phách và tiêu đề, lưu `.xlsx` rồi **Import và kiểm tra file** trở lại đúng túi đã chọn.
+4. Xem lỗi từng dòng; nếu hợp lệ thì **Xác nhận lưu điểm**. Điểm vừa lưu hiển thị ngay trong bảng **Điểm đã nhập của túi** ở cuối trang. Không có nhập tay trên web. Bài đã có điểm chỉ chỉnh sửa tại UC13.
+5. Túi đã có đủ điểm vẫn chọn được, xem được bảng điểm và **Tải bảng điểm của túi (.xlsx)**. Ô import vẫn hiện nhưng bị khóa kèm giải thích; chọn túi còn bài chưa nhập để nhập mới. Cập nhật mã từ GitHub không tự sửa dữ liệu MySQL trên máy.
+
+Tối đa 500 bài / 2 MB mỗi file; không dùng `.xls` hoặc công thức. Điểm theo thang môn, bước 0.25. Hệ thống kiểm tra đúng kỳ / môn / phòng / túi, số phách, trùng bài và điểm trước khi lưu. Khi xác nhận, kiểm tra lại dữ liệu và lưu toàn bộ trong một transaction; lỗi sẽ không lưu điểm nào. Bản xem trước hết hạn sau 15 phút.
+
+Đọc/ghi `.xlsx` dùng phần mở rộng PHP `Phar` và `SimpleXML` (ngoài `pdo_mysql`, `mbstring`), không cần Composer. Kiểm thử: `php tests/kiem_thu_uc05_excel.php` trên dữ liệu mẫu gốc, và `BASE_URL=http://127.0.0.1:8080 bash tests/kiem_thu_uc05_08.sh`.
+
+Quy tắc UC07: thí sinh thi tại **trường đăng ký nguyện vọng 1 trong năm tuyển sinh của kỳ thi**, không phân theo khu vực trường THCS. Điểm thi phải gắn rõ `DiemThi.maTruongTHPT`; chưa gắn trường thì báo thiếu cấu hình, không tự đoán trường. Chỉ lấy hồ sơ đủ điều kiện và đã duyệt. Thí sinh đang ở điểm thi sai trường có thể được phân lại về đúng trường NV1; người đã ở điểm thi khác của cùng trường sẽ không bị kéo sang.
+
+Hệ thống xếp ABC tiếng Việt theo **tên gọi → họ và tên đệm → mã thí sinh khi trùng tên**, rồi **xếp đầy phòng trước mới dùng phòng tiếp theo**; phòng cuối có thể không đầy, các phòng sau còn trống sẽ chưa được dùng. Không đổi phòng tùy ý trong bảng xem trước. Khi lưu, server tính lại kết quả, kiểm tra đúng NV1, đủ danh sách và sức chứa trong transaction; kết quả đã thay đổi phải xem trước lại. Chuyển phòng cũng chỉ được sang phòng thuộc đúng trường NV1 và cùng kỳ thi.
+
+Dữ liệu mẫu cũ có `DT01` đặt tại THCS và chưa gắn trường THPT nên UC07 sẽ báo thiếu cấu hình tại điểm này. `DT02` gắn `THPT_1`; các trường NV1 khác cần có điểm thi và phòng tương ứng trước khi phân. Kiểm thử tự tạo liên kết trường / nguyện vọng phù hợp rồi khôi phục, không sửa dữ liệu mẫu gốc. Các thí sinh đang ở điểm thi nhưng không thuộc danh sách NV1 hợp lệ được cảnh báo và vẫn chiếm chỗ cho đến khi chuyển/hủy.
+
+
+Quy tắc UC08: tài khoản Hội đồng ra đề chỉ xem kỳ thi của Hội đồng ra đề (`HoiDongThi.loaiHoiDong = 'Ra đề'`) mà cán bộ của tài khoản là thành viên; kỳ thi khác báo “Không đủ quyền truy cập.” Ban Tuyển sinh xem được mọi kỳ thi.
+
+Thử nhanh:
+
+| Muốn thử | Làm |
+|---|---|
+| UC05 nhập điểm thành công | Môn Toán → phòng `P202` → túi `LO_P202_TOAN` → tải Excel → điền điểm 3 bài → import → xác nhận |
+| UC05 “Điểm thi không hợp lệ.” | Điểm `8.3` (sai bước 0.25), `11`, để trống hoặc `abc` |
+| UC05 “Không có bài thi cần nhập điểm.” | Chọn môn Ngữ văn (đã chấm hết) |
+| UC05 “Điểm bài thi đã được xác nhận chính thức.” | Mở lại bài vừa nhập điểm |
+| UC06 tự sinh mã | Điểm thi THCS Mẫu A → ô mã phòng gợi ý `P103` |
+| UC06 “Thông tin phòng thi bị trùng.” | Mã `P101`, hoặc tên `Phòng 101` tại điểm thi THCS Mẫu A |
+| UC07 “Điểm thi không phù hợp với trường đăng ký nguyện vọng 1.” | Chọn điểm thi gắn THPT_1: chỉ thí sinh có NV1 THPT_1 được phân tự động, dù THCS ở khu vực khác |
+| UC08 xem chi tiết | Kỳ thi 2026 → Toán → Xem chi tiết |
+
+Mã nguồn: `services/exam_service.php` (UC06–UC08), phần UC05 cuối `services/grading_service.php`; giao diện `includes/exam_ui.php`. Kiểm thử: `BASE_URL=http://127.0.0.1:8080 bash tests/kiem_thu_uc05_08.sh` (tự sao lưu và khôi phục dữ liệu).
 
 ### UC09 – UC11: Lô bài thi, Hội đồng thi, Phân công coi thi (Trần Thị Cẩm Vân) — đã chạy với CSDL
 
@@ -100,7 +148,7 @@ UC22 (Cẩm Vân) giữ giao diện mẫu cũ, chuyển sang `/publication/tuyen
 | Thành viên | Thư mục | Chức năng demo gợi ý |
 |---|---|---|
 | Nguyễn Quốc Thiên | `aspirations/`, `candidates/`, `admission-info/` | UC02 Nguyện vọng |
-| Nguyễn Thị Thúy Vy | `exam/` | UC07 Phân phòng thi |
+| Nguyễn Thị Thúy Vy | `exam/`, `grading/nhap-diem.php` | UC05 – UC08 Nhập điểm, phòng thi, phân phòng, phân công ra đề (**đã xong**) |
 | Trần Thị Cẩm Vân | `papers/`, `councils/`, `assignments/`, `staff/` | UC09 – UC11 Lô bài thi, Hội đồng thi, Phân công coi thi (**đã xong**) |
 | Nguyễn Thị Ngọc Linh | `grading/`, `publication/diem-thi.php` | UC12 – UC15 Chấm thi, công bố điểm (**đã xong**) |
 | Tô Nguyễn Khánh Duy | `appeals/`, `admission/` | UC17 Xét tuyển NV |
