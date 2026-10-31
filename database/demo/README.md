@@ -35,7 +35,7 @@ Các script nhập nhiều bước, dọn seed và đổi tên, cùng báo cáo 
 
 ## Nguồn và dọn file
 
-Bản xuất phpMyAdmin do người dùng cung cấp ngày 31/10/2026, SHA-256 gốc: `675a3c2c42bdcaca16f6070cb1b47db5f0e845b26043fc6f8f716a7b63868a9d`. Bản SQL hiện hành chỉ thêm chọn database, chuẩn hóa tên bảng/view và bỏ DEFINER cục bộ, giữ nguyên dữ liệu.
+Bản xuất phpMyAdmin do người dùng cung cấp ngày 31/10/2026, SHA-256 gốc: `675a3c2c42bdcaca16f6070cb1b47db5f0e845b26043fc6f8f716a7b63868a9d`. Bản SQL hiện hành chỉ thêm chọn database, chuẩn hóa tên bảng/view và bỏ DEFINER cục bộ, giữ nguyên mã, điểm và mật khẩu; tên người nhập điểm demo được bổ sung như mô tả dưới đây.
 
 Excel nguồn giai đoạn đầu, báo cáo trung gian và các script nhập nhiều bước đã bỏ khỏi nhánh hiện hành để tránh nhầm. Có thể khôi phục từ lịch sử Git. Thư mục demo chỉ giữ SQL đầy đủ, hướng dẫn này, mẫu cấu hình và công cụ kiểm tra chỉ đọc.
 
@@ -60,3 +60,9 @@ Script tạo dữ liệu **giả lập** cho toàn bộ thí sinh hiện có, kh
 Tên người thân, giới tính, địa chỉ và học bạ được sinh để kiểm thử giao diện; không phải dữ liệu đã xác minh hay thông tin cá nhân thực. Email thuộc miền dành cho thử nghiệm `example.test`; số định danh bắt đầu bằng 900 và điện thoại bắt đầu bằng 000 là giá trị giả lập, không phải số được cấp/liên hệ thật. Không gửi email/SMS từ bộ dữ liệu này. Học bạ giả lập không sửa hoặc tính lại điểm thi/xét tuyển.
 
 Snapshot cài mới đã kèm bước bổ sung hồ sơ, nên máy mới không cần chạy seed này riêng. Máy đã có thông tin người dùng nhập thì dùng migration, không thay bằng snapshot.
+
+## Tên người nhập điểm demo
+
+Các điểm tạo sẵn dùng **Phan Thùy Dương**, tài khoản `hdchamthi`, làm người nhập giả lập cho buổi demo; đây không phải xác nhận ai đã nhập dữ liệu trong quá khứ. Điểm nhập mới qua Excel vẫn ghi tên tài khoản thực sự thực hiện.
+
+Máy đã nhập SQL cũ: nhập `database/migrations/20261101_demo_grading_author.sql` trong phpMyAdmin, sau đó tải lại trang. Chỉ thay chuỗi “Bộ dữ liệu DEMO (tạo tự động)” ở kết quả thuộc kỳ `KTDEMO26`; giữ nguyên tên người đã nhập khác, điểm số, thời gian và lịch sử sửa điểm. Chạy lại không thay đổi thêm. Không nhập lại toàn bộ snapshot.
