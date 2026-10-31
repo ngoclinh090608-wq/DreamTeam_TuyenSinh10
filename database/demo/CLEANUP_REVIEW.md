@@ -1,3 +1,5 @@
+> Cập nhật: người dùng đã cho phép xóa bộ mẫu nhỏ sau khi có bộ mới. Xem `03_remove_old_seed.sql` và mục dọn dữ liệu trong `HUONG_DAN_BO_SUNG_BAI_THI.md`. Nội dung dưới đây là báo cáo trước khi được phép xóa, không còn là hướng dẫn giữ bộ cũ bắt buộc. SQL chỉ có hiệu lực khi được nhập vào database demo.
+
 # Báo cáo dọn dữ liệu — chờ duyệt trước khi xóa
 
 Yêu cầu đính kèm quy định: “Trước khi xóa bất kỳ dữ liệu hoặc file nào, hãy báo danh sách dự kiến xóa để tôi duyệt.” Do đó lần này không thực hiện DELETE/TRUNCATE/DROP TABLE/DROP DATABASE đối với dữ liệu/bảng có sẵn, không xóa file cũ.

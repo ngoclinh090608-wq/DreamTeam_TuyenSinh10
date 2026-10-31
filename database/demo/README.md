@@ -58,3 +58,7 @@ Importer không gọi công bố điểm, không sửa điểm/lịch sử hay t
 - Tạo lại SQL khi nguồn/schema thay đổi: cài Python và `openpyxl`, chạy `python3 database/demo/build_demo.py`. Đọc lại hướng dẫn file 00 trước khi dùng SQL khởi tạo mới.
 
 Xem `CLEANUP_REVIEW.md` trước khi dọn dữ liệu. Không có dữ liệu/file cũ nào bị xóa trong lần bổ sung này. Chủ dự án đã cho phép commit/push bản cập nhật lên `linh`. Không merge hoặc sửa nhánh main; phần dọn dữ liệu vẫn chờ duyệt riêng.
+
+## Dọn bộ mẫu nhỏ sau khi bổ sung bài thi mới
+
+Nếu muốn chỉ giữ bộ 1.750 học sinh và tên kỳ thi cũ, xem mục dọn dữ liệu trong [HUONG_DAN_BO_SUNG_BAI_THI.md](HUONG_DAN_BO_SUNG_BAI_THI.md). File `03_remove_old_seed.sql` xóa bộ mẫu nhỏ sau khi xác minh bộ mới đã đủ; sao lưu database demo trước khi nhập. Các số 1.770/5.304 và 54/51 ở trên mô tả trạng thái trước bước dọn, không phải số liệu sau dọn.
