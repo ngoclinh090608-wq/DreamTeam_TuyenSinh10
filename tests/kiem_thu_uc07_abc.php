@@ -8,6 +8,9 @@ function assert_abc(bool $ok, string $message): void {
 $pdo = db();
 $pdo->beginTransaction();
 try {
+    $pdo->exec("UPDATE DiemThi SET maTruongTHPT='THPT_1' WHERE maDiemThi='DT01'; UPDATE DiemThi SET maTruongTHPT='THPT_2' WHERE maDiemThi='DT02'");
+    $pdo->exec("UPDATE NguyenVong SET maTruongTHPT='THPT_2' WHERE thuTuNguyenVong=1");
+    $pdo->exec("UPDATE NguyenVong SET maTruongTHPT='THPT_1' WHERE thuTuNguyenVong=1 AND maThiSinh IN ('TS001','TS002','TS005','TS006','TS009','TS010')");
     $candidates = layDanhSachThiSinhPhuHopDiemThi('KT2026', 'DT01');
     assert_abc(count($candidates) === 6, 'Use six eligible seed candidates');
     // Reversed names span both schools, exposing the previous school-first/full-name ordering.
@@ -23,6 +26,21 @@ try {
     assert_abc(array_column($preview['phanBo']['P101']['thiSinh'], 'hoTen') === array_slice($expected, 0, 2), 'First room receives first two names after reserving occupied seats');
     assert_abc(array_column($preview['phanBo']['P102']['thiSinh'], 'hoTen') === array_slice($expected, 2), 'Remaining ABC names continue in next room');
     foreach ($preview['phanBo'] as $room) assert_abc($room['soLuong'] + $room['chiemCho'] <= $room['sucChua'], 'Room capacity is respected');
+    $pdo->prepare('UPDATE PhongThi SET sucChua = ? WHERE maPhong = ?')->execute([$blocked + 12, 'P101']);
+    $fullFirst = kiemTraVaTinhToanPhanPhong('KT2026', 'DT01');
+    assert_abc($fullFirst['phanBo']['P101']['soLuong'] === 6 && $fullFirst['phanBo']['P102']['soLuong'] === 0, 'Do not use a later room while the first has capacity');
+    $pdo->exec("UPDATE NguyenVong SET maTruongTHPT='THPT_2' WHERE maThiSinh='TS001' AND thuTuNguyenVong=1");
+    assert_abc(!in_array('TS001', array_column(layDanhSachThiSinhPhuHopDiemThi('KT2026', 'DT01'), 'maThiSinh')), 'Same middle-school area does not override NV1');
+    $pdo->exec("UPDATE NguyenVong SET maTruongTHPT='THPT_1' WHERE maThiSinh IN ('TS001','TS004') AND thuTuNguyenVong=1");
+    assert_abc(in_array('TS004', array_column(layDanhSachThiSinhPhuHopDiemThi('KT2026', 'DT01'), 'maThiSinh')), 'NV1 admits candidate from another middle-school area and corrects wrong-school assignment');
+    $pdo->exec("UPDATE NguyenVong SET maTruongTHPT='THPT_2' WHERE maThiSinh='TS004' AND thuTuNguyenVong=1");
+    $pdo->exec("UPDATE QuyDinhNguyenVong SET namTuyenSinh=2025 WHERE maQuyDinh='QD2026'");
+    assert_abc(layDanhSachThiSinhPhuHopDiemThi('KT2026', 'DT01') === [], 'Prior-year registrations are not used');
+    $pdo->exec("UPDATE QuyDinhNguyenVong SET namTuyenSinh=2026 WHERE maQuyDinh='QD2026'");
+    $pdo->exec("UPDATE DiemThi SET maTruongTHPT=NULL WHERE maDiemThi='DT01'");
+    try { layDanhSachThiSinhPhuHopDiemThi('KT2026', 'DT01'); throw new RuntimeException('Missing school link was accepted'); }
+    catch (ExamException $e) { assert_abc(str_contains(implode(' ', $e->details()), 'chưa được gắn'), 'Missing school link is reported instead of falling back to area'); }
+    $pdo->exec("UPDATE DiemThi SET maTruongTHPT='THPT_1' WHERE maDiemThi='DT01'");
     $orderedIds = array_column($actual, 'maThiSinh');
     $update->execute(['  Trần   Văn An  ', $orderedIds[0]]);
     $update->execute(['Nguyễn Văn An', $orderedIds[1]]);

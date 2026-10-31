@@ -19,7 +19,8 @@ if ($maKyThi === '' && !empty($dsKyThi)) {
     $dsDiemThi = exam_ds_diem_thi($maKyThi);
 }
 if ($maDiemThi === '' && !empty($dsDiemThi)) {
-    $maDiemThi = (string)$dsDiemThi[0]['maDiemThi'];
+    $diemCoTruong = array_values(array_filter($dsDiemThi, static fn($dt) => !empty($dt['maTruongTHPT'])));
+    $maDiemThi = (string)($diemCoTruong[0]['maDiemThi'] ?? $dsDiemThi[0]['maDiemThi']);
 }
 
 $action = $_SERVER['REQUEST_METHOD'] === 'POST' ? (string)($_POST['action'] ?? '') : '';
@@ -161,7 +162,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
   <div class="ui-kpi">
     <div class="ui-kpi-label">Điểm thi</div>
     <div class="ui-kpi-val" style="font-size:1.3rem"><?= e($diemThiHienTai['tenDiemThi']) ?></div>
-    <div class="ui-kpi-hint">Khu vực: <?= e($diemThiHienTai['maKhuVuc'] ?: 'Tất cả') ?></div>
+    <div class="ui-kpi-hint">Trường tổ chức thi: <?= e($diemThiHienTai['tenTruongTHPT'] ?: 'Chưa gắn trường THPT') ?></div>
   </div>
   <div class="ui-kpi">
     <div class="ui-kpi-label">Số phòng thi</div>
@@ -180,7 +181,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
   <div class="panel-heading">
     <div>
       <h2>2. Thực hiện phân phòng thi tự động</h2>
-      <p>Hệ thống lấy thí sinh đủ điều kiện của các trường THCS cùng khu vực với điểm thi, xếp ABC theo tên gọi, khi trùng tên thì xét họ và tên đệm, rồi tự động lấp lần lượt từng phòng theo sức chứa. Không chia nhóm theo trường THCS.</p>
+      <p>Hệ thống lấy thí sinh đăng ký nguyện vọng 1 tại trường THPT của điểm thi, xếp ABC theo tên gọi, khi trùng tên thì xét họ và tên đệm. Xếp đầy phòng trước rồi mới sang phòng tiếp theo; phòng cuối có thể không đầy. Không phân theo khu vực trường THCS.</p>
     </div>
     <div class="panel-actions">
       <form method="post" novalidate style="display:inline">
@@ -205,8 +206,8 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
   <?php else: ?>
     <?php if ($dsKhongPhuHop):
       ui_notice('warning', EXAM_TB_DIEM_THI_KHONG_PHU_HOP, array_merge(
-        ['Các thí sinh sau đang được xếp tại điểm thi nhưng trường THCS khác khu vực; hệ thống không phân tự động các thí sinh này vào điểm thi và vẫn tính chỗ họ đang ngồi:'],
-        array_map(fn($r) => "{$r['hoTen']} ({$r['maThiSinh']}) – {$r['tenTruongTHCS']}, {$r['tenKhuVuc']} – phòng {$r['maPhong']}", $dsKhongPhuHop)
+        ['Các thí sinh sau đang ở điểm thi nhưng không thuộc danh sách NV1 hợp lệ của trường; hãy chuyển về đúng trường hoặc hủy phân phòng. Trong lúc chờ xử lý, hệ thống vẫn tính chỗ họ đang ngồi:'],
+        array_map(fn($r) => "{$r['hoTen']} ({$r['maThiSinh']}) – {$r['tenTruongTHCS']} – phòng {$r['maPhong']}", $dsKhongPhuHop)
       ));
     endif; ?>
     <p class="text-muted" style="margin:0.5rem 0;">Sức chứa phòng thi đảm bảo phục vụ đầy đủ cho toàn bộ thí sinh. Nhấn nút <strong>Bắt đầu phân phòng</strong> để xem trước kết quả.</p>
@@ -251,8 +252,8 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
                 <tr>
                   <th>SBD</th>
                   <th>Họ và tên</th>
-                  <th>Trường THCS</th>
-                  <th>Đổi phòng</th>
+                  <th>Trường đăng ký NV1</th>
+                  <th>Phòng tự động</th>
                 </tr>
               </thead>
               <tbody>
@@ -263,15 +264,10 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
                     <tr>
                       <td><strong><?= e($ts['soBaoDanh'] ?: '—') ?></strong></td>
                       <td><?= e($ts['hoTen']) ?></td>
-                      <td><small><?= e($ts['tenTruongTHCS']) ?></small></td>
+                      <td><small><?= e($ts['truongDangKy']) ?></small></td>
                       <td>
-                        <select name="phanBo[<?= e($ts['maThiSinh']) ?>]" style="padding:2px 4px; font-size:0.8rem;">
-                          <?php foreach ($dsPhong as $otherP): ?>
-                            <option value="<?= e($otherP['maPhong']) ?>"<?= $otherP['maPhong'] === $maPhong ? ' selected' : '' ?>>
-                              <?= e($otherP['tenPhong']) ?>
-                            </option>
-                          <?php endforeach; ?>
-                        </select>
+                        <input type="hidden" name="phanBo[<?= e($ts['maThiSinh']) ?>]" value="<?= e($maPhong) ?>">
+                        <?= e($pInfo['tenPhong']) ?>
                       </td>
                     </tr>
                   <?php endforeach; ?>
