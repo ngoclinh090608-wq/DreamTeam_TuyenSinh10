@@ -1,0 +1,141 @@
+{
+    "database": "dreamteam_tuyensinh10_demo",
+    "checks": {
+        "THCS_moi": {
+            "expected": 5,
+            "actual": 5,
+            "passed": true
+        },
+        "ThiSinh_moi": {
+            "expected": 1750,
+            "actual": 1750,
+            "passed": true
+        },
+        "NguyenVong_moi": {
+            "expected": 5250,
+            "actual": 5250,
+            "passed": true
+        },
+        "THCS_DEMO1": {
+            "expected": 320,
+            "actual": 320,
+            "passed": true
+        },
+        "THCS_DEMO2": {
+            "expected": 335,
+            "actual": 335,
+            "passed": true
+        },
+        "THCS_DEMO3": {
+            "expected": 350,
+            "actual": 350,
+            "passed": true
+        },
+        "THCS_DEMO4": {
+            "expected": 365,
+            "actual": 365,
+            "passed": true
+        },
+        "THCS_DEMO5": {
+            "expected": 380,
+            "actual": 380,
+            "passed": true
+        },
+        "chi_tieu_THPT_1": {
+            "expected": 320,
+            "actual": 320,
+            "passed": true
+        },
+        "chi_tieu_THPT_2": {
+            "expected": 335,
+            "actual": 335,
+            "passed": true
+        },
+        "chi_tieu_THPT_3": {
+            "expected": 350,
+            "actual": 350,
+            "passed": true
+        },
+        "chi_tieu_THPT_4": {
+            "expected": 365,
+            "actual": 365,
+            "passed": true
+        },
+        "chi_tieu_THPT_5": {
+            "expected": 380,
+            "actual": 380,
+            "passed": true
+        },
+        "NV_thieu_hoac_trung_truong": {
+            "expected": 0,
+            "actual": 0,
+            "passed": true
+        },
+        "FK_THCS": {
+            "expected": 0,
+            "actual": 0,
+            "passed": true
+        },
+        "FK_NV": {
+            "expected": 0,
+            "actual": 0,
+            "passed": true
+        },
+        "Trung_SBD": {
+            "expected": 0,
+            "actual": 0,
+            "passed": true
+        },
+        "Trung_ma_ho_so": {
+            "expected": 0,
+            "actual": 0,
+            "passed": true
+        },
+        "Trung_thu_tu_NV": {
+            "expected": 0,
+            "actual": 0,
+            "passed": true
+        },
+        "NV_ngoai_quy_dinh": {
+            "expected": 0,
+            "actual": 0,
+            "passed": true
+        },
+        "Diem_khong_hop_le": {
+            "expected": 0,
+            "actual": 0,
+            "passed": true
+        }
+    },
+    "totals": {
+        "TruongTHCS": 9,
+        "TruongTHPT": 5,
+        "ThiSinh": 1770,
+        "NguyenVong": 5304,
+        "TaiKhoan": 11,
+        "BaiThi": 54,
+        "KetQuaChamThi": 51,
+        "LichSuChinhSuaDiem": 1
+    },
+    "publication_scenarios": [
+        {
+            "maMonThi": "NN",
+            "baiThi": 18,
+            "daCham": "18",
+            "daCongBo": "0"
+        },
+        {
+            "maMonThi": "TOAN",
+            "baiThi": 18,
+            "daCham": "15",
+            "daCongBo": "15"
+        },
+        {
+            "maMonThi": "VAN",
+            "baiThi": 18,
+            "daCham": "18",
+            "daCongBo": "18"
+        }
+    ],
+    "passed": true
+}

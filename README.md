@@ -48,7 +48,7 @@ Làm theo đặc tả và Test Case Tuần 04, tên hàm theo bảng Message –
 |---|---|---|---|
 | UC05 Nhập điểm thi | `/grading/nhap-diem.php` | `hdchamthi` | Lọc kỳ thi, môn thi, phòng thi → chọn túi bài → tải Excel (Phòng thi, Số phách, Điểm) → người chấm điền điểm → import lại → kiểm tra → xác nhận lưu cả túi trong 1 transaction |
 | UC06 Tạo thông tin phòng thi | `/exam/tao-phong.php` | `bantuyensinh` | Chọn kỳ thi, điểm thi → hệ thống tự sinh mã phòng, tên phòng, sức chứa → chỉnh nếu cần → Tạo phòng. Chặn trùng mã phòng (toàn hệ thống) và trùng tên phòng trong cùng điểm thi |
-| UC07 Phân phòng thi cho thí sinh | `/exam/phan-phong.php` | `bantuyensinh` | Chọn kỳ thi, điểm thi → Xem trước → (đổi phòng từng thí sinh nếu cần) → Xác nhận lưu. Có Chuyển phòng / Hủy phân phòng từng thí sinh |
+| UC07 Phân phòng thi cho thí sinh | `/exam/phan-phong.php` | `bantuyensinh` | Chọn kỳ thi, điểm thi đúng trường NV1 → Xem trước phân tự động theo ABC → Xác nhận lưu. Có Chuyển phòng / Hủy phân phòng từng thí sinh |
 | UC08 Xem phân công ra đề thi | `/exam/phan-cong-ra-de.php` | `hdrade` | Chọn kỳ thi → danh sách môn được phân công → Xem chi tiết (kỳ thi, môn, thời gian thực hiện, nhiệm vụ) → Quay lại danh sách. Chỉ đọc |
 
 **UC05 chỉ nhập điểm qua file Excel của túi bài thi** tại `/grading/nhap-diem.php`:
@@ -224,3 +224,7 @@ DreamTeam_TuyenSinh10/
 ├── .github/workflows/  ci.yml (GitHub Actions)
 └── docs/               sơ đồ, tài liệu, biên bản
 ```
+
+## 8. Bộ demo 1.750 học sinh trong database riêng
+
+Có bộ dữ liệu người dùng cung cấp cho 5 THCS, 1.750 học sinh và 5.250 nguyện vọng. Xem [hướng dẫn database/demo](database/demo/README.md) để khởi tạo `dreamteam_tuyensinh10_demo`, import lặp an toàn và chọn kết nối demo trên XAMPP. Không đổi bộ seed nhỏ mặc định hoặc ghi dữ liệu vào database phát triển.
