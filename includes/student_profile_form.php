@@ -24,10 +24,10 @@ function student_profile_input(string $name,string $label,string $value,string $
   <div><dt>Số báo danh</dt><dd><?= e($profile['soBaoDanh'] ?: 'Chưa được cấp') ?></dd></div>
  </dl>
 </div>
-<p class="field-note">Thông tin định danh và trường THCS do nhà trường quản lý. Nếu cần điều chỉnh, liên hệ cán bộ phụ trách.</p>
+<p class="field-note">Mã học sinh, mã hồ sơ, số báo danh, CCCD và trường THCS do nhà trường hoặc Ban tuyển sinh quản lý; học sinh không thể tự sửa. Nếu thông tin chưa đúng, hãy liên hệ cán bộ phụ trách.</p>
 <div class="student-profile-input-grid">
  <div class="student-input"><label for="profile-gender">Giới tính</label><select id="profile-gender" name="gioiTinh"><?php foreach([''=>'Chưa khai báo','Nam'=>'Nam','Nữ'=>'Nữ','Khác'=>'Khác'] as $value=>$text): ?><option value="<?= e($value) ?>"<?= ($extra['gioiTinh'] ?? '')===$value?' selected':'' ?>><?= e($text) ?></option><?php endforeach; ?></select></div>
- <?php student_profile_input('soDinhDanh','Số định danh/CCCD',(string)($extra['soDinhDanh'] ?? ''),'text',12); ?>
+ <div class="student-input"><label>Số định danh/CCCD</label><div class="student-readonly-field"><?= e((string)($extra['soDinhDanh'] ?? '') ?: 'Chưa cập nhật') ?></div></div>
  <?php student_profile_input('noiSinh','Nơi sinh',(string)($extra['noiSinh'] ?? '')); ?>
  <?php student_profile_input('danToc','Dân tộc',(string)($extra['danToc'] ?? ''),'text',50); ?>
  <?php student_profile_input('quocTich','Quốc tịch',(string)($extra['quocTich'] ?? ''),'text',50); ?>
