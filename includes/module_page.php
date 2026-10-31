@@ -12,6 +12,7 @@ $dashMetrics = $liveStats
 <div class="notice notice-blue" role="alert"><div><strong>Không tải được dữ liệu từ cơ sở dữ liệu.</strong> Hãy kiểm tra kết nối và tên database trong cấu hình cục bộ. Không hiển thị dữ liệu mẫu thay thế.</div></div>
 <?php return; endif; ?>
 <?php if($liveStats): ?><p class="muted">Nguồn dữ liệu: <?= e($liveStats['database']) ?> · <?= (int)$liveStats['baiThi'] ?> bài thi · <?= (int)$liveStats['ketQuaChamThi'] ?> kết quả chấm thi.</p><?php endif; ?>
+<?php if($liveStats && in_array($kind, ['dashboard', 'stats'], true)) require __DIR__ . '/school_distribution.php'; ?>
 <?php if($kind === 'dashboard'): ?>
 <div class="metric-grid">
  <?php foreach($dashMetrics as [$value,$label,$hint,$color]): ?>
