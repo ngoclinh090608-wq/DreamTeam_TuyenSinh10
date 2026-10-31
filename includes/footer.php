@@ -1,16 +1,18 @@
 <?php if (($layout ?? 'public') === 'dashboard'): ?>
     </main>
-    <footer class="dash-footer">© 2026 Dream Team · Đồ án môn Phát triển ứng dụng</footer>
+    <footer class="dash-footer">© 2026 · Cổng tuyển sinh lớp 10 <span>Sản phẩm học tập · Không phải cổng tuyển sinh chính thức</span></footer>
   </div>
 </div>
 <div class="dash-scrim" data-menu-close></div>
 <?php else: ?>
-<footer class="site-footer"><div class="container footer-grid">
-  <div><div class="footer-brand"><img src="<?= e(url('assets/images/logo.svg')) ?>" alt="" width="44" height="44"><div><strong>Hệ thống tuyển sinh lớp 10</strong><small>Đồ án nhóm Dream Team</small></div></div><p>Giao diện minh họa phục vụ học tập môn Phát triển ứng dụng. Không phải cổng tuyển sinh chính thức.</p></div>
-  <div><h4>Khám phá</h4><a href="<?= e(url('index.php')) ?>#timeline">Lịch tuyển sinh</a><a href="<?= e(url('index.php')) ?>#targets">Chỉ tiêu trường</a><a href="<?= e(url('index.php')) ?>#guides">Hướng dẫn</a></div>
-  <div><h4>Tiện ích</h4><a href="<?= e(url('auth/login.php')) ?>">Đăng nhập</a><a href="<?= e(url('results/')) ?>">Tra cứu kết quả</a><a href="<?= e(url('admin/')) ?>">Xem giao diện quản trị</a></div>
-  <div><h4>Thông tin</h4><p>Nhóm Dream Team</p><p>Trường Đại học Công nghiệp TP. Hồ Chí Minh</p></div>
-</div><div class="container copyright">© 2026 DREAM TEAM <span>Bản mô phỏng · Dữ liệu trên website chỉ để minh họa</span></div></footer>
+<footer class="site-footer" id="support">
+ <div class="container footer-grid">
+  <div class="footer-about"><div class="footer-brand"><img src="<?= e(url('assets/images/logo.svg')) ?>" alt="" width="46" height="46"><div><strong>Cổng thông tin tuyển sinh vào lớp 10</strong><small>Đồng hành cùng học sinh và phụ huynh</small></div></div><p>Sản phẩm học tập môn Phát triển ứng dụng. Không phải cổng tuyển sinh chính thức của cơ quan nhà nước. Các thông tin và dữ liệu mẫu chỉ phục vụ thực hành.</p></div>
+  <div><h2>Thông tin tuyển sinh</h2><a href="<?= e(url('admission-info/huong-dan.php')) ?>">Hướng dẫn & quy trình</a><a href="<?= e(url('schools/danh-sach.php')) ?>">Danh sách trường THPT</a><a href="<?= e(url()) ?>#timeline">Các giai đoạn tuyển sinh</a></div>
+  <div><h2>Hỗ trợ sử dụng</h2><a href="<?= e(url()) ?>#faq">Câu hỏi thường gặp</a><a href="<?= e(url('results/')) ?>">Tra cứu kết quả mẫu</a><a href="<?= e(url('auth/login.php')) ?>">Đăng nhập hệ thống</a></div>
+ </div>
+ <div class="container copyright"><span>© 2026 · Cổng tuyển sinh lớp 10</span><a href="<?= e(url()) ?>#main">Về đầu trang ↑</a></div>
+</footer>
 <?php endif; ?>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body></html>
