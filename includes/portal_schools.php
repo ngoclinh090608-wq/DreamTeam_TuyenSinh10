@@ -1,12 +1,12 @@
 <?php
 /** Read-only presentation of the same school list used by the homepage. */
 require_once dirname(__DIR__) . '/services/live_data.php';
-$school_sample = require __DIR__ . '/sample_data.php';
-$public_schools = $school_sample['schools'];
 $school_rows = live_home_schools();
-if ($school_rows !== null) {
-    $public_schools = array_map(fn($r) => ['code' => $r[0], 'name' => $r[1], 'district' => $r[2], 'quota' => $r[3]], $school_rows);
+if ($school_rows === null) {
+    echo '<div class="notice notice-blue" role="alert">Không tải được chỉ tiêu từ cơ sở dữ liệu. Hãy kiểm tra kết nối và cấu hình database cục bộ.</div>';
+    return;
 }
+$public_schools = array_map(fn($r) => ['code' => $r[0], 'name' => $r[1], 'district' => $r[2], 'quota' => $r[3]], $school_rows);
 $school_regions = array_values(array_unique(array_column($public_schools, 'district')));
 ?>
 <div class="school-directory">
