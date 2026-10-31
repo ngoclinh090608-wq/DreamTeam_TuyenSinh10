@@ -11,6 +11,8 @@
 Thumbs.db
 .vscode/
 .idea/
+__pycache__/
+*.py[cod]
 
 # Log ứng dụng
 /storage/logs/

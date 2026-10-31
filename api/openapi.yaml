@@ -1,0 +1,196 @@
+openapi: 3.0.3
+info:
+  title: DreamTeam Tuyển sinh lớp 10 API
+  version: 1.0.0
+  description: REST API dùng lại tầng nghiệp vụ PHP của hệ thống tuyển sinh.
+servers:
+  - url: /DreamTeam_TuyenSinh10/api/v1
+    description: XAMPP trong thư mục dự án
+  - url: /api/v1
+    description: Web root hoặc PHP built-in server
+tags:
+  - name: Catalogue
+  - name: Exam organization
+paths:
+  /schools:
+    get:
+      tags: [Catalogue]
+      summary: Danh sách trường THPT và chỉ tiêu
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolsResponse'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /exams:
+    get:
+      tags: [Catalogue]
+      summary: Danh sách kỳ thi
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionResponse'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /exams/{examId}/sites:
+    get:
+      tags: [Exam organization]
+      summary: Danh sách điểm thi của một kỳ thi
+      parameters:
+        - $ref: '#/components/parameters/ExamId'
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /exam-sites/{siteId}/rooms:
+    get:
+      tags: [Exam organization]
+      summary: Danh sách phòng tại một điểm thi
+      parameters:
+        - name: siteId
+          in: path
+          required: true
+          schema: {type: string, maxLength: 80, pattern: '^[A-Za-z0-9:_-]+$'}
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /exams/{examId}/room-preparations:
+    post:
+      tags: [Exam organization]
+      summary: Tạo đủ phòng 30 chỗ tại đúng điểm thi được chọn
+      description: Yêu cầu session của Ban Tuyển sinh hoặc Quản trị và CSRF token lấy từ trang đã đăng nhập.
+      security:
+        - sessionCookie: []
+          csrfToken: []
+      parameters:
+        - $ref: '#/components/parameters/ExamId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [selection]
+              additionalProperties: false
+              properties:
+                selection:
+                  type: string
+                  maxLength: 80
+                  description: Mã điểm thi hiện có hoặc truong:MA_TRUONG để tạo điểm mới.
+                  example: truong:THPT_4
+      responses:
+        '201':
+          description: Đã chuẩn bị điểm thi và phòng trong một transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '419':
+          description: CSRF token không hợp lệ
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+        '422':
+          description: Dữ liệu hoặc điều kiện nghiệp vụ không hợp lệ
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+components:
+  parameters:
+    ExamId:
+      name: examId
+      in: path
+      required: true
+      schema: {type: string, maxLength: 80, pattern: '^[A-Za-z0-9:_-]+$'}
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: PHPSESSID
+    csrfToken:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+  schemas:
+    School:
+      type: object
+      required: [id, name, region, quota]
+      properties:
+        id: {type: string}
+        name: {type: string}
+        region: {type: string}
+        quota: {type: integer, minimum: 0}
+    SchoolsResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success: {type: boolean, enum: [true]}
+        data:
+          type: array
+          items: {$ref: '#/components/schemas/School'}
+    CollectionResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success: {type: boolean, enum: [true]}
+        data: {type: array, items: {type: object, additionalProperties: true}}
+    ObjectResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success: {type: boolean, enum: [true]}
+        data: {type: object, additionalProperties: true}
+    ErrorResponse:
+      type: object
+      required: [success, error]
+      properties:
+        success: {type: boolean, enum: [false]}
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: {type: string}
+            message: {type: string}
+            details: {type: array, items: {type: string}}
+  responses:
+    BadRequest:
+      description: Tham số hoặc JSON không hợp lệ
+      content: {application/json: {schema: {$ref: '#/components/schemas/ErrorResponse'}}}
+    Unauthorized:
+      description: Chưa đăng nhập
+      content: {application/json: {schema: {$ref: '#/components/schemas/ErrorResponse'}}}
+    Forbidden:
+      description: Tài khoản không có quyền
+      content: {application/json: {schema: {$ref: '#/components/schemas/ErrorResponse'}}}
+    ServiceUnavailable:
+      description: Database chưa sẵn sàng
+      content: {application/json: {schema: {$ref: '#/components/schemas/ErrorResponse'}}}

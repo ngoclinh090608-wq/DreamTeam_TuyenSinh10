@@ -7,6 +7,9 @@ if (preg_match('~(?:^|/)(?:config|includes|services|database|storage|tests|docs|
     || str_contains($path, '..')) {
     http_response_code(403); echo 'Forbidden'; return true;
 }
+if (preg_match('~(?:^|/)api/v1(?:/|$)~i', $path)) {
+    require __DIR__ . '/api/index.php'; return true;
+}
 $file = __DIR__ . $path;
 if (is_file($file)) return false;
 if (is_dir($file) && is_file(rtrim($file,'/') . '/index.php')) {

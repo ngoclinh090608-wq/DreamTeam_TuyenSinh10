@@ -4,6 +4,8 @@ Options -Indexes
     # Never expose internal PHP, SQL, tests, and documents over HTTP.
     RewriteRule ^(config|includes|services|database|storage|tests|docs)(/|$) - [F,L,NC]
     RewriteRule ^(\.env.*|\.git.*|README\.md|router\.php|composer\.(json|lock))$ - [F,L,NC]
+    # REST API front controller (works when the project is hosted in an XAMPP subdirectory).
+    RewriteRule ^api/v1(?:/.*)?$ api/index.php [QSA,L,NC]
 </IfModule>
 <FilesMatch "^(\.env.*|\.git.*|.*\.sql|.*\.log)$">
     Require all denied
