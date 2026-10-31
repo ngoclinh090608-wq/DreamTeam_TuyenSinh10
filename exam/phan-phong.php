@@ -161,8 +161,8 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
 <div class="ui-kpi-grid" style="margin-bottom: 1.5rem;">
   <div class="ui-kpi">
     <div class="ui-kpi-label">Điểm thi</div>
-    <div class="ui-kpi-val" style="font-size:1.3rem"><?= e($diemThiHienTai['tenDiemThi']) ?></div>
-    <div class="ui-kpi-hint">Trường tổ chức thi: <?= e($diemThiHienTai['tenTruongTHPT'] ?: 'Chưa gắn trường THPT') ?></div>
+    <div class="ui-kpi-val" style="font-size:1.3rem"><?= e(catalog_display_name((string)$diemThiHienTai['tenDiemThi'])) ?></div>
+    <div class="ui-kpi-hint">Trường tổ chức thi: <?= e(catalog_display_name($diemThiHienTai['tenTruongTHPT'] ?: 'Chưa gắn trường THPT')) ?></div>
   </div>
   <div class="ui-kpi">
     <div class="ui-kpi-label">Số phòng thi</div>
@@ -239,7 +239,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
         <div class="panel" style="background: #f8fafc; border: 1px solid #cbd5e1;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.75rem;">
             <div>
-              <strong><?= e($pInfo['tenPhong']) ?> (<code><?= e($maPhong) ?></code>)</strong>
+              <strong><?= e(catalog_display_name((string)$pInfo['tenPhong'])) ?> (<code><?= e($maPhong) ?></code>)</strong>
             </div>
             <div>
               <span class="badge <?= $slXep >= $sc ? 'badge-error' : 'badge-success' ?>"><?= $slXep ?> / <?= $sc ?> chỗ</span>
@@ -267,7 +267,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
                       <td><small><?= e($ts['truongDangKy']) ?></small></td>
                       <td>
                         <input type="hidden" name="phanBo[<?= e($ts['maThiSinh']) ?>]" value="<?= e($maPhong) ?>">
-                        <?= e($pInfo['tenPhong']) ?>
+                        <?= e(catalog_display_name((string)$pInfo['tenPhong'])) ?>
                       </td>
                     </tr>
                   <?php endforeach; ?>
@@ -300,7 +300,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
     <a class="btn btn-sm <?= $maPhongLoc === '' ? 'btn-primary' : 'btn-outline' ?>" href="<?= e(url('exam/phan-phong.php', ['kyThi' => $maKyThi, 'diemThi' => $maDiemThi])) ?>">Tất cả phòng (<?= count($dsDaPhanPhong) ?>)</a>
     <?php foreach ($dsPhong as $p): ?>
       <a class="btn btn-sm <?= $maPhongLoc === $p['maPhong'] ? 'btn-primary' : 'btn-outline' ?>" href="<?= e(url('exam/phan-phong.php', ['kyThi' => $maKyThi, 'diemThi' => $maDiemThi, 'phong' => $p['maPhong']])) ?>">
-        <?= e($p['tenPhong']) ?> (<?= $p['soLuongThiSinh'] ?>)
+        <?= e(catalog_display_name((string)$p['tenPhong'])) ?> (<?= $p['soLuongThiSinh'] ?>)
       </a>
     <?php endforeach; ?>
   </div>
@@ -333,8 +333,8 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
               <td><code><?= e($r['maThiSinh']) ?></code></td>
               <td><strong><?= e($r['hoTen']) ?></strong></td>
               <td><?= date('d/m/Y', strtotime((string)$r['ngaySinh'])) ?></td>
-              <td><?= e($r['tenTruongTHCS']) ?></td>
-              <td><span class="badge badge-success"><?= e($r['tenPhong']) ?> (<?= e($r['maPhong']) ?>)</span></td>
+              <td><?= e(catalog_display_name((string)$r['tenTruongTHCS'])) ?></td>
+              <td><span class="badge badge-success"><?= e(catalog_display_name((string)$r['tenPhong'])) ?> (<?= e($r['maPhong']) ?>)</span></td>
               <td><small class="text-muted"><?= date('d/m/Y H:i', strtotime((string)$r['ngayPhan'])) ?></small></td>
               <td class="ui-align-right">
                 <!-- Form chuyển phòng nhanh -->
@@ -348,7 +348,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
                     <option value="">-- Chuyển sang --</option>
                     <?php foreach ($dsPhong as $p): if ($p['maPhong'] !== $r['maPhong']): ?>
                       <option value="<?= e($p['maPhong']) ?>"<?= (int)$p['soLuongThiSinh'] >= (int)$p['sucChua'] ? ' disabled' : '' ?>>
-                        <?= e($p['tenPhong']) ?> (<?= $p['soLuongThiSinh'] ?>/<?= $p['sucChua'] ?>)
+                        <?= e(catalog_display_name((string)$p['tenPhong'])) ?> (<?= $p['soLuongThiSinh'] ?>/<?= $p['sucChua'] ?>)
                       </option>
                     <?php endif; endforeach; ?>
                   </select>

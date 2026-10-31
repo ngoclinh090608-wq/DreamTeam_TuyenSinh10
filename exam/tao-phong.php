@@ -113,8 +113,8 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
 <div class="ui-kpi-grid" style="margin-bottom: 1.5rem;">
   <div class="ui-kpi">
     <div class="ui-kpi-label">Điểm thi</div>
-    <div class="ui-kpi-val" style="font-size:1.4rem"><?= e($diemThiHienTai['tenDiemThi']) ?></div>
-    <div class="ui-kpi-hint">Kỳ thi: <?= e($diemThiHienTai['tenKyThi']) ?></div>
+    <div class="ui-kpi-val" style="font-size:1.4rem"><?= e(catalog_display_name((string)$diemThiHienTai['tenDiemThi'])) ?></div>
+    <div class="ui-kpi-hint">Kỳ thi: <?= e(catalog_display_name((string)$diemThiHienTai['tenKyThi'])) ?></div>
   </div>
   <div class="ui-kpi">
     <div class="ui-kpi-label">Số phòng hiện có</div>
@@ -123,7 +123,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
   </div>
   <div class="ui-kpi">
     <div class="ui-kpi-label">Đơn vị đặt điểm thi</div>
-    <div class="ui-kpi-val" style="font-size:1.4rem"><?= e($diemThiHienTai['tenTruongDatDiem'] ?: '—') ?></div>
+    <div class="ui-kpi-val" style="font-size:1.4rem"><?= e(catalog_display_name($diemThiHienTai['tenTruongDatDiem'] ?: '—')) ?></div>
     <div class="ui-kpi-hint">Khu vực: <?= e($diemThiHienTai['maKhuVuc'] ?: 'Chưa phân vùng') ?></div>
   </div>
 </div>
@@ -170,7 +170,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
 <section class="panel">
   <div class="panel-heading">
     <div>
-      <h2>3. Danh sách phòng thi tại <?= e($diemThiHienTai['tenDiemThi']) ?></h2>
+      <h2>3. Danh sách phòng thi tại <?= e(catalog_display_name((string)$diemThiHienTai['tenDiemThi'])) ?></h2>
       <p>Các phòng thi sẵn sàng cho công tác phân phòng thi (UC07).</p>
     </div>
   </div>
@@ -202,7 +202,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
             <tr>
               <td><?= $stt++ ?></td>
               <td><code><?= e($p['maPhong']) ?></code></td>
-              <td><strong><?= e($p['tenPhong']) ?></strong></td>
+              <td><strong><?= e(catalog_display_name((string)$p['tenPhong'])) ?></strong></td>
               <td><?= $sc ?> chỗ</td>
               <td><?= $sl ?> / <?= $sc ?></td>
               <td>

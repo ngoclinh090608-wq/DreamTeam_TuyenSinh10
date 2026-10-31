@@ -127,8 +127,8 @@ exam_tabs('index.php');
             <tr>
               <td><?= $stt++ ?></td>
               <td><code><?= e($p['maPhong']) ?></code></td>
-              <td><strong><?= e($p['tenPhong']) ?></strong></td>
-              <td><?= e($p['tenDiemThi']) ?></td>
+              <td><strong><?= e(catalog_display_name((string)$p['tenPhong'])) ?></strong></td>
+              <td><?= e(catalog_display_name((string)$p['tenDiemThi'])) ?></td>
               <td><?= $sc ?> chỗ</td>
               <td>
                 <strong><?= $sl ?></strong> / <?= $sc ?>

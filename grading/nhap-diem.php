@@ -99,7 +99,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
   <div class="table-wrap"><table class="data-table">
     <thead><tr><th>Túi bài thi</th><th>Phòng thi</th><th>Tổng số bài</th><th>Chưa nhập điểm</th><th>Thao tác</th></tr></thead><tbody>
     <?php foreach ($dsTui as $tui): ?>
-      <tr><td><?= e($tui['maLoBaiThi']) ?></td><td><?= e($tui['tenPhong'] . ' (' . $tui['maPhong'] . ')') ?></td>
+      <tr><td><?= e($tui['maLoBaiThi']) ?></td><td><?= e(catalog_display_name($tui['tenPhong']) . ' (' . $tui['maPhong'] . ')') ?></td>
       <td><?= (int)$tui['soBai'] ?></td><td><?= (int)$tui['chuaNhap'] ?></td>
       <td><a class="btn btn-outline" href="<?= e(url('grading/nhap-diem.php', array_merge($scope, ['tuiBai' => $tui['maLoBaiThi'], 'taiNgay' => '1'])) . ((int)$tui['chuaNhap'] > 0 ? '#nhap-excel' : '#chi-tiet-tui')) ?>"><?= (int)$tui['chuaNhap'] > 0 ? 'Chọn túi bài' : 'Tải danh sách điểm' ?></a></td></tr>
     <?php endforeach; ?>
