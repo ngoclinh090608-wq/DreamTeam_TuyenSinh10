@@ -55,7 +55,8 @@ for subject, room, bag in [('NN', 'P101', 'LO_P101_NN'), ('TOAN', 'P202', 'LO_P2
     if subject == 'TOAN':
         assert 'id="excel"' in selected
         assert not any('loaiFile=bang_diem' in link for link in links)
-        download = next(link for link in links if 'download=1' in link and 'loaiFile=' not in link)
+        assert 'Tải lại file túi bài' not in selected and 'Túi bài để nhập điểm' not in selected
+        download = Links(selected).frames[0]
         original = request(download)
         filled = io.BytesIO()
         with zipfile.ZipFile(io.BytesIO(original)) as source, zipfile.ZipFile(filled, 'w', zipfile.ZIP_DEFLATED) as target:

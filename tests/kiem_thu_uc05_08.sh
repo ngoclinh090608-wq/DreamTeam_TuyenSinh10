@@ -79,7 +79,7 @@ get "grading/nhap-diem.php" | kiem UC05 "Thông báo chặn quyền truy cập" 
 
 dang_nhap "hdchamthi"
 get "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&phongThi=P202&tuiBai=LO_P202_TOAN" | kiem UC05 "Hiển thị túi bài theo kỳ, môn, phòng" "LO_P202_TOAN"
-get "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&phongThi=P202&tuiBai=LO_P202_TOAN" | kiem UC05 "Có tải túi Excel" "Tải lại file túi bài (.xlsx)"
+get "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&phongThi=P202&tuiBai=LO_P202_TOAN&taiNgay=1" | kiem UC05 "Chọn túi tự tải Excel" 'title="Tải Excel của túi đã chọn"'
 get "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&phongThi=P202&tuiBai=LO_P202_TOAN" | kiem UC05 "Có import lại túi đã điền điểm" "Import và kiểm tra file"
 get "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN" | khong UC05 "Không còn ô nhập tay" 'name="diemThi"'
 T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN")

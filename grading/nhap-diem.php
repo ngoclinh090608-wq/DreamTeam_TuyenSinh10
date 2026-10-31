@@ -101,7 +101,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
     <?php foreach ($dsTui as $tui): ?>
       <tr><td><?= e($tui['maLoBaiThi']) ?></td><td><?= e($tui['tenPhong'] . ' (' . $tui['maPhong'] . ')') ?></td>
       <td><?= (int)$tui['soBai'] ?></td><td><?= (int)$tui['chuaNhap'] ?></td>
-      <td><a class="btn btn-outline" href="<?= e(url('grading/nhap-diem.php', array_merge($scope, ['tuiBai' => $tui['maLoBaiThi'], 'taiNgay' => '1'])) . '#chi-tiet-tui') ?>"><?= (int)$tui['chuaNhap'] > 0 ? 'Chọn túi bài' : 'Tải danh sách điểm' ?></a></td></tr>
+      <td><a class="btn btn-outline" href="<?= e(url('grading/nhap-diem.php', array_merge($scope, ['tuiBai' => $tui['maLoBaiThi'], 'taiNgay' => '1'])) . ((int)$tui['chuaNhap'] > 0 ? '#nhap-excel' : '#chi-tiet-tui')) ?>"><?= (int)$tui['chuaNhap'] > 0 ? 'Chọn túi bài' : 'Tải danh sách điểm' ?></a></td></tr>
     <?php endforeach; ?>
   </tbody></table></div>
   <?php endif; ?>
@@ -115,20 +115,18 @@ $downloadUrl = url('grading/nhap-diem.php', $downloadQuery);
 <?php if (!$isPost && ui_input('taiNgay') === '1'): ?>
   <iframe hidden title="Tải Excel của túi đã chọn" src="<?= e($downloadUrl) ?>"></iframe>
 <?php endif; ?>
+<?php if (!$soChuaNhap): ?>
 <section class="panel" id="chi-tiet-tui">
   <div class="panel-heading"><div>
-    <h2><?= $soChuaNhap ? '2. Túi bài để nhập điểm' : 'Danh sách điểm đã nhập' ?> <?= e($maTui) ?></h2>
-    <?php if ($soChuaNhap): ?>
-      <p>File Excel gồm <?= $soChuaNhap ?> bài chưa nhập: <strong>Phòng thi · Số phách · Điểm</strong>. Cột Điểm để trống. Điền điểm trong Excel rồi tải file lên ở bước 3.</p>
-    <?php else: ?>
-      <p>Túi đã nhập đủ <?= count($dsBai) ?> bài. File tải về là danh sách có điểm đã lưu; xem điểm bên dưới. Muốn điều chỉnh điểm, dùng UC13.</p>
-    <?php endif; ?>
+    <h2>Danh sách điểm đã nhập <?= e($maTui) ?></h2>
+    <p>Túi đã nhập đủ <?= count($dsBai) ?> bài. File tải về là danh sách có điểm đã lưu; xem điểm bên dưới. Muốn điều chỉnh điểm, dùng UC13.</p>
   </div></div>
-  <a class="btn btn-primary" href="<?= e($downloadUrl) ?>"><?= $soChuaNhap ? 'Tải lại file túi bài (.xlsx)' : 'Tải danh sách điểm (.xlsx)' ?></a>
+  <a class="btn btn-primary" href="<?= e($downloadUrl) ?>">Tải danh sách điểm (.xlsx)</a>
 </section>
+<?php endif; ?>
 <?php if ($soChuaNhap || $importPreview !== null): ?>
 <section class="panel" id="nhap-excel">
-  <div class="panel-heading"><div><h2>3. Import lại túi bài đã điền điểm</h2>
+  <div class="panel-heading"><div><h2>2. Import lại túi bài đã điền điểm</h2>
     <p>Chọn file .xlsx của túi <?= e($maTui) ?> sau khi điền điểm. Tối đa 500 bài / 2 MB, không dùng công thức. Điểm theo thang môn thi, bước 0.25. Hệ thống kiểm tra từng dòng trước khi lưu.</p>
   </div></div>
   <form method="post" enctype="multipart/form-data">
