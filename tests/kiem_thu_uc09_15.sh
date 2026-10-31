@@ -75,8 +75,8 @@ dung(){ if [ "$3" = "$4" ]; then ok "$1" "$2" "$4"; else ko "$1" "$2" "$4" "th�
 get(){ curl -s -c "$J" -b "$J" "$B/$1"; }
 tok(){ get "$1" | grep -o 'name="csrf_token" value="[^"]*"' | head -1 | sed 's/.*value="//;s/"//'; }
 post(){ local url="$1"; shift; curl -s -c "$J" -b "$J" -L "$B/$url" --data-urlencode "csrf_token=$T" "$@"; }
-# Đăng nhập bằng tài khoản demo (mật khẩu chung 1234), phiên mới mỗi lần.
-MAT_KHAU_DEMO="${MAT_KHAU_DEMO:-1234}"
+# Đăng nhập bằng tài khoản demo (mật khẩu chung dreamteam2026), phiên mới mỗi lần.
+MAT_KHAU_DEMO="${MAT_KHAU_DEMO:-dreamteam2026}"
 dang_nhap(){ rm -f "$J"; TK_HIEN_TAI="$1"; local t; t=$(tok "auth/login.php"); curl -s -o "$NUL" -c "$J" -b "$J" "$B/auth/login.php" --data-urlencode "csrf_token=$t" --data-urlencode "tenDangNhap=$1" --data-urlencode "matKhau=${2:-$MAT_KHAU_DEMO}"; }
 
 # ================= Đăng nhập, đăng xuất, đổi mật khẩu, phân quyền =================
@@ -89,15 +89,15 @@ get "auth/login.php" | kiem DN "Trang đăng nhập mở được" "Đăng nhậ
 T=$(tok "auth/login.php")
 post "auth/login.php" -d "tenDangNhap=&matKhau=" | kiem DN "Bỏ trống" "Vui lòng nhập tên đăng nhập và mật khẩu."
 post "auth/login.php" -d "tenDangNhap=hdchamthi&matKhau=sai" | kiem DN "Sai mật khẩu" "Tên đăng nhập hoặc mật khẩu không đúng."
-post "auth/login.php" -d "tenDangNhap=khongcoai&matKhau=1234" | kiem DN "Tài khoản không tồn tại" "Tên đăng nhập hoặc mật khẩu không đúng."
-curl -s -c "$J" -b "$J" "$B/auth/login.php" -d "csrf_token=sai&tenDangNhap=hdchamthi&matKhau=1234" | kiem DN "CSRF sai bị chặn" "Phiên làm việc đã hết hạn"
+post "auth/login.php" -d "tenDangNhap=khongcoai&matKhau=dreamteam2026" | kiem DN "Tài khoản không tồn tại" "Tên đăng nhập hoặc mật khẩu không đúng."
+curl -s -c "$J" -b "$J" "$B/auth/login.php" -d "csrf_token=sai&tenDangNhap=hdchamthi&matKhau=dreamteam2026" | kiem DN "CSRF sai bị chặn" "Phiên làm việc đã hết hạn"
 for i in 1 2 3 4; do post "auth/login.php" -d "tenDangNhap=gvcn&matKhau=sai$i" > /dev/null; done
 post "auth/login.php" -d "tenDangNhap=gvcn&matKhau=sai5" | kiem DN "Sai 5 lần → khóa tạm" "Vui lòng thử lại sau 15 phút."
-post "auth/login.php" -d "tenDangNhap=gvcn&matKhau=1234" | kiem DN "Đang khóa tạm: đúng mật khẩu vẫn chặn" "Vui lòng thử lại sau 15 phút."
+post "auth/login.php" -d "tenDangNhap=gvcn&matKhau=dreamteam2026" | kiem DN "Đang khóa tạm: đúng mật khẩu vẫn chặn" "Vui lòng thử lại sau 15 phút."
 sql "UPDATE TaiKhoan SET khoaDen = NULL, soLanSai = 0 WHERE tenDangNhap = 'gvcn'; UPDATE TaiKhoan SET trangThai = 'Bị khóa' WHERE tenDangNhap = 'hdrade';"
-post "auth/login.php" -d "tenDangNhap=hdrade&matKhau=1234" | kiem DN "Tài khoản bị khóa" "Tài khoản đã bị khóa."
+post "auth/login.php" -d "tenDangNhap=hdrade&matKhau=dreamteam2026" | kiem DN "Tài khoản bị khóa" "Tài khoản đã bị khóa."
 sql "UPDATE TaiKhoan SET trangThai = 'Hoạt động' WHERE tenDangNhap = 'hdrade';"
-dung DN "Đăng nhập đúng → quay lại trang đang mở (next)" "$(curl -s -o "$NUL" -c "$J" -b "$J" -w '%{redirect_url}' "$B/auth/login.php" --data-urlencode "csrf_token=$T" -d "tenDangNhap=hdchamthi&matKhau=1234" --data-urlencode "next=$(printf '%s' "$B" | sed -E 's#https?://[^/]+##')/grading/thong-ke.php" | grep -c 'grading/thong-ke.php')" 1
+dung DN "Đăng nhập đúng → quay lại trang đang mở (next)" "$(curl -s -o "$NUL" -c "$J" -b "$J" -w '%{redirect_url}' "$B/auth/login.php" --data-urlencode "csrf_token=$T" -d "tenDangNhap=hdchamthi&matKhau=dreamteam2026" --data-urlencode "next=$(printf '%s' "$B" | sed -E 's#https?://[^/]+##')/grading/thong-ke.php" | grep -c 'grading/thong-ke.php')" 1
 get "admin/" | kiem DN "Thanh trên hiện tên người đăng nhập" "Phan Thùy Dương"
 get "admin/" | khong DN "Sidebar ẩn mục không có quyền (papers)" "/papers/\""
 dung DN "Không có quyền → HTTP 403" "$(ma_http papers/)" 403
@@ -105,16 +105,16 @@ get "papers/" | kiem DN "Không có quyền → câu thông báo" "Bạn không 
 T=$(tok "grading/thong-ke.php")
 post "councils/?ma=HD02&sua=1" -d "action=cap_nhat&maKyThi=KT2026&tenHoiDongThi=Bi+sua" --data-urlencode "loaiHoiDong@$V/coithi" > /dev/null
 dung DN "POST khi không có quyền không sửa được dữ liệu" "$(gtri "SELECT COUNT(*) FROM HoiDongThi WHERE tenHoiDongThi = 'Bi sua'")" 0
-dung DN "Chặn chuyển hướng ra trang ngoài" "$(rm -f "$J"; T=$(tok auth/login.php); curl -s -o "$NUL" -c "$J" -b "$J" -w '%{redirect_url}' "$B/auth/login.php" --data-urlencode "csrf_token=$T" -d "tenDangNhap=quantri&matKhau=1234" --data-urlencode "next=https://vi-du-ngoai.com" | grep -c 'vi-du-ngoai')" 0
+dung DN "Chặn chuyển hướng ra trang ngoài" "$(rm -f "$J"; T=$(tok auth/login.php); curl -s -o "$NUL" -c "$J" -b "$J" -w '%{redirect_url}' "$B/auth/login.php" --data-urlencode "csrf_token=$T" -d "tenDangNhap=quantri&matKhau=dreamteam2026" --data-urlencode "next=https://vi-du-ngoai.com" | grep -c 'vi-du-ngoai')" 0
 # Đổi mật khẩu (tài khoản gvcn, khôi phục lại sau)
 dang_nhap gvcn
 T=$(tok "auth/doi-mat-khau.php")
 post "auth/doi-mat-khau.php" -d "matKhauCu=sai&matKhauMoi=matkhaumoi1&nhapLai=matkhaumoi1" | kiem DMK "Sai mật khẩu hiện tại" "Mật khẩu hiện tại không đúng."
-post "auth/doi-mat-khau.php" -d "matKhauCu=1234&matKhauMoi=ngan&nhapLai=ngan" | kiem DMK "Mật khẩu mới quá ngắn" "ít nhất 8 ký tự"
-post "auth/doi-mat-khau.php" -d "matKhauCu=1234&matKhauMoi=matkhaumoi1&nhapLai=khac12345" | kiem DMK "Nhập lại không khớp" "Nhập lại mật khẩu mới không khớp."
-post "auth/doi-mat-khau.php" -d "matKhauCu=1234&matKhauMoi=matkhaumoi1&nhapLai=matkhaumoi1" | kiem DMK "Đổi thành công" "Đổi mật khẩu thành công."
+post "auth/doi-mat-khau.php" -d "matKhauCu=dreamteam2026&matKhauMoi=ngan&nhapLai=ngan" | kiem DMK "Mật khẩu mới quá ngắn" "ít nhất 8 ký tự"
+post "auth/doi-mat-khau.php" -d "matKhauCu=dreamteam2026&matKhauMoi=matkhaumoi1&nhapLai=khac12345" | kiem DMK "Nhập lại không khớp" "Nhập lại mật khẩu mới không khớp."
+post "auth/doi-mat-khau.php" -d "matKhauCu=dreamteam2026&matKhauMoi=matkhaumoi1&nhapLai=matkhaumoi1" | kiem DMK "Đổi thành công" "Đổi mật khẩu thành công."
 rm -f "$J"; T=$(tok auth/login.php)
-post "auth/login.php" -d "tenDangNhap=gvcn&matKhau=1234" | kiem DMK "Mật khẩu cũ không dùng được nữa" "Tên đăng nhập hoặc mật khẩu không đúng."
+post "auth/login.php" -d "tenDangNhap=gvcn&matKhau=dreamteam2026" | kiem DMK "Mật khẩu cũ không dùng được nữa" "Tên đăng nhập hoặc mật khẩu không đúng."
 dang_nhap gvcn matkhaumoi1
 get "admin/" | kiem DMK "Đăng nhập bằng mật khẩu mới" "Giáo viên chủ nhiệm lớp 9"
 sql "UPDATE TaiKhoan t JOIN TaiKhoan q ON q.tenDangNhap = 'quantri' SET t.matKhau = q.matKhau WHERE t.tenDangNhap = 'gvcn';"
