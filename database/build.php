@@ -8,6 +8,5 @@ foreach (['tables', 'views', 'functions', 'procedures'] as $d) {
     foreach ($files as $f) $sql .= "\n" . file_get_contents($f);
 }
 $sql .= "\nSET FOREIGN_KEY_CHECKS=1;\n";
-file_put_contents("$dir/install_schema.sql", $sql);
 file_put_contents("$dir/install.sql", $sql . "\n" . file_get_contents("$dir/seed/seed.sql"));
-echo "Đã tạo install_schema.sql (chỉ cấu trúc) và install.sql (cấu trúc + dữ liệu mẫu)\n";
+echo "Đã tạo install.sql (cấu trúc + dữ liệu mẫu kiểm thử)\n";

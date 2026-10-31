@@ -8,7 +8,11 @@ $dashMetrics = $liveStats
   : [['720','Hồ sơ dự kiến','↗ 12%','sky'],['07','Trường tham gia','Kỳ 2026–2027','purple'],['03','Nguyện vọng tối đa','NV1 · NV2 · NV3','mint'],['--','Nguyện vọng đã lập','Chưa kết nối CSDL','orange']];
 ?>
 <div class="page-head"><div><div class="eyebrow"><span></span><?= e($module['eyebrow']) ?></div><h1><?= e($module['title']) ?></h1><p><?= e($module['desc']) ?></p></div><div class="page-head-actions"><span class="uc-tag"><?= e($module['uc']) ?></span><button class="btn btn-primary" type="button" data-demo-action>+ Thêm mới</button></div></div>
-<?php if(!$live): ?><div class="notice notice-blue"><span class="notice-icon">ⓘ</span><div><strong>Chưa kết nối cơ sở dữ liệu.</strong> Chưa kết nối được cơ sở dữ liệu nên chưa có dữ liệu để hiển thị. Xem hướng dẫn nhập <code>database/install.sql</code> trong README.</div></div><?php endif; ?>
+<?php if(!$live): ?>
+<div class="notice notice-blue" role="alert"><div><strong>Không tải được dữ liệu từ cơ sở dữ liệu.</strong> Hãy kiểm tra kết nối và tên database trong cấu hình cục bộ. Không hiển thị dữ liệu mẫu thay thế.</div></div>
+<?php return; endif; ?>
+<?php if($liveStats): ?><p class="muted">Nguồn dữ liệu: <?= e($liveStats['database']) ?> · <?= (int)$liveStats['baiThi'] ?> bài thi · <?= (int)$liveStats['ketQuaChamThi'] ?> kết quả chấm thi.</p><?php endif; ?>
+<?php if($liveStats && in_array($kind, ['dashboard', 'stats'], true)) require __DIR__ . '/school_distribution.php'; ?>
 <?php if($kind === 'dashboard'): ?>
 <div class="metric-grid">
  <?php foreach($dashMetrics as [$value,$label,$hint,$color]): ?>

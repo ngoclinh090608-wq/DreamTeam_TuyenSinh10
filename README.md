@@ -54,10 +54,10 @@ Làm theo đặc tả và Test Case Tuần 04, tên hàm theo bảng Message –
 **UC05 chỉ nhập điểm qua file Excel của túi bài thi** tại `/grading/nhap-diem.php`:
 
 1. Lọc **Kỳ thi → Môn thi → Phòng thi**, bấm **Lọc túi bài**, rồi chọn túi bài cần chấm.
-2. Bấm **Chọn túi bài** để tải ngay file Excel và mở chỗ upload. Muốn tải lại, bấm **Chọn túi bài** trong danh sách. File chứa đúng ba cột **Phòng thi, Số phách, Điểm**; phòng thi và số phách được điền sẵn, điểm để trống. Chỉ xuất các bài chưa có điểm, không xuất thông tin thí sinh. Túi có bài chưa đánh phách phải hoàn tất đánh phách trước.
+2. Bấm **Tải file túi bài (.xlsx)**. File chứa đúng ba cột **Phòng thi, Số phách, Điểm**; phòng thi và số phách được điền sẵn, điểm để trống. Chỉ xuất các bài chưa có điểm, không xuất thông tin thí sinh. Túi có bài chưa đánh phách phải hoàn tất đánh phách trước.
 3. Người chấm điền cột **Điểm** trong Excel, giữ nguyên phòng thi / số phách và tiêu đề, lưu `.xlsx` rồi **Import và kiểm tra file** trở lại đúng túi đã chọn.
 4. Xem lỗi từng dòng; nếu hợp lệ thì **Xác nhận lưu điểm**. Điểm vừa lưu hiển thị ngay trong bảng **Điểm đã nhập của túi** ở cuối trang. Không có nhập tay trên web. Bài đã có điểm chỉ chỉnh sửa tại UC13.
-5. Túi đã có đủ điểm hiển thị **Tải danh sách điểm**: bấm để tải file có điểm đã lưu và xem bảng điểm. Không hiện form import hoặc file Điểm trống cho túi đã đủ điểm. Cập nhật mã từ GitHub không tự sửa dữ liệu MySQL trên máy.
+5. Túi đã có đủ điểm vẫn chọn được, xem được bảng điểm và **Tải bảng điểm của túi (.xlsx)**. Ô import vẫn hiện nhưng bị khóa kèm giải thích; chọn túi còn bài chưa nhập để nhập mới. Cập nhật mã từ GitHub không tự sửa dữ liệu MySQL trên máy.
 
 Tối đa 500 bài / 2 MB mỗi file; không dùng `.xls` hoặc công thức. Điểm theo thang môn, bước 0.25. Hệ thống kiểm tra đúng kỳ / môn / phòng / túi, số phách, trùng bài và điểm trước khi lưu. Khi xác nhận, kiểm tra lại dữ liệu và lưu toàn bộ trong một transaction; lỗi sẽ không lưu điểm nào. Bản xem trước hết hạn sau 15 phút.
 
@@ -172,7 +172,7 @@ Chỉ là cách ghép nhóm chức năng. Tên, thứ tự và nghiệp vụ ph�
 
 Nhóm dùng **MySQL/MariaDB** (XAMPP). Schema bám theo báo cáo Tuần 08 `(1)`: 30 bảng, giữ nguyên tên bảng và cột của nhóm (xem `database/README.md`).
 
-Cài đặt seed nhỏ để kiểm thử (đặt `DB_NAME=dreamteam_tuyensinh10` hoặc khóa `name` tương ứng trong `config/database.local.php`; mặc định website dùng database demo, xem mục 8):
+Cài đặt:
 1. Bật **Apache** và **MySQL** trong XAMPP.
 2. Mở `http://localhost/phpmyadmin` → tab **Nhập (Import)** → chọn `database/install.sql` → Thực hiện (tự tạo database `dreamteam_tuyensinh10`, 30 bảng, dữ liệu mẫu).
 3. Mở lại `http://localhost/DreamTeam_TuyenSinh10/admin/`: các thẻ số liệu và bảng đã đọc từ database. Nếu chưa nhập DB, giao diện tự dùng dữ liệu giả như cũ.
@@ -228,4 +228,8 @@ DreamTeam_TuyenSinh10/
 
 ## 8. Bộ demo 1.750 học sinh trong database riêng
 
-Có bộ dữ liệu người dùng cung cấp cho 5 THCS, 1.750 học sinh và 5.250 nguyện vọng. Xem [hướng dẫn database/demo](database/demo/README.md) để khởi tạo `dreamteam_tuyensinh10_demo`, import lặp an toàn và chọn kết nối demo trên XAMPP. Website mặc định dùng `dreamteam_tuyensinh10_demo` khi không có cấu hình riêng. Nếu `config/database.local.php` hoặc biến môi trường `DB_NAME` vẫn trỏ `dreamteam_tuyensinh10`, hãy đổi lại tên database để dùng dữ liệu demo. Pull mã không tự import hay thay đổi dữ liệu MySQL.
+Có bộ dữ liệu người dùng cung cấp cho 5 THCS, 1.750 học sinh và 5.250 nguyện vọng. Xem [hướng dẫn database/demo](database/demo/README.md) để khởi tạo `dreamteam_tuyensinh10_demo`, nhập bản SQL đầy đủ một lần vào database demo trống và chọn kết nối demo trên XAMPP. Không đổi bộ seed nhỏ mặc định hoặc ghi dữ liệu vào database phát triển.
+
+### Cấu hình riêng của nhánh vy
+
+Nhánh vy giữ mặc định database demo theo thay đổi của thành viên. `DB_NAME` và `config/database.local.php` vẫn được ưu tiên. Bản SQL demo đầy đủ chỉ nhập vào database trống, không nhập lại trên database đang dùng. Kiểm thử seed nhỏ phải đặt `DB_NAME=dreamteam_tuyensinh10` hoặc tên database kiểm thử riêng.
