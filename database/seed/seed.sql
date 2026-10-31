@@ -399,17 +399,17 @@ INSERT INTO KetQuaXetTuyen (maKetQua, maThiSinh, maNguyenVong, diemXetTuyen, tra
 INSERT INTO DanhSachKetQuaTuyenSinh (maDanhSach, namTuyenSinh, maDot, trangThaiPheDuyet, trangThaiCongBo) VALUES
   ('DS2026', 2026, 'DOT2026', 'Chưa phê duyệt', 'Chưa công bố');
 
--- Tài khoản demo: mỗi vai trò một tài khoản, TẤT CẢ dùng chung mật khẩu "1234" (đã băm bcrypt).
+-- Tài khoản demo: mỗi vai trò một tài khoản, TẤT CẢ dùng chung mật khẩu "dreamteam2026" (đã băm bcrypt).
 -- Chỉ dùng để demo/đồ án, không dùng cho hệ thống thật.
 INSERT INTO TaiKhoan (maTaiKhoan, tenDangNhap, matKhau, hoTen, vaiTro, maCanBo, maThiSinh) VALUES
-  ('TK01', 'quantri',      '$2y$10$N0iLTcijwvQdKM2za7clUeJGHDk9HIuDMtrap8KVs2roJEwWHwpAO', 'Quản trị viên hệ thống', 'QUAN_TRI', NULL, NULL),
-  ('TK02', 'bantuyensinh', '$2y$10$N0iLTcijwvQdKM2za7clUeJGHDk9HIuDMtrap8KVs2roJEwWHwpAO', 'Cán bộ Ban Tuyển sinh Sở', 'BAN_TUYEN_SINH', NULL, NULL),
-  ('TK03', 'hdtuyensinh',  '$2y$10$N0iLTcijwvQdKM2za7clUeJGHDk9HIuDMtrap8KVs2roJEwWHwpAO', 'Ngô Bích Ngọc', 'HD_TUYEN_SINH', 'CB12', NULL),
-  ('TK04', 'hdcoithi',     '$2y$10$N0iLTcijwvQdKM2za7clUeJGHDk9HIuDMtrap8KVs2roJEwWHwpAO', 'Phạm Quốc Khang', 'HD_COI_THI', 'CB03', NULL),
-  ('TK05', 'hdchamthi',    '$2y$10$N0iLTcijwvQdKM2za7clUeJGHDk9HIuDMtrap8KVs2roJEwWHwpAO', 'Phan Thùy Dương', 'HD_CHAM_THI', 'CB10', NULL),
-  ('TK06', 'catphach',     '$2y$10$N0iLTcijwvQdKM2za7clUeJGHDk9HIuDMtrap8KVs2roJEwWHwpAO', 'Cán bộ Bộ phận cắt phách', 'CAT_PHACH', NULL, NULL),
-  ('TK07', 'hdphuckhao',   '$2y$10$N0iLTcijwvQdKM2za7clUeJGHDk9HIuDMtrap8KVs2roJEwWHwpAO', 'Đỗ Anh Khoa', 'HD_PHUC_KHAO', 'CB11', NULL),
-  ('TK08', 'hdrade',       '$2y$10$N0iLTcijwvQdKM2za7clUeJGHDk9HIuDMtrap8KVs2roJEwWHwpAO', 'Lê Minh Tuấn', 'HD_RA_DE', 'CB01', NULL),
-  ('TK09', 'gvcn',         '$2y$10$N0iLTcijwvQdKM2za7clUeJGHDk9HIuDMtrap8KVs2roJEwWHwpAO', 'Giáo viên chủ nhiệm lớp 9', 'GVCN', NULL, NULL),
-  ('TK10', 'SBD0001',      '$2y$10$N0iLTcijwvQdKM2za7clUeJGHDk9HIuDMtrap8KVs2roJEwWHwpAO', 'Trần Thị Hà', 'HOC_SINH', NULL, 'TS001'),
-  ('TK11', 'SBD0002',      '$2y$10$N0iLTcijwvQdKM2za7clUeJGHDk9HIuDMtrap8KVs2roJEwWHwpAO', 'Trần Minh Chi', 'HOC_SINH', NULL, 'TS002');
+  ('TK01', 'quantri',      '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Quản trị viên hệ thống', 'QUAN_TRI', NULL, NULL),
+  ('TK02', 'bantuyensinh', '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Cán bộ Ban Tuyển sinh Sở', 'BAN_TUYEN_SINH', NULL, NULL),
+  ('TK03', 'hdtuyensinh',  '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Ngô Bích Ngọc', 'HD_TUYEN_SINH', 'CB12', NULL),
+  ('TK04', 'hdcoithi',     '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Phạm Quốc Khang', 'HD_COI_THI', 'CB03', NULL),
+  ('TK05', 'hdchamthi',    '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Phan Thùy Dương', 'HD_CHAM_THI', 'CB10', NULL),
+  ('TK06', 'catphach',     '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Cán bộ Bộ phận cắt phách', 'CAT_PHACH', NULL, NULL),
+  ('TK07', 'hdphuckhao',   '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Đỗ Anh Khoa', 'HD_PHUC_KHAO', 'CB11', NULL),
+  ('TK08', 'hdrade',       '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Lê Minh Tuấn', 'HD_RA_DE', 'CB01', NULL),
+  ('TK09', 'gvcn',         '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Giáo viên chủ nhiệm lớp 9', 'GVCN', NULL, NULL),
+  ('TK10', 'SBD0001',      '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Trần Thị Hà', 'HOC_SINH', NULL, 'TS001'),
+  ('TK11', 'SBD0002',      '$2y$10$m.1I1MF8uLV9orbw6fwRhOJ81f58KqrKIIF/xpGklJ2loInjp9hpy', 'Trần Minh Chi', 'HOC_SINH', NULL, 'TS002');
