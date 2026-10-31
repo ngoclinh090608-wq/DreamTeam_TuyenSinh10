@@ -528,3 +528,5 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--secondary);
 .student-dialog-open { overflow:hidden; }
 @media(max-width:420px) { .student-score-cards { grid-template-columns:1fr; } .student-score-card:nth-child(odd) { border-right:0; } }
 @media print { .student-dialog { display:none !important; } }
+
+.student-photo-box .student-default-avatar { width:100px; height:125px; object-fit:contain; background:#fff; }

@@ -17,3 +17,7 @@ Các vị trí đã chuẩn bị trong template: `school-life.jpg`, `classroom.j
 | Chưa có ảnh chụp | — | — | Chưa xác minh | — |
 
 Nguồn dự kiến kiểm tra khi quyền mạng được áp dụng: Wikimedia Commons (`commons.wikimedia.org`, `upload.wikimedia.org`). Đây chưa phải là ghi nhận nguồn của bất kỳ ảnh cụ thể nào.
+
+## Ảnh đại diện học sinh mặc định
+
+`student-avatar-male.svg`, `student-avatar-female.svg`, `student-avatar-neutral.svg` là biểu tượng silhouette SVG tự vẽ cho dự án, không phải ảnh cá nhân. Chọn theo giới tính đã khai báo khi học sinh chưa tải ảnh lên; ảnh hồ sơ đã tải luôn được ưu tiên.
