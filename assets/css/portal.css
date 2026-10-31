@@ -376,3 +376,157 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--secondary);
   .school-distribution .bars > div { grid-template-columns: minmax(0, 1fr) max-content; gap: 8px 12px; }
   .school-distribution .bars > div > span { grid-column: 1 / -1; }
 }
+
+/* Student pages distinguish the current THCS from THPT preferences. */
+.student-overview { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:20px; margin-bottom:20px; }
+.student-overview > .panel { margin-bottom:0; }
+.student-profile-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin:0; }
+.student-profile-fields .student-field-wide { grid-column:1 / -1; }
+.student-profile-fields dt,.student-admission-details dt { color:var(--muted); font-size:13px; margin-bottom:6px; }
+.student-profile-fields dd { margin:0; padding:11px 13px; border:1px solid var(--border); border-radius:7px; overflow-wrap:anywhere; }
+.student-wish-list { display:grid; gap:12px; margin-bottom:18px; }
+.student-wish-row { display:flex; align-items:center; gap:14px; padding:14px; border:1px solid var(--border); border-radius:8px; }
+.student-wish-order { flex:none; padding:9px; color:var(--primary-dark); background:var(--bg); border-radius:7px; font-weight:700; }
+.student-wish-row small,.student-wish-row strong { display:block; }
+.student-wish-row small { color:var(--muted); margin-bottom:4px; }
+.student-admission-search { margin-bottom:20px; }
+.student-admission-search > label { display:block; font-weight:600; margin-bottom:10px; }
+.student-admission-search > div { display:flex; flex-wrap:wrap; gap:10px; }
+.student-admission-search input { flex:1; min-width:180px; padding:11px 13px; border:1px solid var(--border); border-radius:7px; }
+.student-admission-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+.student-admission-card { margin-bottom:0; }
+.student-quota { display:flex; align-items:baseline; gap:10px; margin-bottom:20px; }
+.student-quota strong { font-size:30px; color:var(--primary-dark); }
+.student-quota span { color:var(--muted); }
+.student-admission-details { display:grid; gap:14px; margin:0 0 18px; }
+.student-admission-details dd { margin:0; overflow-wrap:anywhere; }
+.student-admission-card summary { cursor:pointer; color:var(--primary-dark); font-weight:600; }
+.student-admission-card details p { line-height:1.7; overflow-wrap:anywhere; }
+@media(max-width:900px) { .student-overview,.student-admission-grid { grid-template-columns:1fr; } }
+@media(max-width:480px) { .student-profile-fields { grid-template-columns:1fr; } }
+
+/* Dedicated student portal shell; management pages retain their sidebar. */
+.student-body { min-height:100vh; background:radial-gradient(ellipse at 10% 8%,#eaf4fb 0,transparent 42%),radial-gradient(ellipse at 90% 10%,#eff2ff 0,transparent 38%),#fbfcfe; }
+.student-site-header { background:rgba(255,255,255,.96); border-bottom:1px solid var(--border); }
+.student-header-inner { width:min(1180px,calc(100% - 40px)); margin:auto; display:flex; justify-content:space-between; align-items:center; gap:18px; min-height:74px; }
+.student-brand { display:flex; align-items:center; gap:10px; font-weight:800; color:var(--ink); }
+.student-account { display:flex; align-items:center; gap:10px; }
+.student-account strong,.student-account small { display:block; }
+.student-account strong { font-size:14px; }
+.student-account small { font-size:12px; color:var(--muted); }
+.student-avatar { display:grid; place-items:center; width:36px; height:36px; border-radius:50%; background:var(--soft-blue); color:var(--primary-dark); }
+.student-account-menu { position:relative; }
+.student-account-menu summary { cursor:pointer; padding:8px 10px; font-size:13px; list-style:none; border:1px solid var(--border); border-radius:7px; }
+.student-account-menu > div { position:absolute; right:0; top:calc(100% + 8px); min-width:165px; background:white; padding:8px; border:1px solid var(--border); border-radius:8px; box-shadow:var(--shadow); z-index:100; }
+.student-account-menu a,.student-account-menu button { display:block; width:100%; padding:10px; border:0; background:none; text-align:left; color:var(--ink); font:inherit; font-size:14px; cursor:pointer; }
+.student-account-menu a:hover,.student-account-menu button:hover { background:var(--bg); }
+.student-portal-welcome { text-align:center; max-width:800px; margin:38px auto 26px; padding:0 20px; }
+.student-portal-welcome h1 { font-size:clamp(25px,3vw,36px); margin:0 0 10px; }
+.student-portal-welcome h1 span { color:var(--primary); }
+.student-portal-welcome p { max-width:660px; margin:auto; }
+.student-portal-nav { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; width:fit-content; max-width:calc(100% - 30px); margin:0 auto 32px; padding:6px; background:#e9eef5; border:1px solid var(--border); border-radius:12px; }
+.student-portal-nav a { display:flex; gap:8px; align-items:center; padding:10px 17px; border-radius:8px; font-size:14px; font-weight:600; color:var(--muted); }
+.student-portal-nav a.is-active { background:white; color:var(--primary-dark); box-shadow:0 2px 6px rgb(38 62 80 / 9%); }
+.student-portal-content { width:min(1180px,calc(100% - 40px)); margin:0 auto 56px; min-height:48vh; }
+.student-portal-content .page-head { margin-bottom:22px; }
+.student-portal-content .page-head h1 { font-size:25px; }
+.student-site-footer { width:min(1180px,calc(100% - 40px)); display:flex; flex-wrap:wrap; gap:18px 36px; justify-content:space-between; align-items:center; margin:0 auto; padding:26px 0; border-top:1px solid var(--border); color:var(--muted); font-size:13px; }
+.student-site-footer p { margin:5px 0 0; }
+@media(max-width:640px) {
+ .student-header-inner { width:calc(100% - 24px); flex-wrap:wrap; padding:12px 0; }
+ .student-brand { font-size:13px; }
+ .student-account { margin-left:auto; }
+ .student-portal-nav { justify-content:flex-start; }
+ .student-portal-nav a { padding:8px 10px; font-size:13px; }
+ .student-portal-content { width:calc(100% - 24px); }
+}
+
+.student-score-panel { border-top:1px solid var(--border); margin-top:18px; padding-top:16px; }
+.student-score-panel summary { color:var(--primary-dark); font-weight:700; cursor:pointer; }
+.student-result-status { margin-top:20px; padding:16px; background:#f6f9fc; border:1px solid var(--border); border-radius:8px; }
+.student-result-status h3 { margin:0 0 10px; font-size:16px; }
+.student-result-status p { margin:7px 0; }
+.student-guide-steps { padding-left:24px; }
+.student-guide-steps li { padding:6px 0 12px 8px; }
+.student-guide-steps h3 { font-size:16px; margin:0 0 6px; }
+
+.student-preference-group { min-width:0; border:1px solid var(--border); border-radius:7px; margin:0; padding:0 12px; }
+.student-preference-group legend { padding:0 7px; font-size:13px; font-weight:700; }
+.student-preference + .student-preference { border-top:1px solid var(--border); }
+.student-preference summary { display:flex; justify-content:space-between; align-items:center; gap:12px; cursor:pointer; padding:18px 0; list-style:none; }
+.student-preference summary:after { content:'⌄'; flex:none; color:var(--primary); }
+.student-preference[open] summary:after { content:'⌃'; }
+.student-preference summary strong { font-size:14px; white-space:nowrap; }
+.student-preference summary > span { text-align:right; color:var(--primary-dark); font-size:12px; }
+.student-progress { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:0; margin:0; padding:12px 0 22px; list-style:none; }
+.student-progress li { text-align:center; position:relative; padding:0 3px; color:var(--muted); }
+.student-progress li:before { content:''; position:absolute; top:12px; height:1px; background:var(--border); left:0; right:0; }
+.student-progress li:first-child:before { left:50%; }
+.student-progress li:last-child:before { right:50%; }
+.student-progress-marker { position:relative; z-index:1; display:grid; place-items:center; width:25px; height:25px; margin:0 auto 12px; border:1px solid currentColor; border-radius:50%; background:white; font-size:13px; }
+.student-progress strong,.student-progress small { display:block; font-size:11px; overflow-wrap:anywhere; }
+.student-progress small { margin-top:7px; font-weight:400; }
+.student-progress .is-complete { color:#288b43; }
+.student-progress .is-rejected { color:#bf3946; }
+.student-profile-actions { display:flex; justify-content:flex-end; margin-top:14px; }
+@media(max-width:1200px) { .student-overview { grid-template-columns:1fr; } }
+@media(max-width:600px) { .student-progress { grid-template-columns:repeat(3,minmax(0,1fr)); row-gap:22px; } .student-preference summary { flex-wrap:wrap; } }
+@media print {
+ .student-site-header,.student-portal-welcome,.student-portal-nav,.student-site-footer,.student-print-button,.student-profile-actions { display:none !important; }
+ .student-overview { display:block; } .student-portal-content { width:100%; margin:0; }
+ .student-preference:not([open]) > :not(summary) { display:block !important; }
+ .student-profile,.student-preference { break-inside:avoid; }
+}
+
+.student-profile-form fieldset { border:0; padding:0; margin:0; min-width:0; }
+.student-profile-input-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.student-input { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+.student-input label { font-size:12px; font-weight:600; color:var(--muted); }
+.student-input input,.student-input select,.student-readonly-field { width:100%; min-width:0; border:1px solid var(--border); border-radius:5px; padding:9px; font:inherit; font-size:13px; background:white; color:var(--ink); }
+.student-readonly-field { background:#f6f9fc; }
+.student-photo-name { display:grid; grid-template-columns:130px minmax(0,1fr); gap:16px; }
+.student-photo-box { display:flex; flex-direction:column; align-items:center; gap:8px; padding:10px; border:1px solid var(--border); border-radius:6px; }
+.student-photo-box > span { font-size:65px; color:var(--secondary); }
+.student-photo-box img { max-width:100%; object-fit:cover; }
+.student-photo-box input { width:100%; font-size:10px; }
+.student-photo-box small { font-size:10px; color:var(--muted); }
+.student-extra-section { border-top:1px solid var(--border); margin-top:14px; padding:14px 0; }
+.student-extra-section > summary { font-size:14px; font-weight:700; cursor:pointer; margin-bottom:12px; }
+.student-family-row,.student-year-row { border:1px solid var(--border); border-radius:6px; padding:12px; margin:12px 0; }
+.student-family-row > strong { display:block; margin-bottom:10px; font-size:13px; }
+.student-year-row h3 { font-size:14px; margin:0 0 12px; }
+@media(min-width:1150px) { .student-overview { grid-template-columns:minmax(0,1fr) minmax(0,1fr); } }
+@media(max-width:480px) { .student-profile-input-grid,.student-photo-name { grid-template-columns:1fr; } }
+@media print { .student-profile-form button,.student-photo-box input { display:none; } }
+
+.student-dialog { width:min(520px,calc(100vw - 28px)); max-height:85dvh; margin:auto; border:0; border-radius:12px; padding:22px; color:var(--ink); background:white; box-shadow:0 20px 70px rgb(0 0 0 / 22%); overflow:auto; }
+.student-dialog::backdrop { background:rgb(15 23 42 / 48%); }
+.student-dialog-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
+.student-dialog-heading h2 { font-size:18px; margin:0; }
+.student-dialog-heading button { border:0; background:transparent; color:var(--muted); width:32px; height:32px; font-size:25px; cursor:pointer; border-radius:6px; }
+.student-dialog-heading button:focus-visible { outline:2px solid var(--primary); }
+.student-dialog-overline { font-size:12px; text-transform:uppercase; letter-spacing:.04em; font-weight:700; }
+.student-score-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.student-score-card { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px; border-bottom:1px solid var(--border); }
+.student-score-card:nth-child(odd) { border-right:1px solid var(--border); }
+.student-score-card h3 { font-size:14px; margin:0 0 7px; }
+.student-score-card p { font-size:11px; margin:0; }
+.student-score-card > strong { font-size:24px; }
+.student-dialog-empty { padding:18px; background:var(--bg); border-radius:8px; }
+.student-exam-ticket { padding:20px; background:#eff3ff; border:1px solid #dce4ff; border-radius:12px; margin-bottom:14px; }
+.student-exam-ticket h3 { font-size:15px; color:#41478c; margin:0 0 12px; }
+.student-exam-ticket p { font-size:13px; margin:7px 0; }
+.student-exam-ticket dl { display:grid; grid-template-columns:1fr 1fr; margin:16px 0 0; background:white; border-radius:9px; }
+.student-exam-ticket dl > div { padding:14px 8px; text-align:center; }
+.student-exam-ticket dl > div + div { border-left:1px solid var(--border); }
+.student-exam-ticket dt { font-size:10px; text-transform:uppercase; color:var(--muted); }
+.student-exam-ticket dd { margin:6px 0 0; font-weight:700; }
+.student-exam-ticket dd small { display:block; font-weight:400; margin-top:4px; }
+.student-exam-schedule { border-top:1px solid var(--border); padding-top:15px; }
+.student-exam-schedule h3 { font-size:14px; }
+.student-exam-schedule p { font-size:13px; }
+.student-dialog-open { overflow:hidden; }
+@media(max-width:420px) { .student-score-cards { grid-template-columns:1fr; } .student-score-card:nth-child(odd) { border-right:0; } }
+@media print { .student-dialog { display:none !important; } }
+
+.student-photo-box .student-default-avatar { width:100px; height:125px; object-fit:contain; background:#fff; }
