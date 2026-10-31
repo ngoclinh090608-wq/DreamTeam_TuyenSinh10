@@ -61,17 +61,24 @@ function form_dang_nhap(string $tab, string $nhan, string $goiY, string $nut, st
   <details class="login-demo-notice login-demo-accounts">
     <summary><span>ⓘ</span> Danh sách tài khoản thử nghiệm</summary>
     <table>
-      <tr><td><code>quantri</code></td><td>Quản trị viên hệ thống</td></tr>
-      <tr><td><code>bantuyensinh</code></td><td>Ban Tuyển sinh Sở (UC10, UC15)</td></tr>
+      <tr><td><code>quantri</code></td><td>Quản trị viên hệ thống (UC06–UC08)</td></tr>
+      <tr><td><code>bantuyensinh</code></td><td>Ban Tuyển sinh Sở (UC06–UC08, UC10, UC15)</td></tr>
       <tr><td><code>hdtuyensinh</code></td><td>Hội đồng tuyển sinh</td></tr>
       <tr><td><code>hdcoithi</code></td><td>Hội đồng coi thi (UC11)</td></tr>
-      <tr><td><code>hdchamthi</code></td><td>Hội đồng chấm thi (UC12–UC14)</td></tr>
+      <tr><td><code>hdchamthi</code></td><td>Hội đồng chấm thi (UC05, UC12–UC14)</td></tr>
       <tr><td><code>catphach</code></td><td>Bộ phận cắt phách (UC9)</td></tr>
       <tr><td><code>hdphuckhao</code></td><td>Hội đồng phúc khảo</td></tr>
-      <tr><td><code>hdrade</code></td><td>Hội đồng ra đề thi</td></tr>
+      <tr><td><code>hdrade</code></td><td>Hội đồng ra đề thi (UC08)</td></tr>
       <tr><td><code>gvcn</code></td><td>Giáo viên chủ nhiệm lớp 9</td></tr>
       <tr><td><code>SBD0001</code>, <code>SBD0002</code></td><td>Học sinh</td></tr>
     </table>
+    <h3 class="demo-uc-title">Truy cập chức năng UC05–UC08</h3>
+    <ul class="demo-uc-links">
+      <li><a href="<?= e(url('grading/nhap-diem.php')) ?>">UC05 · Nhập điểm thi</a><small>Tài khoản: <code>hdchamthi</code> → Chấm thi & điểm</small></li>
+      <li><a href="<?= e(url('exam/tao-phong.php')) ?>">UC06 · Tạo thông tin phòng thi</a><small>Tài khoản: <code>bantuyensinh</code> → Kỳ thi & phòng thi</small></li>
+      <li><a href="<?= e(url('exam/phan-phong.php')) ?>">UC07 · Phân phòng thi cho thí sinh</a><small>Tài khoản: <code>bantuyensinh</code> → Kỳ thi & phòng thi</small></li>
+      <li><a href="<?= e(url('exam/phan-cong-ra-de.php')) ?>">UC08 · Xem phân công ra đề thi</a><small>Tài khoản: <code>hdrade</code> → Kỳ thi & phòng thi</small></li>
+    </ul>
   </details>
  </div></div>
 </main>
