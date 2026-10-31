@@ -413,6 +413,44 @@ CREATE TABLE TaiKhoan (
   CONSTRAINT fk_taikhoan_thisinh FOREIGN KEY (maThiSinh) REFERENCES ThiSinh(maThiSinh)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 4.5. vw_PhanPhongThiSinh (theo báo cáo Tuần 08)
+-- Tra cứu phòng thi được phân cho từng thí sinh.
+CREATE OR REPLACE VIEW vw_PhanPhongThiSinh AS
+SELECT
+  pp.maPhanPhong,
+  t.maThiSinh,
+  t.hoTen,
+  t.soBaoDanh,
+  p.tenPhong,
+  d.tenDiemThi,
+  d.maKyThi,
+  pp.ngayPhan,
+  pp.trangThai
+FROM PhanPhongThi pp
+JOIN ThiSinh t ON t.maThiSinh = pp.maThiSinh
+JOIN PhongThi p ON p.maPhong = pp.maPhong
+JOIN DiemThi d ON d.maDiemThi = p.maDiemThi;
+
+
+-- 4.7. vw_PhanCongRaDe (theo báo cáo Tuần 08)
+-- Tra cứu nhiệm vụ ra đề thi của cán bộ theo môn và kỳ thi.
+CREATE OR REPLACE VIEW vw_PhanCongRaDe AS
+SELECT
+  pc.maPhanCong,
+  c.hoTen,
+  k.tenKyThi,
+  m.tenMonThi,
+  pc.thoiGianThucHien,
+  pc.thongTinNhiemVu,
+  pc.maKyThi,
+  pc.maMonThi,
+  pc.maCanBo
+FROM PhanCongRaDe pc
+JOIN CanBo c ON c.maCanBo = pc.maCanBo
+JOIN KyThi k ON k.maKyThi = pc.maKyThi
+JOIN MonThi m ON m.maMonThi = pc.maMonThi;
+
+
 -- 4.8. vw_KetQuaThiTheoMon (Nguyễn Thị Ngọc Linh)
 -- Điểm từng môn của thí sinh và trạng thái công bố. Bài chưa chấm có diemThi = NULL.
 CREATE OR REPLACE VIEW vw_KetQuaThiTheoMon AS
@@ -435,6 +473,56 @@ FROM BaiThi b
 JOIN MonThi m ON m.maMonThi = b.maMonThi
 LEFT JOIN KetQuaChamThi k ON k.maBaiThi = b.maBaiThi
 GROUP BY b.maKyThi, m.maMonThi, m.tenMonThi;
+
+-- 6.7. fn_DemPhongTheoDiemThi (theo báo cáo Tuần 08)
+-- Đếm số phòng thuộc địa điểm thi.
+DROP FUNCTION IF EXISTS fn_DemPhongTheoDiemThi;
+DELIMITER $$
+CREATE FUNCTION fn_DemPhongTheoDiemThi(p_maDiemThi VARCHAR(20))
+RETURNS INT
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+  DECLARE v_count INT;
+  SELECT COUNT(*) INTO v_count FROM PhongThi WHERE maDiemThi = p_maDiemThi;
+  RETURN v_count;
+END$$
+DELIMITER ;
+
+
+-- 6.8. fn_TongSucChuaDiemThi (theo báo cáo Tuần 08)
+-- Tính tổng sức chứa phòng tại một địa điểm thi.
+DROP FUNCTION IF EXISTS fn_TongSucChuaDiemThi;
+DELIMITER $$
+CREATE FUNCTION fn_TongSucChuaDiemThi(p_maDiemThi VARCHAR(20))
+RETURNS INT
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+  DECLARE v_sum INT;
+  SELECT COALESCE(SUM(sucChua), 0) INTO v_sum FROM PhongThi WHERE maDiemThi = p_maDiemThi;
+  RETURN v_sum;
+END$$
+DELIMITER ;
+
+
+-- 6.9. fn_DemThiSinhTheoPhong (theo báo cáo Tuần 08)
+-- Đếm số thí sinh đang được phân vào một phòng thi (trạng thái 'Đã phân').
+DROP FUNCTION IF EXISTS fn_DemThiSinhTheoPhong;
+DELIMITER $$
+CREATE FUNCTION fn_DemThiSinhTheoPhong(p_maPhong VARCHAR(20))
+RETURNS INT
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+  DECLARE v_count INT;
+  SELECT COUNT(*) INTO v_count
+  FROM PhanPhongThi
+  WHERE maPhong = p_maPhong AND trangThai = 'Đã phân';
+  RETURN v_count;
+END$$
+DELIMITER ;
+
 
 -- 6.10. fn_DemBaiThiTheoMon (Nguyễn Thị Ngọc Linh): số bài thi theo kỳ thi và môn.
 DROP FUNCTION IF EXISTS fn_DemBaiThiTheoMon;
@@ -469,6 +557,431 @@ BEGIN
           WHERE b.maKyThi = p_maKyThi AND b.maMonThi = p_maMonThi);
 END$$
 DELIMITER ;
+
+-- 5.14. sp_QuanLyPhongThi (Nguyễn Thị Thúy Vy) – UC06.
+-- Quản lý phòng thi (Thêm/Sửa/Xóa/Xem). Chặn trùng mã phòng hoặc trùng tên phòng tại cùng điểm thi.
+DROP PROCEDURE IF EXISTS sp_QuanLyPhongThi;
+DELIMITER $$
+CREATE PROCEDURE sp_QuanLyPhongThi(
+  IN  p_hanhDong VARCHAR(20),
+  IN  p_maPhong VARCHAR(20),
+  IN  p_tenPhong VARCHAR(100),
+  IN  p_sucChua INT,
+  IN  p_maDiemThi VARCHAR(20),
+  OUT p_thongBao VARCHAR(200)
+)
+proc: BEGIN
+  DECLARE v_tonTai INT DEFAULT 0;
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    SET p_thongBao = 'Không thể lưu thông tin phòng thi.';
+  END;
+
+  SET p_thongBao = '';
+
+  IF p_hanhDong = 'Them' THEN
+    IF p_maPhong IS NULL OR TRIM(p_maPhong) = '' OR
+       p_tenPhong IS NULL OR TRIM(p_tenPhong) = '' OR
+       p_sucChua IS NULL OR p_sucChua <= 0 OR
+       p_maDiemThi IS NULL OR TRIM(p_maDiemThi) = '' THEN
+      SET p_thongBao = 'Thông tin phòng thi không hợp lệ.';
+      LEAVE proc;
+    END IF;
+
+    -- Kiểm tra điểm thi tồn tại
+    SELECT COUNT(*) INTO v_tonTai FROM DiemThi WHERE maDiemThi = p_maDiemThi;
+    IF v_tonTai = 0 THEN
+      SET p_thongBao = 'Điểm thi không tồn tại trong hệ thống.';
+      LEAVE proc;
+    END IF;
+
+    -- Kiểm tra trùng mã phòng hoặc trùng tên phòng tại cùng điểm thi
+    SELECT COUNT(*) INTO v_tonTai
+    FROM PhongThi
+    WHERE maPhong = p_maPhong OR (maDiemThi = p_maDiemThi AND tenPhong = p_tenPhong);
+    IF v_tonTai > 0 THEN
+      SET p_thongBao = 'Thông tin phòng thi bị trùng.';
+      LEAVE proc;
+    END IF;
+
+    START TRANSACTION;
+    INSERT INTO PhongThi (maPhong, tenPhong, sucChua, maDiemThi)
+    VALUES (p_maPhong, p_tenPhong, p_sucChua, p_maDiemThi);
+    COMMIT;
+    SET p_thongBao = 'Tạo thông tin phòng thi thành công.';
+
+  ELSEIF p_hanhDong = 'Sua' THEN
+    IF p_maPhong IS NULL OR TRIM(p_maPhong) = '' OR
+       p_tenPhong IS NULL OR TRIM(p_tenPhong) = '' OR
+       p_sucChua IS NULL OR p_sucChua <= 0 THEN
+      SET p_thongBao = 'Thông tin phòng thi không hợp lệ.';
+      LEAVE proc;
+    END IF;
+
+    -- Kiểm tra phòng tồn tại
+    SELECT COUNT(*) INTO v_tonTai FROM PhongThi WHERE maPhong = p_maPhong;
+    IF v_tonTai = 0 THEN
+      SET p_thongBao = 'Phòng thi không tồn tại.';
+      LEAVE proc;
+    END IF;
+
+    -- Kiểm tra trùng tên phòng khác tại cùng điểm thi
+    SELECT COUNT(*) INTO v_tonTai
+    FROM PhongThi
+    WHERE maDiemThi = p_maDiemThi AND tenPhong = p_tenPhong AND maPhong <> p_maPhong;
+    IF v_tonTai > 0 THEN
+      SET p_thongBao = 'Thông tin phòng thi bị trùng.';
+      LEAVE proc;
+    END IF;
+
+    START TRANSACTION;
+    UPDATE PhongThi
+    SET tenPhong = p_tenPhong, sucChua = p_sucChua
+    WHERE maPhong = p_maPhong;
+    COMMIT;
+    SET p_thongBao = 'Cập nhật thông tin phòng thi thành công.';
+
+  ELSEIF p_hanhDong = 'Xoa' THEN
+    -- Không cho xóa nếu đã có thí sinh phân vào phòng
+    SELECT COUNT(*) INTO v_tonTai FROM PhanPhongThi WHERE maPhong = p_maPhong;
+    IF v_tonTai > 0 THEN
+      SET p_thongBao = 'Không thể xóa phòng thi đã có thí sinh được phân phòng.';
+      LEAVE proc;
+    END IF;
+
+    START TRANSACTION;
+    DELETE FROM PhongThi WHERE maPhong = p_maPhong;
+    COMMIT;
+    SET p_thongBao = 'Xóa phòng thi thành công.';
+
+  ELSE
+    SET p_thongBao = 'Hành động không hợp lệ.';
+  END IF;
+END$$
+DELIMITER ;
+
+
+-- 5.15. sp_PhanPhongThiSinh (Nguyễn Thị Thúy Vy) – UC07.
+-- Phân thí sinh vào phòng thi cụ thể, kiểm tra điều kiện dự thi và sức chứa phòng.
+DROP PROCEDURE IF EXISTS sp_PhanPhongThiSinh;
+DELIMITER $$
+CREATE PROCEDURE sp_PhanPhongThiSinh(
+  IN  p_maPhanPhong VARCHAR(20),
+  IN  p_maThiSinh VARCHAR(20),
+  IN  p_maPhong VARCHAR(20),
+  OUT p_thongBao VARCHAR(200)
+)
+proc: BEGIN
+  DECLARE v_sucChua INT DEFAULT 0;
+  DECLARE v_daPhan INT DEFAULT 0;
+  DECLARE v_dieuKien INT DEFAULT 0;
+  DECLARE v_trangThaiDk VARCHAR(50);
+  DECLARE v_daCoPhong INT DEFAULT 0;
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    SET p_thongBao = 'Không thể lưu kết quả phân phòng.';
+  END;
+
+  SET p_thongBao = '';
+
+  IF p_maPhanPhong IS NULL OR TRIM(p_maPhanPhong) = '' OR
+     p_maThiSinh IS NULL OR TRIM(p_maThiSinh) = '' OR
+     p_maPhong IS NULL OR TRIM(p_maPhong) = '' THEN
+    SET p_thongBao = 'Thông tin phân phòng không hợp lệ.';
+    LEAVE proc;
+  END IF;
+
+  -- Kiểm tra phòng thi và sức chứa
+  SELECT sucChua INTO v_sucChua FROM PhongThi WHERE maPhong = p_maPhong;
+  IF v_sucChua IS NULL OR v_sucChua <= 0 THEN
+    SET p_thongBao = 'Phòng thi không tồn tại trong hệ thống.';
+    LEAVE proc;
+  END IF;
+
+  -- Kiểm tra số thí sinh hiện tại trong phòng
+  SELECT COUNT(*) INTO v_daPhan FROM PhanPhongThi WHERE maPhong = p_maPhong AND trangThai = 'Đã phân';
+  IF v_daPhan >= v_sucChua THEN
+    SET p_thongBao = 'Sức chứa phòng thi không đủ.';
+    LEAVE proc;
+  END IF;
+
+  -- Kiểm tra thí sinh
+  SELECT dieuKienDuThi, trangThaiDangKyDuThi INTO v_dieuKien, v_trangThaiDk
+  FROM ThiSinh WHERE maThiSinh = p_maThiSinh;
+  IF v_dieuKien IS NULL THEN
+    SET p_thongBao = 'Thí sinh không tồn tại trong hệ thống.';
+    LEAVE proc;
+  END IF;
+
+  IF v_dieuKien <> 1 OR v_trangThaiDk <> 'Đã duyệt' THEN
+    SET p_thongBao = 'Thí sinh chưa đủ điều kiện dự thi.';
+    LEAVE proc;
+  END IF;
+
+  -- Kiểm tra thí sinh đã được phân phòng chưa
+  SELECT COUNT(*) INTO v_daCoPhong
+  FROM PhanPhongThi
+  WHERE maThiSinh = p_maThiSinh AND trangThai = 'Đã phân';
+  IF v_daCoPhong > 0 THEN
+    SET p_thongBao = 'Thí sinh đã được phân phòng thi trước đó.';
+    LEAVE proc;
+  END IF;
+
+  START TRANSACTION;
+  INSERT INTO PhanPhongThi (maPhanPhong, maThiSinh, maPhong, ngayPhan, trangThai)
+  VALUES (p_maPhanPhong, p_maThiSinh, p_maPhong, NOW(), 'Đã phân');
+  COMMIT;
+
+  SET p_thongBao = 'Phân phòng thi thành công.';
+END$$
+DELIMITER ;
+
+
+-- 5.16. sp_ChuyenPhongThiSinh (Nguyễn Thị Thúy Vy) – UC07.
+-- Chuyển thí sinh đã phân sang phòng mới, kiểm tra sức chứa phòng mới.
+DROP PROCEDURE IF EXISTS sp_ChuyenPhongThiSinh;
+DELIMITER $$
+CREATE PROCEDURE sp_ChuyenPhongThiSinh(
+  IN  p_maPhanPhong VARCHAR(20),
+  IN  p_maPhongMoi VARCHAR(20),
+  IN  p_lyDo VARCHAR(255),
+  OUT p_thongBao VARCHAR(200)
+)
+proc: BEGIN
+  DECLARE v_phongCu VARCHAR(20);
+  DECLARE v_sucChua INT DEFAULT 0;
+  DECLARE v_daPhan INT DEFAULT 0;
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    SET p_thongBao = 'Không thể chuyển phòng thi cho thí sinh.';
+  END;
+
+  SET p_thongBao = '';
+
+  IF p_maPhanPhong IS NULL OR TRIM(p_maPhanPhong) = '' OR
+     p_maPhongMoi IS NULL OR TRIM(p_maPhongMoi) = '' THEN
+    SET p_thongBao = 'Thông tin chuyển phòng không hợp lệ.';
+    LEAVE proc;
+  END IF;
+
+  -- Kiểm tra bản ghi phân phòng
+  SELECT maPhong INTO v_phongCu
+  FROM PhanPhongThi
+  WHERE maPhanPhong = p_maPhanPhong AND trangThai = 'Đã phân';
+  IF v_phongCu IS NULL THEN
+    SET p_thongBao = 'Không tìm thấy thông tin phân phòng hợp lệ.';
+    LEAVE proc;
+  END IF;
+
+  IF v_phongCu = p_maPhongMoi THEN
+    SET p_thongBao = 'Phòng thi mới trùng với phòng thi hiện tại.';
+    LEAVE proc;
+  END IF;
+
+  -- Kiểm tra phòng mới và sức chứa
+  SELECT sucChua INTO v_sucChua FROM PhongThi WHERE maPhong = p_maPhongMoi;
+  IF v_sucChua IS NULL OR v_sucChua <= 0 THEN
+    SET p_thongBao = 'Phòng thi mới không tồn tại.';
+    LEAVE proc;
+  END IF;
+
+  SELECT COUNT(*) INTO v_daPhan
+  FROM PhanPhongThi
+  WHERE maPhong = p_maPhongMoi AND trangThai = 'Đã phân';
+  IF v_daPhan >= v_sucChua THEN
+    SET p_thongBao = 'Sức chứa phòng thi không đủ.';
+    LEAVE proc;
+  END IF;
+
+  START TRANSACTION;
+  UPDATE PhanPhongThi
+  SET maPhong = p_maPhongMoi, ngayPhan = NOW(), trangThai = 'Đã phân'
+  WHERE maPhanPhong = p_maPhanPhong;
+  COMMIT;
+
+  SET p_thongBao = 'Chuyển phòng thi cho thí sinh thành công.';
+END$$
+DELIMITER ;
+
+
+-- 5.17. sp_LayDanhSachPhanPhong (Nguyễn Thị Thúy Vy) – UC07.
+-- Lấy danh sách thí sinh đã phân phòng theo kỳ thi, điểm thi hoặc phòng thi.
+DROP PROCEDURE IF EXISTS sp_LayDanhSachPhanPhong;
+DELIMITER $$
+CREATE PROCEDURE sp_LayDanhSachPhanPhong(
+  IN p_maKyThi VARCHAR(20),
+  IN p_maDiemThi VARCHAR(20),
+  IN p_maPhong VARCHAR(20)
+)
+BEGIN
+  SELECT
+    pp.maPhanPhong,
+    t.maThiSinh,
+    t.hoTen,
+    t.soBaoDanh,
+    p.maPhong,
+    p.tenPhong,
+    d.maDiemThi,
+    d.tenDiemThi,
+    pp.ngayPhan,
+    pp.trangThai
+  FROM PhanPhongThi pp
+  JOIN ThiSinh t ON t.maThiSinh = pp.maThiSinh
+  JOIN PhongThi p ON p.maPhong = pp.maPhong
+  JOIN DiemThi d ON d.maDiemThi = p.maDiemThi
+  WHERE (p_maKyThi IS NULL OR p_maKyThi = '' OR d.maKyThi = p_maKyThi)
+    AND (p_maDiemThi IS NULL OR p_maDiemThi = '' OR d.maDiemThi = p_maDiemThi)
+    AND (p_maPhong IS NULL OR p_maPhong = '' OR p.maPhong = p_maPhong)
+    AND pp.trangThai = 'Đã phân'
+  ORDER BY d.maDiemThi, p.maPhong, t.soBaoDanh, t.maThiSinh;
+END$$
+DELIMITER ;
+
+
+-- 5.21. sp_PhanCongRaDe (Nguyễn Thị Thúy Vy) – UC08.
+-- Phân công cán bộ ra đề thi theo môn thi và kỳ thi.
+DROP PROCEDURE IF EXISTS sp_PhanCongRaDe;
+DELIMITER $$
+CREATE PROCEDURE sp_PhanCongRaDe(
+  IN  p_maPhanCong VARCHAR(20),
+  IN  p_maCanBo VARCHAR(20),
+  IN  p_maMonThi VARCHAR(20),
+  IN  p_maKyThi VARCHAR(20),
+  IN  p_thongTinNhiemVu VARCHAR(255),
+  OUT p_thongBao VARCHAR(200)
+)
+proc: BEGIN
+  DECLARE v_tonTai INT DEFAULT 0;
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    SET p_thongBao = 'Không thể lưu phân công ra đề thi.';
+  END;
+
+  SET p_thongBao = '';
+
+  IF p_maPhanCong IS NULL OR TRIM(p_maPhanCong) = '' OR
+     p_maCanBo IS NULL OR TRIM(p_maCanBo) = '' OR
+     p_maMonThi IS NULL OR TRIM(p_maMonThi) = '' OR
+     p_maKyThi IS NULL OR TRIM(p_maKyThi) = '' OR
+     p_thongTinNhiemVu IS NULL OR TRIM(p_thongTinNhiemVu) = '' THEN
+    SET p_thongBao = 'Thông tin phân công ra đề không hợp lệ.';
+    LEAVE proc;
+  END IF;
+
+  -- Kiểm tra kỳ thi
+  SELECT COUNT(*) INTO v_tonTai FROM KyThi WHERE maKyThi = p_maKyThi;
+  IF v_tonTai = 0 THEN
+    SET p_thongBao = 'Kỳ thi không tồn tại trong hệ thống.';
+    LEAVE proc;
+  END IF;
+
+  -- Kiểm tra môn thi
+  SELECT COUNT(*) INTO v_tonTai FROM MonThi WHERE maMonThi = p_maMonThi;
+  IF v_tonTai = 0 THEN
+    SET p_thongBao = 'Môn thi không tồn tại trong hệ thống.';
+    LEAVE proc;
+  END IF;
+
+  -- Kiểm tra cán bộ
+  SELECT COUNT(*) INTO v_tonTai FROM CanBo WHERE maCanBo = p_maCanBo;
+  IF v_tonTai = 0 THEN
+    SET p_thongBao = 'Cán bộ không tồn tại trong hệ thống.';
+    LEAVE proc;
+  END IF;
+
+  START TRANSACTION;
+  INSERT INTO PhanCongRaDe (maPhanCong, maKyThi, maMonThi, maCanBo, thoiGianThucHien, thongTinNhiemVu)
+  VALUES (p_maPhanCong, p_maKyThi, p_maMonThi, p_maCanBo, NOW(), p_thongTinNhiemVu)
+  ON DUPLICATE KEY UPDATE
+    thongTinNhiemVu = p_thongTinNhiemVu,
+    thoiGianThucHien = NOW();
+  COMMIT;
+
+  SET p_thongBao = 'Phân công ra đề thi thành công.';
+END$$
+DELIMITER ;
+
+
+-- 5.25. sp_NhapKetQuaChamThi (Nguyễn Thị Thúy Vy) – UC05.
+-- Nhập điểm lần đầu cho bài thi theo mã phách/mã bài thi. Cập nhật trangThaiCham = 'Đã chấm'.
+DROP PROCEDURE IF EXISTS sp_NhapKetQuaChamThi;
+DELIMITER $$
+CREATE PROCEDURE sp_NhapKetQuaChamThi(
+  IN  p_maKetQuaChamThi VARCHAR(20),
+  IN  p_maBaiThi VARCHAR(20),
+  IN  p_diemThi DECIMAL(5,2),
+  IN  p_nguoiNhap VARCHAR(100),
+  OUT p_thongBao VARCHAR(200)
+)
+proc: BEGIN
+  DECLARE v_thangDiem DECIMAL(5,2) DEFAULT NULL;
+  DECLARE v_trangThaiCham VARCHAR(50) DEFAULT NULL;
+  DECLARE v_daCoDiem INT DEFAULT 0;
+  DECLARE v_trangThaiCongBo VARCHAR(50) DEFAULT NULL;
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    SET p_thongBao = 'Không thể lưu điểm thi.';
+  END;
+
+  SET p_thongBao = '';
+
+  IF p_maBaiThi IS NULL OR TRIM(p_maBaiThi) = '' OR
+     p_nguoiNhap IS NULL OR TRIM(p_nguoiNhap) = '' THEN
+    SET p_thongBao = 'Thông tin bài thi hoặc người nhập không hợp lệ.';
+    LEAVE proc;
+  END IF;
+
+  START TRANSACTION;
+  -- Khóa dòng bài thi để kiểm tra
+  SELECT b.trangThaiCham, m.thangDiem INTO v_trangThaiCham, v_thangDiem
+  FROM BaiThi b
+  JOIN MonThi m ON m.maMonThi = b.maMonThi
+  WHERE b.maBaiThi = p_maBaiThi
+  FOR UPDATE;
+
+  IF v_thangDiem IS NULL THEN
+    ROLLBACK;
+    SET p_thongBao = 'Không tìm thấy bài thi cần nhập điểm.';
+    LEAVE proc;
+  END IF;
+
+  -- Kiểm tra điểm hợp lệ: 0 <= điểm <= thangDiem và chia hết cho 0.25
+  IF p_diemThi IS NULL OR p_diemThi < 0 OR p_diemThi > v_thangDiem OR MOD(p_diemThi * 100, 25) <> 0 THEN
+    ROLLBACK;
+    SET p_thongBao = 'Điểm thi không hợp lệ.';
+    LEAVE proc;
+  END IF;
+
+  -- Kiểm tra nếu bài thi đã có kết quả
+  SELECT COUNT(*), MAX(trangThaiCongBo) INTO v_daCoDiem, v_trangThaiCongBo
+  FROM KetQuaChamThi
+  WHERE maBaiThi = p_maBaiThi;
+
+  IF v_daCoDiem > 0 THEN
+    ROLLBACK;
+    SET p_thongBao = 'Điểm bài thi đã được xác nhận chính thức.';
+    LEAVE proc;
+  END IF;
+
+  -- Thêm kết quả chấm thi
+  INSERT INTO KetQuaChamThi (maKetQuaChamThi, diemThi, nguoiNhap, thoiDiemNhap, trangThaiCongBo, maBaiThi)
+  VALUES (p_maKetQuaChamThi, p_diemThi, p_nguoiNhap, NOW(), 'Chưa công bố', p_maBaiThi);
+
+  -- Cập nhật trạng thái bài thi thành 'Đã chấm'
+  UPDATE BaiThi
+  SET trangThaiCham = 'Đã chấm'
+  WHERE maBaiThi = p_maBaiThi;
+
+  COMMIT;
+  SET p_thongBao = 'Nhập điểm thi thành công.';
+END$$
+DELIMITER ;
+
 
 -- 5.26. sp_CapNhatDiemThi (Nguyễn Thị Ngọc Linh) – UC13.
 -- Sửa điểm và ghi LichSuChinhSuaDiem trong cùng một transaction. Lỗi thì hoàn tác, điểm cũ giữ nguyên.
