@@ -28,7 +28,7 @@ function candidate_directory_page(string $query, string $school, int $page, int 
     $st->bindValue(':limit', $pageSize, PDO::PARAM_INT); $st->bindValue(':offset', $offset, PDO::PARAM_INT); $st->execute();
     $rows = $st->fetchAll();
     $scope = $studentId === null ? '' : ' AND t.maThiSinh = :owner';
-    $summary = $pdo->prepare('SELECT c.maTruongTHCS,c.tenTruongTHCS,COUNT(t.maThiSinh) AS soHocSinh FROM TruongTHCS c LEFT JOIN ThiSinh t ON t.maTruongTHCS=c.maTruongTHCS' . $scope . ' GROUP BY c.maTruongTHCS,c.tenTruongTHCS ORDER BY c.tenTruongTHCS');
+    $summary = $pdo->prepare('SELECT c.maTruongTHCS,c.tenTruongTHCS,COUNT(t.maThiSinh) AS soHocSinh FROM TruongTHCS c LEFT JOIN ThiSinh t ON t.maTruongTHCS=c.maTruongTHCS' . $scope . ' GROUP BY c.maTruongTHCS,c.tenTruongTHCS HAVING COUNT(t.maThiSinh) > 0 ORDER BY c.maTruongTHCS');
     $summary->execute($studentId === null ? [] : [':owner' => $studentId]);
     $schools = $summary->fetchAll();
     return compact('rows','schools','filtered','page','pages','pageSize','offset');
