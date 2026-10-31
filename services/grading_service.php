@@ -19,6 +19,14 @@ const GRADING_DA_CHAM = 'Đã chấm';
 const GRADING_BUOC_DIEM = 0.25;
 
 // ---------- Câu thông báo theo báo cáo giữa kỳ ----------
+// UC05
+const TB_NHAP_DIEM_THANH_CONG = 'Nhập điểm thi thành công.';
+const TB_KHONG_CO_BAI_THI = 'Không có bài thi cần nhập điểm.';
+const TB_DIEM_NHAP_KHONG_HOP_LE = 'Điểm thi không hợp lệ.';
+const TB_BAI_THI_CHUA_DU_DIEU_KIEN = 'Bài thi chưa đủ điều kiện nhập điểm.';
+const TB_DIEM_DA_XAC_NHAN = 'Điểm bài thi đã được xác nhận chính thức.';
+const TB_LOI_LUU_DIEM = 'Không thể lưu điểm thi.';
+
 // UC12
 const TB_TRA_CUU_THIEU = 'Vui lòng nhập đầy đủ điều kiện tra cứu.';
 const TB_KHONG_TIM_THAY_KQ = 'Không tìm thấy kết quả chấm thi phù hợp.';
@@ -292,5 +300,156 @@ function capNhatTrangThaiCongBo(string $maKyThi, string $maMonThi): int {
         if ($pdo->inTransaction()) $pdo->rollBack();
         error_log('UC15 cong bo: ' . $e->getMessage());
         throw new GradingException(TB_LOI_CONG_BO);
+    }
+}
+
+// =============================================================================
+// UC05: NHẬP ĐIỂM THI (Hội đồng chấm thi)
+// =============================================================================
+
+/**
+ * Tìm danh sách bài thi cần nhập điểm theo kỳ thi và môn thi.
+ * Ẩn thông tin nhận diện thí sinh theo nguyên tắc bảo mật phách.
+ */
+function timBaiThiCanNhapDiem(string $maKyThi, string $maMonThi, ?string $timKiem = null): array {
+    $maKyThi = trim($maKyThi);
+    $maMonThi = trim($maMonThi);
+    $timKiem = trim((string)$timKiem);
+
+    if ($maKyThi === '' || $maMonThi === '') {
+        throw new GradingException(TB_CHON_KY_MON);
+    }
+
+    $sql = 'SELECT b.maBaiThi, b.soPhach, b.maLoBaiThi, b.trangThaiCham,
+                   m.maMonThi, m.tenMonThi, m.thangDiem,
+                   k.maKyThi, k.tenKyThi,
+                   kq.maKetQuaChamThi, kq.diemThi, kq.trangThaiCongBo
+            FROM BaiThi b
+            JOIN MonThi m ON m.maMonThi = b.maMonThi
+            JOIN KyThi k ON k.maKyThi = b.maKyThi
+            LEFT JOIN KetQuaChamThi kq ON kq.maBaiThi = b.maBaiThi
+            WHERE b.maKyThi = ? AND b.maMonThi = ?';
+
+    $params = [$maKyThi, $maMonThi];
+    if ($timKiem !== '') {
+        $sql .= ' AND (b.soPhach = ? OR b.maBaiThi = ?)';
+        $params[] = $timKiem;
+        $params[] = $timKiem;
+    }
+    $sql .= ' ORDER BY b.soPhach, b.maBaiThi';
+
+    $st = db()->prepare($sql);
+    $st->execute($params);
+    return $st->fetchAll();
+}
+
+/**
+ * Lấy thông tin bài thi để phục vụ biểu mẫu nhập điểm.
+ */
+function layThongTinBaiThiNhapDiem(string $maBaiThi): array {
+    $st = db()->prepare(
+        'SELECT b.maBaiThi, b.soPhach, b.maLoBaiThi, b.trangThaiCham,
+                m.maMonThi, m.tenMonThi, m.thangDiem,
+                k.maKyThi, k.tenKyThi,
+                kq.maKetQuaChamThi, kq.diemThi, kq.trangThaiCongBo, kq.nguoiNhap, kq.thoiDiemNhap
+         FROM BaiThi b
+         JOIN MonThi m ON m.maMonThi = b.maMonThi
+         JOIN KyThi k ON k.maKyThi = b.maKyThi
+         LEFT JOIN KetQuaChamThi kq ON kq.maBaiThi = b.maBaiThi
+         WHERE b.maBaiThi = ? OR b.soPhach = ?'
+    );
+    $st->execute([$maBaiThi, $maBaiThi]);
+    $row = $st->fetch();
+    if (!$row) {
+        throw new GradingException(TB_KHONG_TIM_THAY_BAI, ["Không tìm thấy bài thi với mã/số phách '{$maBaiThi}'."]);
+    }
+    return $row;
+}
+
+/**
+ * Nhập điểm thi cho bài thi theo mã phách / mã bài thi (UC05).
+ * Kiểm tra hợp lệ: thang điểm 0 - 10, bước nhảy 0.25, bài chưa có kết quả chính thức.
+ */
+function nhapDiemThi(string $maBaiThi, float $diem, string $nguoiNhap = GRADING_NGUOI_THUC_HIEN): array {
+    $maBaiThi = trim($maBaiThi);
+    $nguoiNhap = trim($nguoiNhap) ?: GRADING_NGUOI_THUC_HIEN;
+
+    if ($maBaiThi === '') {
+        throw new GradingException(TB_KHONG_TIM_THAY_BAI, ['Vui lòng chọn hoặc nhập mã bài thi/mã phách.']);
+    }
+
+    $pdo = db();
+    try {
+        $pdo->beginTransaction();
+
+        $st = $pdo->prepare(
+            'SELECT b.maBaiThi, b.soPhach, b.trangThaiCham, m.thangDiem, m.tenMonThi,
+                    kq.maKetQuaChamThi, kq.trangThaiCongBo, kq.diemThi
+             FROM BaiThi b
+             JOIN MonThi m ON m.maMonThi = b.maMonThi
+             LEFT JOIN KetQuaChamThi kq ON kq.maBaiThi = b.maBaiThi
+             WHERE b.maBaiThi = ? OR b.soPhach = ?
+             FOR UPDATE'
+        );
+        $st->execute([$maBaiThi, $maBaiThi]);
+        $bt = $st->fetch();
+
+        if (!$bt) {
+            throw new GradingException(TB_KHONG_TIM_THAY_BAI);
+        }
+
+        $thangDiem = (float)$bt['thangDiem'];
+        $thucTeMaBai = (string)$bt['maBaiThi'];
+
+        // Kiểm tra hợp lệ điểm thi: 0 <= điểm <= thangDiem và chia hết cho 0.25
+        if (is_nan($diem) || $diem < 0 || $diem > $thangDiem || fmod(round($diem * 100), 25) != 0) {
+            throw new GradingException(TB_DIEM_NHAP_KHONG_HOP_LE, [
+                "Điểm phải nằm trong thang điểm 0 - {$thangDiem} và tuân thủ bước nhảy 0.25.",
+            ]);
+        }
+
+        // Kiểm tra nếu bài thi đã có kết quả
+        if ($bt['maKetQuaChamThi'] !== null) {
+            if ($bt['trangThaiCongBo'] === GRADING_DA_CONG_BO) {
+                throw new GradingException(TB_DIEM_DA_XAC_NHAN, [
+                    'Điểm bài thi này đã được công bố chính thức, không thể thay đổi bằng chức năng nhập điểm.',
+                ]);
+            }
+            throw new GradingException(TB_DIEM_DA_XAC_NHAN, [
+                'Bài thi đã có kết quả chấm thi. Để điều chỉnh điểm, vui lòng sử dụng chức năng Cập nhật kết quả chấm thi (UC13).',
+            ]);
+        }
+
+        // Sinh mã kết quả chấm thi mới dạng KQCxxx
+        $stMax = $pdo->query('SELECT MAX(CAST(SUBSTRING(maKetQuaChamThi, 4) AS UNSIGNED)) FROM KetQuaChamThi WHERE maKetQuaChamThi LIKE "KQC%"');
+        $maxNum = (int)$stMax->fetchColumn();
+        $maKQ = sprintf('KQC%03d', $maxNum + 1);
+
+        // Lưu KetQuaChamThi
+        $stIns = $pdo->prepare(
+            'INSERT INTO KetQuaChamThi (maKetQuaChamThi, diemThi, nguoiNhap, thoiDiemNhap, trangThaiCongBo, maBaiThi)
+             VALUES (?, ?, ?, NOW(), "Chưa công bố", ?)'
+        );
+        $stIns->execute([$maKQ, $diem, $nguoiNhap, $thucTeMaBai]);
+
+        // Cập nhật trạng thái bài thi thành 'Đã chấm'
+        $stUpd = $pdo->prepare('UPDATE BaiThi SET trangThaiCham = ? WHERE maBaiThi = ?');
+        $stUpd->execute([GRADING_DA_CHAM, $thucTeMaBai]);
+
+        $pdo->commit();
+
+        return [
+            'maKetQuaChamThi' => $maKQ,
+            'maBaiThi' => $thucTeMaBai,
+            'soPhach' => (string)$bt['soPhach'],
+            'diemThi' => $diem,
+            'nguoiNhap' => $nguoiNhap,
+            'tenMonThi' => (string)$bt['tenMonThi'],
+        ];
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        error_log('nhapDiemThi: ' . $e->getMessage());
+        if ($e instanceof BusinessException) throw $e;
+        throw new GradingException(TB_LOI_LUU_DIEM, [$e->getMessage()]);
     }
 }
