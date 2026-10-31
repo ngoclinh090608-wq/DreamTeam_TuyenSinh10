@@ -37,7 +37,7 @@ Kiểm tra trong môi trường đám mây:
 
 Ảnh chụp thật và ghi nhận giấy phép chưa hoàn tất vì nguồn ảnh bị chặn mạng. Không thay bằng ảnh AI, ảnh watermark hoặc nguồn chưa xác minh. Quyền truy cập website tham khảo và hai domain Wikimedia đã được lưu trong bản nháp cấu hình môi trường; bản nháp chưa được áp dụng cho phiên hiện tại. Cần lưu cấu hình qua Environment settings và Publish, sau đó thử lại việc tải ảnh và cập nhật SOURCES.md.
 
-Các thay đổi mã nguồn dành cho nhánh `linh`; không đồng bộ hoặc merge sang các nhánh khác.
+Giao diện được phát triển trên nhánh `linh`. Bản tích hợp `integrate-linh-vy` kết hợp giao diện này với các nghiệp vụ mới nhất của `vy` để đưa vào `main` qua Pull Request.
 
 ## Kiểm chứng khi đồng bộ sang vy
 
@@ -46,3 +46,12 @@ Các thay đổi mã nguồn dành cho nhánh `linh`; không đồng bộ hoặc
 - Hai database test độc lập được tạo cho vy gốc và vy có giao diện mới. Cả hai đều đạt 163/163 ca UC09–UC15.
 - Bộ UC05–UC08 in 31 kết quả: 19 đạt, 12 lỗi trên cả hai bản; kết quả từng ca giống nhau. Phần tổng kết do script tự in chỉ đếm 9 ca vì các hàm trong pipeline chạy ở subshell; không coi con số đó là tổng số ca đã thực thi.
 - UC05 gốc gọi `grading_ds_mon()` trong khi service cung cấp `grading_ds_mon_thi()`. Một số ca UC06/UC07 không tìm được thông báo thành công, dù các kiểm tra dữ liệu tương ứng đạt. Không sửa các lỗi nghiệp vụ/test có sẵn trong lần đồng bộ giao diện này.
+
+## Kiểm thử bản tích hợp linh + vy
+
+Bản tích hợp đã gộp `origin/linh` (`ad4e689`) và `origin/vy` (`5bb33af`) trên nền `origin/main` (`e5274e3`). Chỉ có xung đột tài liệu; đã giữ nội dung đầy đủ hơn từ vy. Không thêm hoặc thay đổi tài liệu Word/VPP.
+
+- 62 file PHP hợp lệ; hai file SQL sinh tự động khớp nguồn.
+- MariaDB test mới độc lập: UC09–UC15 đạt 163/163; UC05–UC08 đạt 58/58; cả hai script thoát mã 0.
+- Mật khẩu demo giữ nguyên `dreamteam2026`.
+- Các lỗi UC05–UC08 ở lần kiểm tra lịch sử phía trên đã được bản sửa của vy khắc phục; không còn xuất hiện trong lần chạy tích hợp này.
