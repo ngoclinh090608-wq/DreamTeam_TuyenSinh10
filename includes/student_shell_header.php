@@ -2,11 +2,10 @@
 $studentShellUser = current_user();
 $studentNavigation = [
     ['admin', 'admin/', 'Hồ sơ tuyển sinh', '♙'],
-    ['aspirations', 'aspirations/', 'Nguyện vọng', '✧'],
-    ['admission-info', 'admission-info/', 'Thông tin tuyển sinh', '▤'],
-    ['appeals', 'appeals/', 'Phúc khảo', '↺'],
-    ['enrollment', 'enrollment/', 'Nhập học', '☑'],
+    ['student-help', 'admission-info/huong-dan.php', 'Hướng dẫn', '▤'],
+    ['admission-info', 'admission-info/', 'Văn bản', '▧'],
 ];
+$studentActiveTab = in_array($active, ['admin', 'aspirations', 'appeals', 'enrollment'], true) ? 'admin' : $active;
 ?>
 <header class="student-site-header">
  <div class="student-header-inner">
@@ -16,9 +15,8 @@ $studentNavigation = [
 </header>
 <section class="student-portal-welcome" aria-label="Cổng tuyển sinh học sinh"><h1>Chào mừng đến với <span>Cổng tuyển sinh</span></h1><p>Theo dõi hồ sơ cá nhân, tìm hiểu thông tin trường học và các nguyện vọng đăng ký vào lớp 10.</p></section>
 <nav class="student-portal-nav" aria-label="Chức năng học sinh">
- <?php foreach ($studentNavigation as [$studentNavKey, $studentNavPath, $studentNavLabel, $studentNavIcon]): if (!can_access_module($studentShellUser, $studentNavKey)) continue; ?>
- <a href="<?= e(url($studentNavPath)) ?>"<?= $active === $studentNavKey ? ' class="is-active" aria-current="page"' : '' ?>><span aria-hidden="true"><?= e($studentNavIcon) ?></span><?= e($studentNavLabel) ?></a>
+ <?php foreach ($studentNavigation as [$studentNavKey, $studentNavPath, $studentNavLabel, $studentNavIcon]): if ($studentNavKey !== 'student-help' && !can_access_module($studentShellUser, $studentNavKey)) continue; ?>
+ <a href="<?= e(url($studentNavPath)) ?>"<?= $studentActiveTab === $studentNavKey ? ' class="is-active" aria-current="page"' : '' ?>><span aria-hidden="true"><?= e($studentNavIcon) ?></span><?= e($studentNavLabel) ?></a>
  <?php endforeach; ?>
- <a href="<?= e(url('admission-info/huong-dan.php')) ?>"><span aria-hidden="true">?</span>Hướng dẫn</a>
 </nav>
 <main id="main" class="student-portal-content">

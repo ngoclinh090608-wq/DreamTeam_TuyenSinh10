@@ -1,4 +1,4 @@
-<div class="page-head"><div><div class="eyebrow"><span></span> TUYỂN SINH LỚP 10</div><h1>Thông tin tuyển sinh</h1><p>Tìm hiểu chỉ tiêu, phương thức tuyển sinh và thông tin đã công bố của các trường THPT.</p></div></div>
+<div class="page-head"><div><div class="eyebrow"><span></span> TUYỂN SINH LỚP 10</div><h1>Văn bản và thông báo tuyển sinh</h1><p>Tìm hiểu chỉ tiêu, phương thức tuyển sinh và thông tin đã công bố của các trường THPT.</p></div></div>
 <form method="get" class="panel student-admission-search"><label for="admission-search">Tìm trường hoặc khu vực</label><div><input id="admission-search" name="q" maxlength="120" value="<?= e($admissionSearch) ?>" placeholder="Nhập tên trường THPT hoặc khu vực"><button type="submit" class="btn btn-primary">Tìm kiếm</button><a class="btn btn-outline" href="<?= e(url('admission-info/')) ?>">Tất cả</a></div></form>
 <?php if ($admissionNotices === null): ?>
 <div class="notice notice-blue" role="alert">Không tải được thông tin tuyển sinh. Vui lòng thử lại sau.</div>

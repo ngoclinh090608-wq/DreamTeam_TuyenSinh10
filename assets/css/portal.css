@@ -440,3 +440,12 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--secondary);
  .student-portal-nav a { padding:8px 10px; font-size:13px; }
  .student-portal-content { width:calc(100% - 24px); }
 }
+
+.student-score-panel { border-top:1px solid var(--border); margin-top:18px; padding-top:16px; }
+.student-score-panel summary { color:var(--primary-dark); font-weight:700; cursor:pointer; }
+.student-result-status { margin-top:20px; padding:16px; background:#f6f9fc; border:1px solid var(--border); border-radius:8px; }
+.student-result-status h3 { margin:0 0 10px; font-size:16px; }
+.student-result-status p { margin:7px 0; }
+.student-guide-steps { padding-left:24px; }
+.student-guide-steps li { padding:6px 0 12px 8px; }
+.student-guide-steps h3 { font-size:16px; margin:0 0 6px; }

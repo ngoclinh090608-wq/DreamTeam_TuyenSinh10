@@ -123,7 +123,13 @@ function live_student_dashboard(string $studentId): ?array {
         if (!$profile) return null;
         $st = db()->prepare("SELECT n.thuTuNguyenVong,p.tenTruongTHPT FROM NguyenVong n JOIN TruongTHPT p ON p.maTruongTHPT=n.maTruongTHPT WHERE n.maThiSinh=? ORDER BY n.thuTuNguyenVong");
         $st->execute([$studentId]);
-        return ['profile'=>$profile, 'wishes'=>$st->fetchAll()];
+        $wishes = $st->fetchAll();
+        $st = db()->prepare("SELECT kt.tenKyThi,m.tenMonThi,k.diemThi FROM BaiThi b JOIN KetQuaChamThi k ON k.maBaiThi=b.maBaiThi JOIN MonThi m ON m.maMonThi=b.maMonThi JOIN KyThi kt ON kt.maKyThi=b.maKyThi WHERE b.maThiSinh=? AND k.trangThaiCongBo='Đã công bố' ORDER BY kt.maKyThi,m.maMonThi");
+        $st->execute([$studentId]);
+        $scores = $st->fetchAll();
+        $st = db()->prepare("SELECT p.tenTruongTHPT,x.trangThaiXetTuyen,n.thuTuNguyenVong FROM KetQuaTuyenSinh r JOIN DanhSachKetQuaTuyenSinh d ON d.maDanhSach=r.maDanhSach JOIN KetQuaXetTuyen x ON x.maKetQua=r.maKetQuaXetTuyen JOIN NguyenVong n ON n.maNguyenVong=x.maNguyenVong LEFT JOIN TruongTHPT p ON p.maTruongTHPT=x.maTruongTHPT WHERE x.maThiSinh=? AND d.trangThaiCongBo='Đã công bố' AND d.trangThaiPheDuyet='Đã phê duyệt' ORDER BY n.thuTuNguyenVong");
+        $st->execute([$studentId]);
+        return ['profile'=>$profile, 'wishes'=>$wishes, 'scores'=>$scores, 'results'=>$st->fetchAll()];
     } catch (Throwable $e) { error_log('student_dashboard: '.$e->getMessage()); return null; }
 }
 
