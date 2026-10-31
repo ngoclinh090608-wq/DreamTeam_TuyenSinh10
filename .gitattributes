@@ -1,3 +1,7 @@
 # Script bash và workflow luôn dùng xuống dòng LF (Git Bash / Linux CI không chạy được file CRLF).
 *.sh   text eol=lf
 *.yml  text eol=lf
+
+# GitHub Languages: report website code, excluding test/data-generation tools.
+/tests/** linguist-detectable=false
+/database/demo/build_demo.py linguist-detectable=false
