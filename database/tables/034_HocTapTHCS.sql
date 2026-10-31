@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS HocTapTHCS (
+ maThiSinh VARCHAR(20) NOT NULL,
+ lop TINYINT NOT NULL,
+ diemTrungBinh DECIMAL(4,2) NULL,
+ hocLuc VARCHAR(30) NOT NULL DEFAULT '',
+ hanhKiem VARCHAR(30) NOT NULL DEFAULT '',
+ PRIMARY KEY (maThiSinh,lop),
+ CONSTRAINT ck_hoctap_lop CHECK (lop BETWEEN 6 AND 9),
+ CONSTRAINT ck_hoctap_diem CHECK (diemTrungBinh IS NULL OR diemTrungBinh BETWEEN 0 AND 10),
+ CONSTRAINT fk_hoctap_thisinh FOREIGN KEY (maThiSinh) REFERENCES ThiSinh(maThiSinh)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

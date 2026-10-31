@@ -117,12 +117,44 @@ function live_home_schools(): ?array {
 /** Personal dashboard: never query aggregate system statistics for a student. */
 function live_student_dashboard(string $studentId): ?array {
     try {
-        $st = db()->prepare("SELECT t.maThiSinh,t.maHoSo,t.hoTen,t.soBaoDanh,t.trangThaiDangKyDuThi,c.tenTruongTHCS FROM ThiSinh t JOIN TruongTHCS c ON c.maTruongTHCS=t.maTruongTHCS WHERE t.maThiSinh=?");
+        $st = db()->prepare("SELECT t.maThiSinh,t.maHoSo,t.hoTen,t.ngaySinh,t.soBaoDanh,t.trangThaiDangKyDuThi,c.tenTruongTHCS FROM ThiSinh t JOIN TruongTHCS c ON c.maTruongTHCS=t.maTruongTHCS WHERE t.maThiSinh=?");
         $st->execute([$studentId]);
         $profile = $st->fetch();
         if (!$profile) return null;
-        $st = db()->prepare("SELECT n.thuTuNguyenVong,p.tenTruongTHPT FROM NguyenVong n JOIN TruongTHPT p ON p.maTruongTHPT=n.maTruongTHPT WHERE n.maThiSinh=? ORDER BY n.thuTuNguyenVong");
+        $st = db()->prepare("SELECT n.maNguyenVong,n.thuTuNguyenVong,p.tenTruongTHPT FROM NguyenVong n JOIN TruongTHPT p ON p.maTruongTHPT=n.maTruongTHPT WHERE n.maThiSinh=? ORDER BY n.thuTuNguyenVong");
         $st->execute([$studentId]);
-        return ['profile'=>$profile, 'wishes'=>$st->fetchAll()];
+        $wishes = $st->fetchAll();
+        $st = db()->prepare("SELECT kt.tenKyThi,m.tenMonThi,k.diemThi FROM BaiThi b JOIN KetQuaChamThi k ON k.maBaiThi=b.maBaiThi JOIN MonThi m ON m.maMonThi=b.maMonThi JOIN KyThi kt ON kt.maKyThi=b.maKyThi WHERE b.maThiSinh=? AND k.trangThaiCongBo='Đã công bố' ORDER BY kt.maKyThi,m.maMonThi");
+        $st->execute([$studentId]);
+        $scores = $st->fetchAll();
+        $st = db()->prepare("SELECT p.tenTruongTHPT,x.trangThaiXetTuyen,n.maNguyenVong,n.thuTuNguyenVong FROM KetQuaTuyenSinh r JOIN DanhSachKetQuaTuyenSinh d ON d.maDanhSach=r.maDanhSach JOIN KetQuaXetTuyen x ON x.maKetQua=r.maKetQuaXetTuyen JOIN NguyenVong n ON n.maNguyenVong=x.maNguyenVong LEFT JOIN TruongTHPT p ON p.maTruongTHPT=x.maTruongTHPT WHERE x.maThiSinh=? AND d.trangThaiCongBo='Đã công bố' AND d.trangThaiPheDuyet='Đã phê duyệt' ORDER BY n.thuTuNguyenVong");
+        $st->execute([$studentId]);
+        $results = $st->fetchAll();
+        $st = db()->prepare('SELECT COUNT(*) FROM BaiThi WHERE maThiSinh=?'); $st->execute([$studentId]);
+        $paperCount = (int)$st->fetchColumn();
+        $st = db()->prepare("SELECT k.tenKyThi,d.tenDiemThi,r.maPhong,r.tenPhong,COALESCE(c.tenTruongTHCS,h.tenTruongTHPT,'') AS tenTruong FROM PhanPhongThi a JOIN PhongThi r ON r.maPhong=a.maPhong JOIN DiemThi d ON d.maDiemThi=r.maDiemThi JOIN KyThi k ON k.maKyThi=d.maKyThi LEFT JOIN TruongTHCS c ON c.maTruongTHCS=d.maTruongTHCS LEFT JOIN TruongTHPT h ON h.maTruongTHPT=d.maTruongTHPT WHERE a.maThiSinh=? AND a.trangThai='Đã phân' ORDER BY k.maKyThi,r.maPhong");
+        $st->execute([$studentId]); $examSites=$st->fetchAll();
+        require_once __DIR__.'/student_profile.php';
+        return ['profile'=>$profile, 'wishes'=>$wishes, 'scores'=>$scores, 'results'=>$results, 'paperCount'=>$paperCount, 'examSites'=>$examSites, 'supplement'=>student_profile_read($studentId)];
     } catch (Throwable $e) { error_log('student_dashboard: '.$e->getMessage()); return null; }
+}
+
+/** Published admission notices for the student's read-only information page. */
+function live_student_admission_info(string $query = ''): ?array {
+    try {
+        $sql = "SELECT i.maThongTin,i.chiTieuTuyenSinh,i.heDaoTao,i.phuongThucTuyenSinh,i.hocPhi,i.noiDungChiTiet,
+                       p.tenTruongTHPT,k.tenKhuVuc,d.tenDot,d.namTuyenSinh
+                FROM ThongTinTuyenSinh i JOIN TruongTHPT p ON p.maTruongTHPT=i.maTruongTHPT
+                JOIN KhuVuc k ON k.maKhuVuc=p.maKhuVuc JOIN DotTuyenSinh d ON d.maDot=i.maDot
+                WHERE i.trangThaiCongBo='Đã công bố'";
+        $params = [];
+        if ($query !== '') {
+            $sql .= " AND (p.tenTruongTHPT LIKE ? ESCAPE '!' OR k.tenKhuVuc LIKE ? ESCAPE '!')";
+            $like = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $query) . '%';
+            $params = [$like, $like];
+        }
+        $st = db()->prepare($sql . ' ORDER BY d.namTuyenSinh DESC,p.maTruongTHPT,i.maThongTin');
+        $st->execute($params);
+        return $st->fetchAll();
+    } catch (Throwable $e) { error_log('student_admission_info: '.$e->getMessage()); return null; }
 }

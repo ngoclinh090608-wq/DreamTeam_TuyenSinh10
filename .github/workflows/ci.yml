@@ -78,6 +78,9 @@ jobs:
         run: |
           php tests/kiem_thu_dashboard.php
           php tests/kiem_thu_hocsinh.php
+          php tests/kiem_thu_hoso_hocsinh.php
+          php tests/kiem_thu_trangcanhan.php
+          php tests/kiem_thu_thongtintuyensinh.php
           php tests/kiem_thu_url.php
           python3 tests/kiem_thu_uc05_navigation.py
 

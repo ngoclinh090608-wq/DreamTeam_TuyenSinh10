@@ -1,6 +1,15 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__) . '/includes/functions.php';
+require_once dirname(__DIR__) . '/includes/auth.php';
+$guideUser = current_user();
+if (has_role($guideUser, ['HOC_SINH'])) {
+    $page_title = 'Hướng dẫn'; $layout = 'dashboard'; $active = 'student-help';
+    require dirname(__DIR__) . '/includes/header.php';
+    require dirname(__DIR__) . '/includes/student_guide.php';
+    require dirname(__DIR__) . '/includes/footer.php';
+    return;
+}
 $page_title = 'Thông tin tuyển sinh'; $layout = 'public'; $public_active = 'info';
 require dirname(__DIR__) . '/includes/header.php';
 ?>
