@@ -6,7 +6,7 @@
 
 1. Đặt dự án tại `C:\xampp\htdocs\DreamTeam_TuyenSinh10`, bật Apache và MySQL.
 2. Máy mới: nhập **`database/demo/dreamteam_tuyensinh10_demo.sql`** bằng phpMyAdmin vào database demo trống. Xem [hướng dẫn dữ liệu demo](database/demo/README.md).
-3. Máy đã có dữ liệu: không nhập lại SQL hoặc reset database chỉ vì vừa pull code.
+3. Máy đã có dữ liệu: không nhập lại bản SQL đầy đủ hoặc reset database chỉ vì vừa pull code. Với biểu mẫu hồ sơ học sinh mới, xem migration bổ sung trong hướng dẫn demo.
 4. Nếu cần cấu hình riêng, sao chép `database/demo/database.local.example.php` thành `config/database.local.php`; giữ thông tin kết nối cá nhân. File local được Git bỏ qua.
 5. Mở `http://localhost/DreamTeam_TuyenSinh10/`, đăng nhập rồi vào bảng điều khiển.
 
@@ -34,6 +34,7 @@ Danh sách tài khoản và mật khẩu khởi tạo nằm trong [bảng tài k
 |---|---|---|
 | Đăng nhập, đổi mật khẩu | `auth/` | Session, CSRF và phân quyền |
 | Bảng điều khiển | `admin/` | Số liệu và biểu đồ từ database |
+| Hồ sơ học sinh | `admin/` (vai trò học sinh) | Lưu liên hệ, ảnh, gia đình, học bạ cá nhân; ba tab Hồ sơ/Hướng dẫn/Văn bản |
 | Thí sinh, nguyện vọng | `candidates/`, `aspirations/` | Tra cứu, bộ lọc, phân trang; học sinh chỉ xem nguyện vọng của mình |
 | UC05 nhập điểm | `grading/nhap-diem.php` | Chọn lô bài, tải/import Excel, kiểm tra và lưu điểm |
 | UC06–UC08 tổ chức thi | `exam/` | Tạo phòng, phân phòng, xem phân công ra đề |

@@ -449,3 +449,52 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--secondary);
 .student-guide-steps { padding-left:24px; }
 .student-guide-steps li { padding:6px 0 12px 8px; }
 .student-guide-steps h3 { font-size:16px; margin:0 0 6px; }
+
+.student-preference-group { min-width:0; border:1px solid var(--border); border-radius:7px; margin:0; padding:0 12px; }
+.student-preference-group legend { padding:0 7px; font-size:13px; font-weight:700; }
+.student-preference + .student-preference { border-top:1px solid var(--border); }
+.student-preference summary { display:flex; justify-content:space-between; align-items:center; gap:12px; cursor:pointer; padding:18px 0; list-style:none; }
+.student-preference summary:after { content:'⌄'; flex:none; color:var(--primary); }
+.student-preference[open] summary:after { content:'⌃'; }
+.student-preference summary strong { font-size:14px; white-space:nowrap; }
+.student-preference summary > span { text-align:right; color:var(--primary-dark); font-size:12px; }
+.student-progress { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:0; margin:0; padding:12px 0 22px; list-style:none; }
+.student-progress li { text-align:center; position:relative; padding:0 3px; color:var(--muted); }
+.student-progress li:before { content:''; position:absolute; top:12px; height:1px; background:var(--border); left:0; right:0; }
+.student-progress li:first-child:before { left:50%; }
+.student-progress li:last-child:before { right:50%; }
+.student-progress-marker { position:relative; z-index:1; display:grid; place-items:center; width:25px; height:25px; margin:0 auto 12px; border:1px solid currentColor; border-radius:50%; background:white; font-size:13px; }
+.student-progress strong,.student-progress small { display:block; font-size:11px; overflow-wrap:anywhere; }
+.student-progress small { margin-top:7px; font-weight:400; }
+.student-progress .is-complete { color:#288b43; }
+.student-progress .is-rejected { color:#bf3946; }
+.student-profile-actions { display:flex; justify-content:flex-end; margin-top:14px; }
+@media(max-width:1200px) { .student-overview { grid-template-columns:1fr; } }
+@media(max-width:600px) { .student-progress { grid-template-columns:repeat(3,minmax(0,1fr)); row-gap:22px; } .student-preference summary { flex-wrap:wrap; } }
+@media print {
+ .student-site-header,.student-portal-welcome,.student-portal-nav,.student-site-footer,.student-print-button,.student-profile-actions { display:none !important; }
+ .student-overview { display:block; } .student-portal-content { width:100%; margin:0; }
+ .student-preference:not([open]) > :not(summary) { display:block !important; }
+ .student-profile,.student-preference { break-inside:avoid; }
+}
+
+.student-profile-form fieldset { border:0; padding:0; margin:0; min-width:0; }
+.student-profile-input-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.student-input { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+.student-input label { font-size:12px; font-weight:600; color:var(--muted); }
+.student-input input,.student-input select,.student-readonly-field { width:100%; min-width:0; border:1px solid var(--border); border-radius:5px; padding:9px; font:inherit; font-size:13px; background:white; color:var(--ink); }
+.student-readonly-field { background:#f6f9fc; }
+.student-photo-name { display:grid; grid-template-columns:130px minmax(0,1fr); gap:16px; }
+.student-photo-box { display:flex; flex-direction:column; align-items:center; gap:8px; padding:10px; border:1px solid var(--border); border-radius:6px; }
+.student-photo-box > span { font-size:65px; color:var(--secondary); }
+.student-photo-box img { max-width:100%; object-fit:cover; }
+.student-photo-box input { width:100%; font-size:10px; }
+.student-photo-box small { font-size:10px; color:var(--muted); }
+.student-extra-section { border-top:1px solid var(--border); margin-top:14px; padding:14px 0; }
+.student-extra-section > summary { font-size:14px; font-weight:700; cursor:pointer; margin-bottom:12px; }
+.student-family-row,.student-year-row { border:1px solid var(--border); border-radius:6px; padding:12px; margin:12px 0; }
+.student-family-row > strong { display:block; margin-bottom:10px; font-size:13px; }
+.student-year-row h3 { font-size:14px; margin:0 0 12px; }
+@media(min-width:1150px) { .student-overview { grid-template-columns:minmax(0,1fr) minmax(0,1fr); } }
+@media(max-width:480px) { .student-profile-input-grid,.student-photo-name { grid-template-columns:1fr; } }
+@media print { .student-profile-form button,.student-photo-box input { display:none; } }
