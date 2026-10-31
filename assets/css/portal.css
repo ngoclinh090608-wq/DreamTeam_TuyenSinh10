@@ -188,6 +188,13 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--secondary);
 .login-panel .btn { margin-top: 8px; }
 .login-demo-notice, .login-demo-accounts summary code, .login-demo-accounts td code { color: var(--primary-dark); background: #eaf2f8; }
 .login-demo-notice { border-radius: 5px; }
+/* Demo guide links describe the existing UC05–UC08 permissions. */
+.demo-uc-title { color: var(--primary-dark); font-size: 14px; margin: 20px 0 10px; }
+.demo-uc-links { list-style: none; margin: 0; padding: 0; }
+.demo-uc-links li { padding: 10px 0; border-top: 1px solid var(--border); }
+.demo-uc-links a { display: inline-block; font-size: 14px; font-weight: 650; color: var(--primary-dark); }
+.demo-uc-links a:hover { text-decoration: underline; }
+.demo-uc-links small { display: block; font-size: 12px; margin-top: 4px; color: var(--muted); }
 .input-with-icon > span, .peek-pass { color: var(--muted); }
 .field-note { color: var(--muted); }
 .result-main { background: var(--bg); min-height: 0; padding: 38px 0 48px; }
@@ -356,3 +363,6 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--secondary);
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+/* Server-side directory pagination keeps large datasets bounded on mobile. */
+.directory-pagination { align-items: center; gap: 14px; flex-wrap: wrap; }
+@media(max-width:760px) { .directory-pagination { flex-direction: column; align-items: flex-start; } }

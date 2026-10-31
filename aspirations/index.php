@@ -1,4 +1,4 @@
 <?php
 declare(strict_types=1);
-require_once dirname(__DIR__) . '/includes/functions.php';
-render_module('aspirations');
+$directoryModule = 'aspirations';
+require dirname(__DIR__) . '/includes/candidate_directory.php';
