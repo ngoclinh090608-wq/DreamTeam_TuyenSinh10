@@ -59,7 +59,7 @@ function form_dang_nhap(string $tab, string $nhan, string $goiY, string $nut, st
     <?php form_dang_nhap('admin', 'Tên đăng nhập', 'Ví dụ: hdchamthi', 'Đăng nhập cán bộ', $tab === 'admin' ? $tenDangNhap : '', $next); ?>
   </section>
   <details class="login-demo-notice login-demo-accounts">
-    <summary><span>ⓘ</span> Danh sách tài khoản thử nghiệm — mật khẩu <code>1234</code></summary>
+    <summary><span>ⓘ</span> Danh sách tài khoản thử nghiệm</summary>
     <table>
       <tr><td><code>quantri</code></td><td>Quản trị viên hệ thống</td></tr>
       <tr><td><code>bantuyensinh</code></td><td>Ban Tuyển sinh Sở (UC10, UC15)</td></tr>
