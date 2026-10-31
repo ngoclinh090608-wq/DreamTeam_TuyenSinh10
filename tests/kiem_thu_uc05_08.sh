@@ -208,7 +208,13 @@ post "exam/phan-phong.php" -d "action=xac_nhan_luu&kyThi=KT2026&diemThi=DT01&pha
 dung UC07 "Lưu lỗi không đổi dữ liệu phân phòng" "$(gtri "SELECT maPhong FROM PhanPhongThi WHERE maThiSinh = 'TS001' AND trangThai = 'Đã phân'")" "P101"
 # UC07 9.1: chuyển sang điểm thi khác không cùng khu vực
 T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
-post "exam/phan-phong.php" -d "action=chuyen_phong&kyThi=KT2026&diemThi=DT01&maPhanPhong=PP003&maPhongMoi=P201" | kiem UC07 "Chặn chuyển sang trường khác NV1" "Điểm thi không phù hợp với trường đăng ký nguyện vọng 1."
+post "exam/phan-phong.php" -d "action=chuyen_phong&kyThi=KT2026&diemThi=DT01&maPhanPhong=PP001&maPhongMoi=P201" | kiem UC07 "Chặn chuyển sang trường khác NV1" "Điểm thi không phù hợp với trường đăng ký nguyện vọng 1."
+# Khi toàn bộ phòng tại trường NV1 đã kín, cho phép điều phối sang điểm thi THPT khác cùng kỳ.
+sql "UPDATE PhongThi p SET p.sucChua=(SELECT COUNT(*) FROM PhanPhongThi pp WHERE pp.maPhong=p.maPhong AND pp.trangThai='Đã phân') WHERE p.maDiemThi='DT01'; UPDATE PhongThi SET sucChua=30 WHERE maPhong='P201';"
+T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
+post "exam/phan-phong.php" -d "action=chuyen_phong&kyThi=KT2026&diemThi=DT01&maPhanPhong=PP001&maPhongMoi=P201" | kiem UC07 "Điều phối khi trường NV1 hết chỗ" "Chuyển phòng thi cho thí sinh thành công."
+dung UC07 "CSDL ghi nhận phòng điều phối" "$(gtri "SELECT maPhong FROM PhanPhongThi WHERE maPhanPhong='PP001'")" "P201"
+sql "UPDATE PhanPhongThi SET maPhong='P101' WHERE maPhanPhong='PP001'; UPDATE PhongThi SET sucChua=12 WHERE maDiemThi='DT01';"
 # UC07 9.1: chuyển vào phòng đã đủ chỗ
 sql "UPDATE PhongThi SET sucChua = 1 WHERE maPhong = 'P102';"
 T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")

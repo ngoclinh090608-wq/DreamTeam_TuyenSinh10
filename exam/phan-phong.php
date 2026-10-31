@@ -107,12 +107,17 @@ foreach ($dsDiemThi as $dt) {
 }
 
 $dsPhong = [];
+$dsPhongChuyen = [];
 $dsThiSinhPhuHop = [];
 $dsDaPhanPhong = [];
 $dsKhongPhuHop = [];
 
 if ($maDiemThi !== '') {
     $dsPhong = exam_ds_phong_thi($maDiemThi);
+    $dsPhongChuyen = array_values(array_filter(
+        exam_ds_phong_thi(),
+        static fn($phong) => (string)$phong['maKyThi'] === $maKyThi
+    ));
     try {
         $dsThiSinhPhuHop = layDanhSachThiSinhPhuHopDiemThi($maKyThi, $maDiemThi);
         $dsKhongPhuHop = layThiSinhKhongPhuHopDiemThi($maDiemThi);
@@ -145,7 +150,7 @@ $tongSucChua = array_sum(array_column($dsPhong, 'sucChua'));
 $soLuongThiSinhCanPhan = count($dsThiSinhPhuHop);
 $soLuongDaPhan = count(array_filter($dsThiSinhPhuHop, fn($t) => $t['maPhanPhong'] !== null));
 
-ui_page_start('exam', 'Phân phòng thi cho thí sinh', 'Tổ chức thi · Phân bổ phòng thi', 'Tự động phân bổ thí sinh theo trường THCS vào các phòng thi tại điểm thi, đảm bảo đúng sức chứa và liên kết dữ liệu an toàn.', 'UC07');
+ui_page_start('exam', 'Phân phòng thi cho thí sinh', 'Tổ chức thi · Phân bổ phòng thi', 'Ưu tiên xếp thí sinh tại trường THPT nguyện vọng 1; chỉ điều phối sang trường khác khi điểm thi NV1 hết chỗ.', 'UC07');
 exam_tabs('phan-phong.php');
 ui_flashes();
 
@@ -372,9 +377,9 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
                   <input type="hidden" name="diemThi" value="<?= e($maDiemThi) ?>">
                   <select name="maPhongMoi" style="padding:2px 4px; font-size:0.8rem;" required>
                     <option value="">-- Chuyển sang --</option>
-                    <?php foreach ($dsPhong as $p): if ($p['maPhong'] !== $r['maPhong']): ?>
+                    <?php foreach ($dsPhongChuyen as $p): if ($p['maPhong'] !== $r['maPhong']): ?>
                       <option value="<?= e($p['maPhong']) ?>"<?= (int)$p['soLuongThiSinh'] >= (int)$p['sucChua'] ? ' disabled' : '' ?>>
-                        <?= e(catalog_display_name((string)$p['tenPhong'])) ?> (<?= $p['soLuongThiSinh'] ?>/<?= $p['sucChua'] ?>)
+                        <?= e(catalog_display_name((string)$p['tenDiemThi'])) ?> · <?= e(catalog_display_name((string)$p['tenPhong'])) ?> (<?= $p['soLuongThiSinh'] ?>/<?= $p['sucChua'] ?>)
                       </option>
                     <?php endif; endforeach; ?>
                   </select>
