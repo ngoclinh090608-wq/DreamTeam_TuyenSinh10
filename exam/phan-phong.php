@@ -96,11 +96,13 @@ foreach ($dsDiemThi as $dt) {
 $dsPhong = [];
 $dsThiSinhPhuHop = [];
 $dsDaPhanPhong = [];
+$dsKhongPhuHop = [];
 
 if ($maDiemThi !== '') {
     $dsPhong = exam_ds_phong_thi($maDiemThi);
     try {
         $dsThiSinhPhuHop = layDanhSachThiSinhPhuHopDiemThi($maKyThi, $maDiemThi);
+        $dsKhongPhuHop = layThiSinhKhongPhuHopDiemThi($maDiemThi);
         // Lấy danh sách đã phân phòng
         $sqlDaPhan = 'SELECT pp.maPhanPhong, t.maThiSinh, t.hoTen, t.soBaoDanh, t.ngaySinh,
                              c.tenTruongTHCS, p.maPhong, p.tenPhong, pp.ngayPhan, pp.trangThai
@@ -128,10 +130,11 @@ if ($maDiemThi !== '') {
 
 $tongSucChua = array_sum(array_column($dsPhong, 'sucChua'));
 $soLuongThiSinhCanPhan = count($dsThiSinhPhuHop);
-$soLuongDaPhan = count($dsDaPhanPhong);
+$soLuongDaPhan = count(array_filter($dsThiSinhPhuHop, fn($t) => $t['maPhanPhong'] !== null));
 
 ui_page_start('exam', 'Phân phòng thi cho thí sinh', 'Tổ chức thi · Phân bổ phòng thi', 'Tự động phân bổ thí sinh theo trường THCS vào các phòng thi tại điểm thi, đảm bảo đúng sức chứa và liên kết dữ liệu an toàn.', 'UC07');
 exam_tabs('phan-phong.php');
+ui_flashes();
 
 if ($loiHeThong) ui_notice('error', $loiHeThong);
 if ($loi) ui_notice('error', $loi, $chiTietLoi);
@@ -177,7 +180,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
   <div class="panel-heading">
     <div>
       <h2>2. Thực hiện phân phòng thi tự động</h2>
-      <p>Hệ thống tự động sắp xếp thí sinh theo danh sách SBD / A-B-C và phân bổ đều vào các phòng thi theo đúng sức chứa.</p>
+      <p>Hệ thống lấy thí sinh đủ điều kiện của các trường THCS cùng khu vực với điểm thi, xếp theo trường THCS và họ tên, rồi lấp lần lượt từng phòng theo sức chứa.</p>
     </div>
     <div class="panel-actions">
       <form method="post" novalidate style="display:inline">
@@ -200,6 +203,12 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
       <div><strong>Sức chứa phòng thi không đủ.</strong> Tổng sức chứa (<?= $tongSucChua ?> chỗ) nhỏ hơn số lượng thí sinh (<?= $soLuongThiSinhCanPhan ?> thí sinh). Thiếu <?= $soLuongThiSinhCanPhan - $tongSucChua ?> chỗ.</div>
     </div>
   <?php else: ?>
+    <?php if ($dsKhongPhuHop):
+      ui_notice('warning', EXAM_TB_DIEM_THI_KHONG_PHU_HOP, array_merge(
+        ['Các thí sinh sau đang được xếp tại điểm thi nhưng trường THCS khác khu vực; hệ thống không phân tự động các thí sinh này vào điểm thi và vẫn tính chỗ họ đang ngồi:'],
+        array_map(fn($r) => "{$r['hoTen']} ({$r['maThiSinh']}) – {$r['tenTruongTHCS']}, {$r['tenKhuVuc']} – phòng {$r['maPhong']}", $dsKhongPhuHop)
+      ));
+    endif; ?>
     <p class="text-muted" style="margin:0.5rem 0;">Sức chứa phòng thi đảm bảo phục vụ đầy đủ cho toàn bộ thí sinh. Nhấn nút <strong>Bắt đầu phân phòng</strong> để xem trước kết quả.</p>
   <?php endif; ?>
 </section>

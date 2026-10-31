@@ -37,6 +37,7 @@ fi
 
 khoi_phuc(){
   [ -f "$S/saoluu.sql" ] && db_file "$S/saoluu.sql" 2>/dev/null && echo "Đã khôi phục dữ liệu UC05-08."
+  db_exec "DELETE FROM PhanCongRaDe WHERE maKyThi = 'KT_TEST'; DELETE FROM KyThi WHERE maKyThi = 'KT_TEST'; DELETE FROM DiemThi WHERE maDiemThi = 'DT_TEST';" 2>/dev/null
   rm -rf "$S"
 }
 trap khoi_phuc EXIT
@@ -161,7 +162,87 @@ get "exam/phan-cong-ra-de.php?kyThi=KT2026" | kiem UC08 "Hiển thị phân côn
 get "exam/phan-cong-ra-de.php?kyThi=KT2026" | kiem UC08 "Hiển thị phân công môn Ngữ văn (Trần Thu Hà)" "Trần Thu Hà"
 get "exam/phan-cong-ra-de.php?kyThi=KT2026&monThi=TOAN" | kiem UC08 "Lọc theo môn Toán" "PCRD1"
 
+# =============================================================================
+# BỔ SUNG: các luồng phụ / ngoại lệ theo đặc tả và Test Case Tuần 04
+# =============================================================================
+dang_nhap "hdchamthi"
+# UC05 bước 8–9: kiểm tra điểm hợp lệ -> chờ xác nhận, chưa lưu
+T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&baiThi=BT049")
+post "grading/nhap-diem.php" -d "action=kiem_tra&maBaiThi=BT049&kyThi=KT2026&monThi=TOAN&diemThi=7.5" | kiem UC05 "Kiểm tra điểm hợp lệ, chờ xác nhận" "Vui lòng xác nhận nhập điểm."
+dung UC05 "Chưa xác nhận thì chưa lưu điểm" "$(gtri "SELECT COUNT(*) FROM KetQuaChamThi WHERE maBaiThi = 'BT049'")" 0
+# UC05 9.1: nhập lại điểm -> giữ biểu mẫu nhập điểm
+T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&baiThi=BT049")
+post "grading/nhap-diem.php" -d "action=nhap_lai&maBaiThi=BT049&kyThi=KT2026&monThi=TOAN&diemThi=7.5" | kiem UC05 "Nhập lại điểm trước khi lưu" "Kiểm tra điểm"
+# UC05 8.1: không nhập điểm / sai định dạng
+T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&baiThi=BT049")
+post "grading/nhap-diem.php" -d "action=kiem_tra&maBaiThi=BT049&kyThi=KT2026&monThi=TOAN&diemThi=" | kiem UC05 "Không nhập điểm bị báo lỗi" "Điểm thi không hợp lệ."
+T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&baiThi=BT049")
+post "grading/nhap-diem.php" -d "action=kiem_tra&maBaiThi=BT049&kyThi=KT2026&monThi=TOAN&diemThi=abc" | kiem UC05 "Điểm sai định dạng bị báo lỗi" "Điểm thi không hợp lệ."
+# UC05 8.2: bài thi chưa đủ điều kiện (chưa có số phách)
+sql "UPDATE BaiThi SET soPhach = NULL WHERE maBaiThi = 'BT052';"
+T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&baiThi=BT052")
+post "grading/nhap-diem.php" -d "action=nhap_diem&maBaiThi=BT052&kyThi=KT2026&monThi=TOAN&diemThi=6" | kiem UC05 "Bài chưa đủ điều kiện nhập điểm" "Bài thi chưa đủ điều kiện nhập điểm."
+dung UC05 "Bài chưa đủ điều kiện không được ghi điểm" "$(gtri "SELECT COUNT(*) FROM KetQuaChamThi WHERE maBaiThi = 'BT052'")" 0
+# UC05 4.1: môn không còn bài cần nhập điểm
+get "grading/nhap-diem.php?kyThi=KT2026&monThi=VAN" | kiem UC05 "Không có bài thi cần nhập điểm" "Không có bài thi cần nhập điểm."
+# Bài thi không thuộc môn đã chọn
+T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=VAN")
+post "grading/nhap-diem.php" -d "action=nhap_diem&maBaiThi=BT049&kyThi=KT2026&monThi=VAN&diemThi=6" | kiem UC05 "Chặn nhập điểm bài không thuộc môn đã chọn" "Không tìm thấy bài thi tương ứng với mã phách."
+
+dang_nhap "bantuyensinh"
+# UC06 bước 5: hệ thống tự sinh mã phòng tiếp theo
+get "exam/tao-phong.php?kyThi=KT2026&diemThi=DT01" | kiem UC06 "Tự động sinh mã phòng P103" 'value="P103"'
+# UC06 6.1: sức chứa không hợp lệ
+T=$(tok "exam/tao-phong.php?kyThi=KT2026&diemThi=DT01")
+post "exam/tao-phong.php" -d "action=tao_phong&kyThi=KT2026&maDiemThi=DT01&maPhong=P199&tenPhong=Phong+199&sucChua=0" | kiem UC06 "Sức chứa 0 bị báo lỗi" "Thông tin phòng thi không hợp lệ."
+# UC06 8.1: trùng tên phòng trong cùng điểm thi
+T=$(tok "exam/tao-phong.php?kyThi=KT2026&diemThi=DT01")
+post "exam/tao-phong.php" --data-urlencode "tenPhong=Phòng 101" -d "action=tao_phong&kyThi=KT2026&maDiemThi=DT01&maPhong=P199&sucChua=12" | kiem UC06 "Trùng tên phòng trong điểm thi bị báo lỗi" "Thông tin phòng thi bị trùng."
+
+# UC07 6.3: cảnh báo thí sinh khác khu vực đang ở điểm thi
+T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
+post "exam/phan-phong.php" -d "action=xem_truoc&kyThi=KT2026&diemThi=DT01" | kiem UC07 "Cảnh báo điểm thi không phù hợp khu vực" "Điểm thi không phù hợp với khu vực trường THCS."
+# UC07 bước 10: lưu kết quả phân phòng
+T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
+post "exam/phan-phong.php" -d "action=xac_nhan_luu&kyThi=KT2026&diemThi=DT01&phanBo[TS001]=P102&phanBo[TS002]=P102&phanBo[TS005]=P102&phanBo[TS006]=P102&phanBo[TS009]=P102&phanBo[TS010]=P102" | kiem UC07 "Lưu kết quả phân phòng thành công" "Phân phòng thi thành công."
+dung UC07 "CSDL ghi nhận TS002 ở phòng P102" "$(gtri "SELECT maPhong FROM PhanPhongThi WHERE maThiSinh = 'TS002' AND trangThai = 'Đã phân'")" "P102"
+# UC07: chặn dữ liệu sửa tay - thí sinh khác khu vực, phòng của điểm thi khác
+T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
+post "exam/phan-phong.php" -d "action=xac_nhan_luu&kyThi=KT2026&diemThi=DT01&phanBo[TS003]=P101" | kiem UC07 "Chặn phân thí sinh khác khu vực" "Điểm thi không phù hợp với khu vực trường THCS."
+T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
+post "exam/phan-phong.php" -d "action=xac_nhan_luu&kyThi=KT2026&diemThi=DT01&phanBo[TS001]=P201" | kiem UC07 "Chặn phân vào phòng của điểm thi khác" "Không thể lưu kết quả phân phòng."
+dung UC07 "Lưu lỗi không đổi dữ liệu phân phòng" "$(gtri "SELECT maPhong FROM PhanPhongThi WHERE maThiSinh = 'TS001' AND trangThai = 'Đã phân'")" "P102"
+# UC07 9.1: chuyển sang điểm thi khác không cùng khu vực
+T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
+post "exam/phan-phong.php" -d "action=chuyen_phong&kyThi=KT2026&diemThi=DT01&maPhanPhong=PP003&maPhongMoi=P201" | kiem UC07 "Chặn chuyển sang điểm thi khác khu vực" "Điểm thi không phù hợp với khu vực trường THCS."
+# UC07 9.1: chuyển vào phòng đã đủ chỗ
+sql "UPDATE PhongThi SET sucChua = 2 WHERE maPhong = 'P101';"
+T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
+post "exam/phan-phong.php" -d "action=chuyen_phong&kyThi=KT2026&diemThi=DT01&maPhanPhong=PP001&maPhongMoi=P101" | kiem UC07 "Chặn chuyển vào phòng đã đủ chỗ" "Sức chứa phòng thi không đủ."
+# UC07 6.2: tổng sức chứa không đủ
+sql "UPDATE PhongThi SET sucChua = 2 WHERE maDiemThi = 'DT01';"
+T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
+post "exam/phan-phong.php" -d "action=xem_truoc&kyThi=KT2026&diemThi=DT01" | kiem UC07 "Sức chứa không đủ báo số chỗ thiếu" "Số lượng chỗ còn thiếu"
+sql "UPDATE PhongThi SET sucChua = 12 WHERE maDiemThi = 'DT01';"
+# UC07 6.1: điểm thi chưa có phòng thi
+sql "INSERT INTO DiemThi (maDiemThi, tenDiemThi, maTruongTHCS, maTruongTHPT, maKyThi) VALUES ('DT_TEST', 'Điểm thi kiểm thử', 'THCS_C', NULL, 'KT2026');"
+T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT_TEST")
+post "exam/phan-phong.php" -d "action=xem_truoc&kyThi=KT2026&diemThi=DT_TEST" | kiem UC07 "Điểm thi chưa có phòng" "Chưa đủ điều kiện phân phòng."
+
+# UC08 bước 6–8: chi tiết môn và quay lại danh sách
+dang_nhap "hdrade"
+get "exam/phan-cong-ra-de.php?kyThi=KT2026&monThi=TOAN" | kiem UC08 "Chi tiết phân công có nút quay lại" "Quay lại danh sách phân công"
+get "exam/phan-cong-ra-de.php?kyThi=KT2026&monThi=XYZ" | kiem UC08 "Môn không có phân công" "Chưa có phân công ra đề thi."
+# UC08 4.1: kỳ thi ngoài phạm vi Hội đồng ra đề của cán bộ
+sql "INSERT INTO KyThi (maKyThi, tenKyThi, thoiGianKetThuc, maDot) VALUES ('KT_TEST', 'Kỳ thi kiểm thử', '2026-12-31 00:00:00', 'DOT2026'); INSERT INTO PhanCongRaDe (maPhanCong, maKyThi, maMonThi, maCanBo, thoiGianThucHien, thongTinNhiemVu) VALUES ('PCRD_T', 'KT_TEST', 'TOAN', 'CB02', NULL, 'Nhiệm vụ kiểm thử');"
+get "exam/phan-cong-ra-de.php?kyThi=KT_TEST&monThi=TOAN" | kiem UC08 "Kỳ thi ngoài phạm vi bị chặn" "Không đủ quyền truy cập."
+get "exam/phan-cong-ra-de.php?kyThi=KT_TEST&monThi=TOAN" | khong UC08 "Không lộ phân công ngoài phạm vi" "PCRD_T"
+dang_nhap "bantuyensinh"
+get "exam/phan-cong-ra-de.php?kyThi=KT_TEST&monThi=TOAN" | kiem UC08 "Ban Tuyển sinh xem mọi kỳ thi" "PCRD_T"
+
 echo "=========================================="
+# kiem/khong chạy trong pipe (subshell) nên đếm lại từ file kết quả
+SO_CA=$(wc -l < "$OUT" | tr -d ' '); SO_SAI=$(grep -c $'\tLỖI' "$OUT"); SO_DUNG=$((SO_CA - SO_SAI))
 echo "Tổng số test UC05–UC08: $SO_CA | Đúng: $SO_DUNG | Sai: $SO_SAI"
 if [ "$SO_SAI" -eq 0 ]; then
   echo -e "\033[32mTẤT CẢ TEST ĐỀU ĐẠT (PASS)!\033[0m"
