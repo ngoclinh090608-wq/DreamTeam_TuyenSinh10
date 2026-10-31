@@ -46,3 +46,5 @@ SQL demo hiện hành được kiểm tra trên MariaDB cloud. File xuất gốc
 ## Migration cho hồ sơ học sinh
 
 `migrations/20261031_student_profile.sql` bổ sung ba bảng mà không sửa dữ liệu cũ. Chỉ chạy trên database demo sau khi sao lưu; máy cài mới từ snapshot không cần chạy riêng. Nếu PHP báo các trường bổ sung chưa sẵn sàng lưu, kiểm tra migration này; không reset database.
+
+Migration `20261031_fill_student_profiles.sql` là bước tùy chọn tạo hồ sơ bổ sung giả lập cho toàn bộ thí sinh của database demo; chỉ điền ô trống và không ghi đè dữ liệu đã có. Xem demo/README.md trước khi áp dụng.

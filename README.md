@@ -22,7 +22,7 @@ Dùng PHP 8.2 với `pdo_mysql`, `mbstring`, `Phar`, `SimpleXML`; thao tác Exce
 
 ## Dữ liệu và tài khoản
 
-Bản SQL demo hiện hành có **1.750 học sinh, 5.250 nguyện vọng, 5.250 bài thi, 4.870 kết quả chấm**, một kỳ thi `KTDEMO26` tên “Kỳ thi tuyển sinh lớp 10 năm 2026”. Có 380 bài chưa chấm; không có lịch sử sửa điểm giả. Số liệu có thể thay đổi sau khi người dùng thao tác.
+Bản SQL demo hiện hành có **1.750 học sinh, 5.250 nguyện vọng, 5.250 bài thi, 4.870 kết quả chấm**, một kỳ thi `KTDEMO26` tên “Kỳ thi tuyển sinh lớp 10 năm 2026”. Có 380 bài chưa chấm; không có lịch sử sửa điểm giả. Snapshot cũng kèm hồ sơ bổ sung giả lập (liên hệ, gia đình, học bạ) cho tất cả học sinh; số liệu có thể thay đổi sau khi người dùng thao tác.
 
 Năm THPT: Sao Mai, Bình Minh, Hòa An, Ánh Dương, Trần Quốc Khải. Dashboard thống kê nguyện vọng theo THPT và học sinh theo THCS từ database đang kết nối; khi không tải được dữ liệu, hiển thị thông báo lỗi.
 

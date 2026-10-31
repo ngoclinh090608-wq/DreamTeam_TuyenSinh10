@@ -49,4 +49,14 @@ Máy đã có database: sao lưu trước, chọn database demo trong phpMyAdmin
 
 Máy mới dùng snapshot SQL hiện hành đã bao gồm các bảng này. Sau cập nhật, học sinh có thể lưu ảnh, liên hệ, gia đình, học bạ lớp 6–9 và khai báo diện ưu tiên của mình. Họ tên/ngày sinh/trường/SBD chính thức vẫn do nhà trường quản lý. Điểm học bạ và diện ưu tiên do học sinh khai báo không tự thay đổi điểm thi hoặc điểm xét tuyển.
 
-Ảnh lưu trong `storage/student-photos/` (Git bỏ qua), không nằm trong SQL. Giới hạn ảnh 2 MB, định dạng JPG/PNG/WebP; PHP cần cho phép upload và ghi vào storage. Ảnh chỉ được trả qua endpoint có xác thực của chính học sinh. Sao lưu cả database và thư mục ảnh khi cần chuyển máy. Các trường chưa nhập được để trống; không tạo dữ liệu gia đình/học bạ giả cho 1.750 học sinh.
+Ảnh lưu trong `storage/student-photos/` (Git bỏ qua), không nằm trong SQL. Giới hạn ảnh 2 MB, định dạng JPG/PNG/WebP; PHP cần cho phép upload và ghi vào storage. Ảnh chỉ được trả qua endpoint có xác thực của chính học sinh. Sao lưu cả database và thư mục ảnh khi cần chuyển máy. Học sinh có thể nhập/sửa thông tin của mình; các dữ liệu tự khai này không tự cộng vào điểm thi hoặc xét tuyển.
+
+## Tạo đầy đủ hồ sơ bổ sung cho tất cả thí sinh
+
+Máy đã có database và ba bảng hồ sơ bổ sung: sao lưu database rồi nhập **`database/migrations/20261031_fill_student_profiles.sql`** bằng phpMyAdmin. Nếu chưa có ba bảng, nhập migration `20261031_student_profile.sql` trước. Không nhập lại bản full SQL vào database đang dùng.
+
+Script tạo dữ liệu **giả lập** cho toàn bộ thí sinh hiện có, không tạo tài khoản đăng nhập mới. Với bộ 1.750 học sinh: có 1.750 dòng HoSoBoSung, 5.250 dòng gia đình (mẹ/cha/người giám hộ), 7.000 dòng học bạ lớp 6–9. Chỉ bổ sung trường đang trống/null; giữ nội dung đã nhập, ảnh tải lên, điểm thi, nguyện vọng và tài khoản. Có transaction và kiểm tra va chạm số định danh; nhập lại không tạo trùng.
+
+Tên người thân, giới tính, địa chỉ và học bạ được sinh để kiểm thử giao diện; không phải dữ liệu đã xác minh hay thông tin cá nhân thực. Email thuộc miền dành cho thử nghiệm `example.test`; số định danh bắt đầu bằng 900 và điện thoại bắt đầu bằng 000 là giá trị giả lập, không phải số được cấp/liên hệ thật. Không gửi email/SMS từ bộ dữ liệu này. Học bạ giả lập không sửa hoặc tính lại điểm thi/xét tuyển.
+
+Snapshot cài mới đã kèm bước bổ sung hồ sơ, nên máy mới không cần chạy seed này riêng. Máy đã có thông tin người dùng nhập thì dùng migration, không thay bằng snapshot.
