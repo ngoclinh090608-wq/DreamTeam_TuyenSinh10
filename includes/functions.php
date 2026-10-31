@@ -51,17 +51,30 @@ function render_module(string $key): void {
     $modules = require __DIR__ . '/module_config.php';
     if (!isset($modules[$key])) { http_response_code(404); require dirname(__DIR__) . '/404.php'; return; }
     require_once __DIR__ . '/auth.php';
-    require_module($key);          // đăng nhập + đúng vai trò theo QUYEN_MODULE
+    $user = require_module($key); // authenticated account is the only source of ownership
     $module = $modules[$key];
+    $isStudent = has_role($user, ['HOC_SINH']);
+    $studentId = $isStudent ? (string)($user['maThiSinh'] ?? '') : null;
+    $studentDashboard = null;
     require_once dirname(__DIR__) . '/services/live_data.php';
     $module['rows'] = []; // Never retain illustrative rows after a database failure.
     $liveStats = $liveAssign = null; $live = false;
     $kindNow = $module['kind'] ?? 'table';
-    if ($kindNow === 'table') { $rows = live_rows($key); if ($rows !== null) { $module['rows'] = $rows; $live = true; } }
+    if ($isStudent && $key === 'admin') {
+        $studentDashboard = live_student_dashboard($studentId);
+        $live = $studentDashboard !== null;
+        $module['title'] = 'Trang cá nhân'; $module['eyebrow'] = 'Hồ sơ tuyển sinh';
+        $module['desc'] = 'Theo dõi hồ sơ và nguyện vọng của bạn.';
+    }
+    elseif ($kindNow === 'table') { $rows = live_rows($key, $studentId); if ($rows !== null) { $module['rows'] = $rows; $live = true; } }
     elseif ($kindNow === 'dashboard' || $kindNow === 'stats') { $liveStats = live_stats(); $live = $liveStats !== null; }
     elseif ($kindNow === 'assignments') { $liveAssign = live_assignments(); $live = $liveAssign !== null; }
+    if ($isStudent && $key === 'admission-info') $module['desc'] = 'Xem thông tin tuyển sinh và chỉ tiêu đã công bố.';
+    if ($isStudent && $key === 'appeals') { $module['title'] = 'Phúc khảo của tôi'; $module['desc'] = 'Theo dõi các yêu cầu phúc khảo của bạn.'; }
+    if ($isStudent && $key === 'enrollment') { $module['title'] = 'Tình trạng nhập học'; $module['desc'] = 'Xem tình trạng nhập học gắn với hồ sơ của bạn.'; }
     $page_title = $module['title']; $layout = 'dashboard'; $active = $key;
     require __DIR__ . '/header.php';
-    require __DIR__ . '/module_page.php';
+    if ($isStudent && $key === 'admin') require __DIR__ . '/student_dashboard.php';
+    else require __DIR__ . '/module_page.php';
     require __DIR__ . '/footer.php';
 }

@@ -19,7 +19,7 @@ function live_available(): bool {
 }
 
 /** Hàng dữ liệu cho module dạng bảng (cột khớp includes/module_config.php) hoặc null. */
-function live_rows(string $key): ?array {
+function live_rows(string $key, ?string $studentId = null): ?array {
     if (!live_available()) return null;
     $q = [
       'candidates' => "SELECT t.maThiSinh, t.hoTen, c.tenTruongTHCS, t.trangThaiDangKyDuThi FROM ThiSinh t JOIN TruongTHCS c ON c.maTruongTHCS=t.maTruongTHCS ORDER BY t.maThiSinh",
@@ -52,7 +52,14 @@ function live_rows(string $key): ?array {
                     UNION ALL SELECT maDanhSach, 'Kết quả trúng tuyển', trangThaiPheDuyet, trangThaiCongBo FROM DanhSachKetQuaTuyenSinh",
     ];
     if (!isset($q[$key])) return null;
-    try { return live_all($q[$key]); } catch (Throwable $e) { error_log("live_rows($key): " . $e->getMessage()); return null; }
+    $params = [];
+    if ($studentId !== null) {
+        if ($key === 'appeals') { $q[$key] = str_replace(' ORDER BY y.maYeuCau', ' WHERE y.maThiSinh = ? ORDER BY y.maYeuCau', $q[$key]); $params = [$studentId]; }
+        elseif ($key === 'enrollment') { $q[$key] = str_replace(' ORDER BY t.maThiSinh', ' WHERE t.maThiSinh = ? ORDER BY t.maThiSinh', $q[$key]); $params = [$studentId]; }
+        elseif ($key === 'admission-info') $q[$key] = str_replace(' ORDER BY i.maThongTin', " WHERE i.trangThaiCongBo='Đã công bố' ORDER BY i.maThongTin", $q[$key]);
+        else return [];
+    }
+    try { return live_all($q[$key], $params); } catch (Throwable $e) { error_log("live_rows($key): " . $e->getMessage()); return null; }
 }
 
 /** Số liệu cho bảng điều khiển / thống kê. */
@@ -105,4 +112,17 @@ function live_home_schools(): ?array {
         return live_all("SELECT p.maTruongTHPT, p.tenTruongTHPT, k.tenKhuVuc, COALESCE((SELECT SUM(i.chiTieuTuyenSinh) FROM ThongTinTuyenSinh i WHERE i.maTruongTHPT=p.maTruongTHPT AND i.maDot=(SELECT maDot FROM DotTuyenSinh ORDER BY namTuyenSinh DESC, maDot DESC LIMIT 1)),0)
                          FROM TruongTHPT p JOIN KhuVuc k ON k.maKhuVuc=p.maKhuVuc ORDER BY p.maTruongTHPT");
     } catch (Throwable $e) { return null; }
+}
+
+/** Personal dashboard: never query aggregate system statistics for a student. */
+function live_student_dashboard(string $studentId): ?array {
+    try {
+        $st = db()->prepare("SELECT t.maThiSinh,t.maHoSo,t.hoTen,t.soBaoDanh,t.trangThaiDangKyDuThi,c.tenTruongTHCS FROM ThiSinh t JOIN TruongTHCS c ON c.maTruongTHCS=t.maTruongTHCS WHERE t.maThiSinh=?");
+        $st->execute([$studentId]);
+        $profile = $st->fetch();
+        if (!$profile) return null;
+        $st = db()->prepare("SELECT n.thuTuNguyenVong,p.tenTruongTHPT FROM NguyenVong n JOIN TruongTHPT p ON p.maTruongTHPT=n.maTruongTHPT WHERE n.maThiSinh=? ORDER BY n.thuTuNguyenVong");
+        $st->execute([$studentId]);
+        return ['profile'=>$profile, 'wishes'=>$st->fetchAll()];
+    } catch (Throwable $e) { error_log('student_dashboard: '.$e->getMessage()); return null; }
 }
