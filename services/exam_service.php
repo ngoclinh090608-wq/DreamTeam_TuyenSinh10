@@ -60,21 +60,45 @@ function exam_ds_diem_thi(string $maKyThi = '', bool $chiTruongNV1 = false): arr
     return $st->fetchAll();
 }
 
+/** Choices include existing sites and one explicit new-site option per registered school. */
+function exam_ds_diem_tao_phong(string $maKyThi): array {
+    $st = db()->prepare('SELECT DISTINCT
+        COALESCE(d.maDiemThi, CONCAT("truong:", p.maTruongTHPT)) AS giaTri,
+        CONCAT(p.tenTruongTHPT, " — ", COALESCE(d.tenDiemThi, "Tạo điểm thi mới")) AS nhan
+        FROM KyThi k JOIN DotTuyenSinh dot ON dot.maDot = k.maDot
+        JOIN QuyDinhNguyenVong q ON q.namTuyenSinh = dot.namTuyenSinh
+        JOIN NguyenVong nv ON nv.maQuyDinh = q.maQuyDinh AND nv.thuTuNguyenVong = 1
+        JOIN ThiSinh t ON t.maThiSinh = nv.maThiSinh AND t.dieuKienDuThi = 1 AND t.trangThaiDangKyDuThi = "Đã duyệt"
+        JOIN TruongTHPT p ON p.maTruongTHPT = nv.maTruongTHPT
+        LEFT JOIN DiemThi d ON d.maTruongTHPT = p.maTruongTHPT AND d.maKyThi = k.maKyThi
+        WHERE k.maKyThi = ? ORDER BY nhan');
+    $st->execute([$maKyThi]); return $st->fetchAll();
+}
+
 /** Prepare NV1 high-school sites and enough new 30-seat rooms; preserve existing data. */
-function exam_tao_diem_thi_theo_nv1(string $maKyThi): array {
+function exam_tao_diem_thi_theo_nv1(string $maKyThi, string $diemDaChon): array {
     $pdo = db();
     try {
         $pdo->beginTransaction();
         $lock = $pdo->prepare('SELECT maKyThi FROM KyThi WHERE maKyThi = ? FOR UPDATE');
         $lock->execute([$maKyThi]);
         if (!$lock->fetchColumn()) throw new ExamException(EXAM_TB_CHUA_DU_DIEU_KIEN_PHAN_PHONG, ['Vui lòng chọn kỳ thi hợp lệ.']);
+        if ($diemDaChon === '') throw new ExamException(EXAM_TB_CHUA_DU_DIEU_KIEN_PHAN_PHONG, ['Vui lòng chọn một điểm thi cần tạo phòng.']);
+        $siteChosen = null;
+        if (str_starts_with($diemDaChon, 'truong:')) {
+            $schoolChosen = substr($diemDaChon, 7);
+        } else {
+            $siteChosen = layThongTinDiemThi($diemDaChon, $maKyThi);
+            exam_kiem_tra_truong_diem_thi($siteChosen);
+            $schoolChosen = $siteChosen['maTruongTHPT'];
+        }
         $st = $pdo->prepare('SELECT p.maTruongTHPT, p.tenTruongTHPT, COUNT(*) AS soThiSinh
             FROM KyThi k JOIN DotTuyenSinh dot ON dot.maDot = k.maDot
             JOIN QuyDinhNguyenVong q ON q.namTuyenSinh = dot.namTuyenSinh
             JOIN NguyenVong nv ON nv.maQuyDinh = q.maQuyDinh AND nv.thuTuNguyenVong = 1
             JOIN ThiSinh t ON t.maThiSinh = nv.maThiSinh AND t.dieuKienDuThi = 1 AND t.trangThaiDangKyDuThi = "Đã duyệt"
-            JOIN TruongTHPT p ON p.maTruongTHPT = nv.maTruongTHPT WHERE k.maKyThi = ? GROUP BY p.maTruongTHPT, p.tenTruongTHPT ORDER BY p.maTruongTHPT');
-        $st->execute([$maKyThi]); $schools = $st->fetchAll();
+            JOIN TruongTHPT p ON p.maTruongTHPT = nv.maTruongTHPT WHERE k.maKyThi = ? AND p.maTruongTHPT = ? GROUP BY p.maTruongTHPT, p.tenTruongTHPT ORDER BY p.maTruongTHPT');
+        $st->execute([$maKyThi, $schoolChosen]); $schools = $st->fetchAll();
         if (!$schools) throw new ExamException(EXAM_TB_CHUA_DU_DIEU_KIEN_PHAN_PHONG, ['Kỳ thi chưa có thí sinh đủ điều kiện đăng ký nguyện vọng 1.']);
         $find = $pdo->prepare('SELECT maDiemThi FROM DiemThi WHERE maKyThi = ? AND maTruongTHPT = ? ORDER BY maDiemThi');
         $insert = $pdo->prepare('INSERT INTO DiemThi (maDiemThi, tenDiemThi, maTruongTHCS, maTruongTHPT, maKyThi) VALUES (?, ?, NULL, ?, ?)');
@@ -82,7 +106,9 @@ function exam_tao_diem_thi_theo_nv1(string $maKyThi): array {
         $insertRoom = $pdo->prepare('INSERT INTO PhongThi (maPhong, tenPhong, sucChua, maDiemThi) VALUES (?, ?, 30, ?)');
         foreach ($schools as $school) {
             $find->execute([$maKyThi, $school['maTruongTHPT']]);
-            $siteIds = $find->fetchAll(PDO::FETCH_COLUMN);
+            $siteIds = $siteChosen ? [$siteChosen['maDiemThi']] : $find->fetchAll(PDO::FETCH_COLUMN);
+            // Exactly one target, even when a school has several exam sites.
+            $siteIds = array_slice($siteIds, 0, 1);
             if (!$siteIds) {
                 $id = 'NV1_' . substr(hash('sha256', $maKyThi . ':' . $school['maTruongTHPT']), 0, 16);
                 $insert->execute([$id, 'Điểm thi ' . $school['tenTruongTHPT'], $school['maTruongTHPT'], $maKyThi]);
@@ -97,14 +123,15 @@ function exam_tao_diem_thi_theo_nv1(string $maKyThi): array {
                 $reserved = array_count_values(array_column(layThiSinhKhongPhuHopDiemThi($siteId), 'maPhong'));
                 foreach ($existingRooms as $room) $freeCapacity += max(0, (int)$room['sucChua'] - ($reserved[$room['maPhong']] ?? 0));
             }
-            $needed = (int)ceil(max(0, (int)$school['soThiSinh'] - $freeCapacity) / 30);
+            $cohort = count(layDanhSachThiSinhPhuHopDiemThi($maKyThi, $siteIds[0]));
+            $needed = (int)ceil(max(0, $cohort - $freeCapacity) / 30);
             for ($i = 0; $i < $needed; $i++) {
                 $roomId = sinhMaPhongTuDong($siteIds[0]);
                 $insertRoom->execute([$roomId, 'Phòng ' . substr($roomId, 1), $siteIds[0]]);
                 $soPhongMoi++;
             }
         }
-        $pdo->commit(); return ['diemThi' => $n, 'phongThi' => $soPhongMoi];
+        $pdo->commit(); return ['diemThi' => $n, 'phongThi' => $soPhongMoi, 'maDiemThi' => $siteIds[0]];
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
         throw $e;
