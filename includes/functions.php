@@ -24,10 +24,14 @@ function base_path(): string {
     if (str_starts_with($r, $d . '/')) return substr(str_replace('\\','/',$root), strlen($docroot));
     return '';
 }
-function url(string $path = ''): string {
+function url(string $path = '', array $query = []): string {
     $prefix = rtrim(base_path(), '/');
     $clean = ltrim($path, '/');
-    return $prefix . '/' . $clean;
+    $target = $prefix . '/' . $clean;
+    if (!$query) return $target;
+    $parts = explode('#', $target, 2);
+    $parts[0] .= (str_contains($parts[0], '?') ? '&' : '?') . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+    return $parts[0] . (isset($parts[1]) ? '#' . $parts[1] : '');
 }
 function demo_mode(): bool { return (bool) app_config()['demo_mode']; }
 function ui_lower(string $value): string {

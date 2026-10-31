@@ -72,6 +72,13 @@ jobs:
           for i in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:8080/ && break; sleep 1; done
           curl -s -o /dev/null -w "Trang chủ: HTTP %{http_code}\n" http://127.0.0.1:8080/
 
+      - name: Kiểm thử đường dẫn và thao tác chọn/tải túi UC05
+        env:
+          BASE_URL: http://127.0.0.1:8080
+        run: |
+          php tests/kiem_thu_url.php
+          python3 tests/kiem_thu_uc05_navigation.py
+
       - name: Kiểm thử đọc Excel và giao dịch UC05
         run: php tests/kiem_thu_uc05_excel.php
 
