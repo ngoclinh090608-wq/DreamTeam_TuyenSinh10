@@ -51,7 +51,7 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
 
 <?php if ($ketQua): ?>
 <section class="panel">
-  <div class="panel-heading"><div><h2>Kết quả chấm thi</h2><p><?= e($ketQua['tenKyThi']) ?></p></div></div>
+  <div class="panel-heading"><div><h2>Kết quả chấm thi</h2><p><?= e(catalog_display_name((string)$ketQua['tenKyThi'])) ?></p></div></div>
   <dl class="ui-kv">
     <div><dt>Mã phách</dt><dd><span class="code-tag"><?= e($ketQua['soPhach']) ?></span></dd></div>
     <div><dt>Môn thi</dt><dd><?= e($ketQua['tenMonThi']) ?></dd></div>

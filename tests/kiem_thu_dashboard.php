@@ -25,3 +25,16 @@ if (!can_access_module(['vaiTro'=>'QUAN_TRI'], 'exam')) throw new RuntimeExcepti
 if (school_display_name('Trường THCS Sao Mai (mẫu)') !== 'Trường THCS Sao Mai'
     || school_display_name('Trường THPT Bình Minh') !== 'Trường THPT Bình Minh') throw new RuntimeException('School label mismatch');
 echo "PASS unknown roles, module boundaries and school labels\n";
+
+$labels = [
+    'Điểm thi demo THCS Sao Mai' => 'Điểm thi THCS Sao Mai',
+    'Phòng demo 1-01' => 'Phòng thi 101',
+    'Phòng demo 5-13' => 'Phòng thi 513',
+    'Lô bài thi DEMO TOAN - phòng RD1P01' => 'Lô bài thi TOAN - phòng RD1P01',
+    'Trường THCS Sao Mai (mẫu)' => 'Trường THCS Sao Mai',
+    'Phòng 103' => 'Phòng 103',
+];
+foreach ($labels as $raw=>$expectedLabel) {
+    if (catalog_display_name($raw)!==$expectedLabel) throw new RuntimeException('Catalogue display name mismatch');
+}
+echo "PASS room, exam site and bag display names; existing normal labels preserved\n";

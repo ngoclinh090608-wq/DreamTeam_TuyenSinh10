@@ -49,7 +49,7 @@ function ui_select(string $name, string $label, array $items, string $keyCol, st
     echo '<option value="">' . e($placeholder) . '</option>';
     foreach ($items as $it) {
         $v = (string)$it[$keyCol];
-        echo '<option value="' . e($v) . '"' . ($v === $selected ? ' selected' : '') . '>' . e($it[$labelCol]) . '</option>';
+        echo '<option value="' . e($v) . '"' . ($v === $selected ? ' selected' : '') . '>' . e(in_array($labelCol, ['tenPhong', 'tenDiemThi', 'tenKyThi', 'tenTruongTHCS', 'tenTruongTHPT', 'tenHienThi'], true) ? catalog_display_name((string)$it[$labelCol]) : $it[$labelCol]) . '</option>';
     }
     echo '</select></div>';
 }
