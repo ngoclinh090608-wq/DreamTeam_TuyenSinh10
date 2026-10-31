@@ -30,6 +30,9 @@ try {
  $studentDashboard=live_student_dashboard('TS001');
  ob_start(); require dirname(__DIR__) . '/includes/student_wish_progress.php'; $rejectedHtml=ob_get_clean();
  if (substr_count($rejectedHtml,'class="is-rejected"')!==1 || !str_contains($rejectedHtml,'Không trúng tuyển')) throw new RuntimeException('Rejected progress must apply only to published preference');
+ $sites=live_student_dashboard('TS001')['examSites'];
+ $p->exec("INSERT INTO PhanPhongThi (maPhanPhong,maThiSinh,maPhong,trangThai) VALUES ('CHECK_CANCELLED','TS001','P201','Đã hủy')");
+ if(live_student_dashboard('TS001')['examSites']!==$sites || live_student_dashboard('TS002')['profile']['maThiSinh']!=='TS002')throw new RuntimeException('Cancelled room or owner isolation failed');
  echo "PASS pending, accepted and rejected progress, published result ownership\n";
  echo "PASS two students isolated in appeals/enrollment, unbound student denied, unpublished notice hidden\n";
 } finally {$p->rollBack();}

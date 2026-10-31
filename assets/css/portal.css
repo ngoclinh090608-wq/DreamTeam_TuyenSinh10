@@ -498,3 +498,33 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--secondary);
 @media(min-width:1150px) { .student-overview { grid-template-columns:minmax(0,1fr) minmax(0,1fr); } }
 @media(max-width:480px) { .student-profile-input-grid,.student-photo-name { grid-template-columns:1fr; } }
 @media print { .student-profile-form button,.student-photo-box input { display:none; } }
+
+.student-dialog { width:min(520px,calc(100vw - 28px)); max-height:85dvh; margin:auto; border:0; border-radius:12px; padding:22px; color:var(--ink); background:white; box-shadow:0 20px 70px rgb(0 0 0 / 22%); overflow:auto; }
+.student-dialog::backdrop { background:rgb(15 23 42 / 48%); }
+.student-dialog-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
+.student-dialog-heading h2 { font-size:18px; margin:0; }
+.student-dialog-heading button { border:0; background:transparent; color:var(--muted); width:32px; height:32px; font-size:25px; cursor:pointer; border-radius:6px; }
+.student-dialog-heading button:focus-visible { outline:2px solid var(--primary); }
+.student-dialog-overline { font-size:12px; text-transform:uppercase; letter-spacing:.04em; font-weight:700; }
+.student-score-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.student-score-card { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px; border-bottom:1px solid var(--border); }
+.student-score-card:nth-child(odd) { border-right:1px solid var(--border); }
+.student-score-card h3 { font-size:14px; margin:0 0 7px; }
+.student-score-card p { font-size:11px; margin:0; }
+.student-score-card > strong { font-size:24px; }
+.student-dialog-empty { padding:18px; background:var(--bg); border-radius:8px; }
+.student-exam-ticket { padding:20px; background:#eff3ff; border:1px solid #dce4ff; border-radius:12px; margin-bottom:14px; }
+.student-exam-ticket h3 { font-size:15px; color:#41478c; margin:0 0 12px; }
+.student-exam-ticket p { font-size:13px; margin:7px 0; }
+.student-exam-ticket dl { display:grid; grid-template-columns:1fr 1fr; margin:16px 0 0; background:white; border-radius:9px; }
+.student-exam-ticket dl > div { padding:14px 8px; text-align:center; }
+.student-exam-ticket dl > div + div { border-left:1px solid var(--border); }
+.student-exam-ticket dt { font-size:10px; text-transform:uppercase; color:var(--muted); }
+.student-exam-ticket dd { margin:6px 0 0; font-weight:700; }
+.student-exam-ticket dd small { display:block; font-weight:400; margin-top:4px; }
+.student-exam-schedule { border-top:1px solid var(--border); padding-top:15px; }
+.student-exam-schedule h3 { font-size:14px; }
+.student-exam-schedule p { font-size:13px; }
+.student-dialog-open { overflow:hidden; }
+@media(max-width:420px) { .student-score-cards { grid-template-columns:1fr; } .student-score-card:nth-child(odd) { border-right:0; } }
+@media print { .student-dialog { display:none !important; } }
