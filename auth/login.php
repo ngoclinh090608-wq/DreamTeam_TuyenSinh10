@@ -43,7 +43,7 @@ function form_dang_nhap(string $tab, string $nhan, string $goiY, string $nut, st
 <?php }
 ?>
 <main id="main" class="login-main">
- <div class="login-illustration"><div class="login-illustration-content"><span class="login-toplabel">✦ HÀNH TRÌNH GIÁO DỤC</span><h1>Kiến tạo <em>tương lai</em> cùng bạn.</h1><p>Một nơi kết nối thông tin tuyển sinh, hồ sơ và hành trình hướng tới lớp 10.</p><div class="login-steps"><div><span>✓</span> Thông tin tuyển sinh</div><div><span>✓</span> Đăng ký nguyện vọng</div><div><span>✓</span> Tra cứu kết quả</div></div></div><div class="login-ill-bottom">DREAM TEAM <span>2026 – 2027</span></div></div>
+ <div class="login-illustration"><div class="login-illustration-content"><span class="login-toplabel">CỔNG TUYỂN SINH LỚP 10</span><h1>Đồng hành trên<br>hành trình vào lớp 10.</h1><p>Đăng nhập để truy cập các chức năng phù hợp với tài khoản của bạn.</p><ol class="login-steps"><li>Thông tin tuyển sinh và nguyện vọng</li><li>Tổ chức thi và quản lý kết quả</li><li>Theo dõi tiến trình tuyển sinh</li></ol><a class="login-help-link" href="<?= e(url('admission-info/huong-dan.php')) ?>">Xem hướng dẫn sử dụng →</a></div><div class="login-ill-bottom">SẢN PHẨM HỌC TẬP <span>2026 – 2027</span></div></div>
  <div class="login-workspace"><div class="login-box">
   <div class="eyebrow"><span></span> CHÀO MỪNG BẠN</div><h2>Đăng nhập hệ thống</h2><p>Chọn loại tài khoản để đăng nhập.</p>
   <?php foreach ($thongBao as $tb): ?><div class="ui-notice ui-notice-<?= e($tb['type']) ?>" role="status"><span class="ui-notice-icon" aria-hidden="true">ⓘ</span><div><strong><?= e($tb['message']) ?></strong></div></div><?php endforeach; ?>
@@ -59,7 +59,7 @@ function form_dang_nhap(string $tab, string $nhan, string $goiY, string $nut, st
     <?php form_dang_nhap('admin', 'Tên đăng nhập', 'Ví dụ: hdchamthi', 'Đăng nhập cán bộ', $tab === 'admin' ? $tenDangNhap : '', $next); ?>
   </section>
   <details class="login-demo-notice login-demo-accounts">
-    <summary><span>ⓘ</span> Tài khoản demo — tất cả dùng mật khẩu <code>dreamteam2026</code></summary>
+    <summary><span>ⓘ</span> Danh sách tài khoản thử nghiệm</summary>
     <table>
       <tr><td><code>quantri</code></td><td>Quản trị viên hệ thống</td></tr>
       <tr><td><code>bantuyensinh</code></td><td>Ban Tuyển sinh Sở (UC10, UC15)</td></tr>
