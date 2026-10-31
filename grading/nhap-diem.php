@@ -10,11 +10,11 @@ $nguoiDung = require_role(['HD_CHAM_THI']); // UC05 - Hội đồng chấm thi
 
 $maKyThi = ui_input('kyThi');
 $maMonThi = ui_input('monThi');
-$maBaiThi = ui_input('baiThi');
+$maBaiThi = ui_input('baiThi') ?: ui_input('maBaiThi');
 $timKiem = trim((string)($_GET['timKiem'] ?? ''));
 
 $dsKyThi = grading_ds_ky_thi();
-$dsMonThi = grading_ds_mon();
+$dsMonThi = grading_ds_mon_thi();
 
 if ($maKyThi === '' && !empty($dsKyThi)) {
     $maKyThi = (string)$dsKyThi[0]['maKyThi'];
@@ -28,31 +28,32 @@ $loi = null;
 $chiTietLoi = [];
 $loiHeThong = ui_csrf_error();
 $baiChon = null;
+$diemChoXacNhan = null;   // bước 9: điểm đã kiểm tra hợp lệ, chờ Hội đồng chấm thi xác nhận
+$diemDaNhap = $action === 'nhap_lai' ? trim((string)($_POST['diemThi'] ?? '')) : '';
 
-if ($action === 'nhap_diem' && !$loiHeThong) {
-    $postMaBai = ui_input('maBaiThi');
-    $rawDiem = trim((string)($_POST['diemThi'] ?? ''));
-
-    if ($rawDiem === '' || !is_numeric($rawDiem)) {
-        $loi = TB_DIEM_NHAP_KHONG_HOP_LE;
-        $chiTietLoi = ['Vui lòng nhập điểm số hợp lệ từ 0 đến 10 với bước nhảy 0.25.'];
-        $maBaiThi = $postMaBai;
-    } else {
-        $diem = (float)$rawDiem;
-        try {
+if (($action === 'kiem_tra' || $action === 'nhap_diem') && !$loiHeThong) {
+    $maBaiThi = ui_input('maBaiThi');
+    $diemDaNhap = trim((string)($_POST['diemThi'] ?? ''));
+    try {
+        if ($action === 'kiem_tra') {
+            // Bước 7–8: nhập điểm -> hệ thống kiểm tra, chưa lưu
+            $diemChoXacNhan = kiemTraNhapDiem(layThongTinBaiThiNhapDiem($maBaiThi, $maKyThi, $maMonThi), $diemDaNhap);
+        } else {
+            // Bước 9–12: xác nhận -> lưu, ghi người nhập và thời điểm nhập
             $nguoiNhap = (string)($nguoiDung['hoTen'] ?? $nguoiDung['tenDangNhap'] ?? GRADING_NGUOI_THUC_HIEN);
-            $kq = nhapDiemThi($postMaBai, $diem, $nguoiNhap);
-            flash_set('success', TB_NHAP_DIEM_THANH_CONG . " (Mã phách: {$kq['soPhach']}, Điểm: " . number_format($kq['diemThi'], 2) . ")");
+            $kq = nhapDiemThi($maBaiThi, $diemDaNhap, $nguoiNhap, $maKyThi, $maMonThi);
+            flash_set('success', TB_NHAP_DIEM_THANH_CONG . " (Mã phách: {$kq['soPhach']}, Điểm: " . grading_fmt_diem($kq['diemThi']) . ')');
+            // 12.1: quay lại danh sách bài thi còn cần nhập điểm
             ui_redirect('grading/nhap-diem.php', ['kyThi' => $maKyThi, 'monThi' => $maMonThi]);
-        } catch (BusinessException $e) {
-            $loi = $e->getMessage();
-            $chiTietLoi = $e->details();
-            $maBaiThi = $postMaBai;
-        } catch (Throwable $e) {
-            error_log('UC05 nhap_diem: ' . $e->getMessage());
-            $loi = TB_LOI_LUU_DIEM;
-            $maBaiThi = $postMaBai;
         }
+    } catch (BusinessException $e) {
+        $loi = $e->getMessage();
+        $chiTietLoi = $e->details();
+        if ($loi === TB_DIEM_DA_XAC_NHAN) $maBaiThi = '';   // 8.3: kết thúc, không mở lại biểu mẫu
+    } catch (Throwable $e) {
+        error_log('UC05 ' . $action . ': ' . $e->getMessage());
+        $loi = TB_LOI_LUU_DIEM;
+        $chiTietLoi = ['Điểm chưa được ghi nhận. Dữ liệu điểm trước đó không bị thay đổi.'];
     }
 }
 
@@ -64,11 +65,7 @@ if ($maKyThi !== '' && $maMonThi !== '') {
     try {
         $dsBaiThi = timBaiThiCanNhapDiem($maKyThi, $maMonThi, $timKiem !== '' ? $timKiem : null);
         foreach ($dsBaiThi as $b) {
-            if ($b['trangThaiCham'] === 'Chưa chấm' || $b['maKetQuaChamThi'] === null) {
-                $soBaiChuaCham++;
-            } else {
-                $soBaiDaCham++;
-            }
+            baiThiCanNhapDiem($b) ? $soBaiChuaCham++ : $soBaiDaCham++;
         }
     } catch (BusinessException $e) {
         $loi = $loi ?? $e->getMessage();
@@ -80,17 +77,25 @@ if ($maKyThi !== '' && $maMonThi !== '') {
 
 if ($maBaiThi !== '') {
     try {
-        $baiChon = layThongTinBaiThiNhapDiem($maBaiThi);
+        $baiChon = layThongTinBaiThiNhapDiem($maBaiThi, $maKyThi, $maMonThi);
+        if (!baiThiCanNhapDiem($baiChon)) {
+            // Bài đã có điểm: không hiện biểu mẫu nhập điểm (8.3)
+            if (!$loi) { $loi = TB_DIEM_DA_XAC_NHAN; $chiTietLoi = ['Bài thi đã có kết quả chấm thi. Muốn điều chỉnh điểm, dùng chức năng Cập nhật kết quả chấm thi (UC13).']; }
+            $baiChon = null;
+        }
     } catch (BusinessException $e) {
         $loi = $loi ?? $e->getMessage();
+        $chiTietLoi = $chiTietLoi ?: $e->details();
     } catch (Throwable $e) {
         error_log('UC05 layThongTin: ' . $e->getMessage());
+        $loiHeThong = 'Không thể tải thông tin bài thi. Vui lòng thử lại sau.';
     }
 }
 
 ui_page_start('grading', 'Nhập điểm thi', 'Chấm thi · Nhập điểm theo phách', 'Nhập điểm cho bài thi theo mã phách ẩn danh. Đảm bảo bảo mật thông tin thí sinh và tính chính xác của điểm số.', 'UC05');
 grading_tabs('grading', 'nhap-diem.php');
 
+ui_flashes();
 if ($loiHeThong) ui_notice('error', $loiHeThong);
 if ($loi) ui_notice('error', $loi, $chiTietLoi);
 ?>
@@ -130,9 +135,36 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
     <div class="ui-kpi"><div class="ui-kpi-label">Trạng thái</div><div class="ui-kpi-val" style="font-size:1.5rem"><?= e($baiChon['trangThaiCham']) ?></div></div>
   </div>
 
+  <?php if ($diemChoXacNhan !== null): ?>
+    <!-- Bước 9: xác nhận nhập điểm; 9.1: nhập lại điểm trước khi lưu -->
+    <div class="ui-notice ui-notice-info" role="status"><span class="ui-notice-icon" aria-hidden="true">ⓘ</span><div>
+      <strong>Điểm hợp lệ. Vui lòng xác nhận nhập điểm.</strong>
+      <ul><li>Mã phách <?= e($baiChon['soPhach']) ?> · <?= e($baiChon['tenMonThi']) ?>: <strong><?= e(grading_fmt_diem($diemChoXacNhan)) ?></strong> / <?= e(grading_fmt_gon($baiChon['thangDiem'])) ?> điểm</li></ul>
+    </div></div>
+    <div class="ui-actions">
+      <form method="post" novalidate style="display:inline">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="nhap_diem">
+        <input type="hidden" name="maBaiThi" value="<?= e($baiChon['maBaiThi']) ?>">
+        <input type="hidden" name="kyThi" value="<?= e($maKyThi) ?>">
+        <input type="hidden" name="monThi" value="<?= e($maMonThi) ?>">
+        <input type="hidden" name="diemThi" value="<?= e($diemDaNhap) ?>">
+        <button class="btn btn-primary" type="submit">✓ Xác nhận nhập điểm</button>
+      </form>
+      <form method="post" novalidate style="display:inline">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="nhap_lai">
+        <input type="hidden" name="maBaiThi" value="<?= e($baiChon['maBaiThi']) ?>">
+        <input type="hidden" name="kyThi" value="<?= e($maKyThi) ?>">
+        <input type="hidden" name="monThi" value="<?= e($maMonThi) ?>">
+        <input type="hidden" name="diemThi" value="<?= e($diemDaNhap) ?>">
+        <button class="btn btn-outline" type="submit">✎ Nhập lại điểm</button>
+      </form>
+    </div>
+  <?php else: ?>
   <form method="post" novalidate>
     <?= csrf_field() ?>
-    <input type="hidden" name="action" value="nhap_diem">
+    <input type="hidden" name="action" value="kiem_tra">
     <input type="hidden" name="maBaiThi" value="<?= e($baiChon['maBaiThi']) ?>">
     <input type="hidden" name="kyThi" value="<?= e($maKyThi) ?>">
     <input type="hidden" name="monThi" value="<?= e($maMonThi) ?>">
@@ -141,16 +173,17 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
       <div class="field">
         <label for="diemThi">Điểm chấm thi <span>*</span></label>
         <input id="diemThi" name="diemThi" type="number" step="0.25" min="0" max="<?= e((string)$baiChon['thangDiem']) ?>"
-               value="<?= e(isset($_POST['diemThi']) ? (string)$_POST['diemThi'] : ($baiChon['diemThi'] !== null ? number_format((float)$baiChon['diemThi'], 2) : '')) ?>"
-               placeholder="Từ 0 đến <?= e((string)$baiChon['thangDiem']) ?>, bước nhảy 0.25 (vd: 7.50)" required autofocus>
+               value="<?= e($diemDaNhap) ?>"
+               placeholder="Từ 0 đến <?= e(grading_fmt_gon($baiChon['thangDiem'])) ?>, bước nhảy 0.25 (vd: 7.50)" required autofocus>
       </div>
     </div>
 
     <div class="ui-actions">
-      <button class="btn btn-primary" type="submit">✓ Xác nhận nhập điểm</button>
+      <button class="btn btn-primary" type="submit">Kiểm tra điểm</button>
       <a class="btn btn-outline ui-btn-cancel" href="<?= e(url('grading/nhap-diem.php', ['kyThi' => $maKyThi, 'monThi' => $maMonThi])) ?>">Hủy bỏ</a>
     </div>
   </form>
+  <?php endif; ?>
 </section>
 <?php endif; ?>
 
@@ -162,10 +195,11 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
     </div>
   </div>
 
+  <?php if ($maKyThi !== '' && $maMonThi !== '' && $soBaiChuaCham === 0 && $timKiem === ''): ?>
+    <?php ui_notice('info', TB_KHONG_CO_BAI_THI, $dsBaiThi ? ['Tất cả bài thi của môn đã chọn đều đã có điểm.'] : []); ?>
+  <?php endif; ?>
   <?php if (empty($dsBaiThi)): ?>
-    <div class="ui-notice ui-notice-info">
-      <div><strong><?= e(TB_KHONG_CO_BAI_THI) ?></strong></div>
-    </div>
+    <?php if ($timKiem !== '') ui_notice('info', 'Không tìm thấy bài thi phù hợp với mã phách / mã bài thi đã nhập.'); ?>
   <?php else: ?>
     <div class="table-wrap">
       <table class="data-table">
@@ -183,7 +217,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
         </thead>
         <tbody>
           <?php $idx = 1; foreach ($dsBaiThi as $b):
-            $chuaCham = ($b['trangThaiCham'] === 'Chưa chấm' || $b['maKetQuaChamThi'] === null);
+            $chuaCham = baiThiCanNhapDiem($b);
           ?>
             <tr<?= ($baiChon && $baiChon['maBaiThi'] === $b['maBaiThi']) ? ' style="background:#f0f9ff"' : '' ?>>
               <td><?= $idx++ ?></td>

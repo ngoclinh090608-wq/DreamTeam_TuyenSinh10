@@ -84,6 +84,7 @@ if ($maDiemThi !== '') {
 
 ui_page_start('exam', 'Tạo thông tin phòng thi', 'Tổ chức thi · Quản lý phòng thi', 'Tạo mới thông tin phòng thi cho từng điểm thi, thiết lập sức chứa tối đa và kiểm tra trùng lặp.', 'UC06');
 exam_tabs('tao-phong.php');
+ui_flashes();
 
 if ($loiHeThong) ui_notice('error', $loiHeThong);
 if ($loi) ui_notice('error', $loi, $chiTietLoi);
