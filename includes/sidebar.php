@@ -7,7 +7,7 @@
 <aside class="sidebar" id="sidebar">
  <a class="sidebar-brand" href="<?= e(url('admin/')) ?>"><img src="<?= e(url('assets/images/logo.svg')) ?>" alt=""><span><strong>TUYỂN SINH LỚP 10</strong><small>Cổng quản lý tuyển sinh</small></span></a>
  <div class="sidebar-group-list">
- <?php foreach($nav_sections as $group => $items): ?>
+ <?php $__nu = function_exists('current_user') ? current_user() : null; foreach($nav_sections as $group => $items): $items = array_values(array_filter($items, fn($it) => $__nu && can_access_module($__nu, $it[0]))); if (!$items) continue; ?>
   <section class="sidebar-section"><h2><?= e($group) ?></h2>
   <?php foreach($items as [$key,$label,$symbol]): ?>
    <a class="side-link<?= ($active ?? '') === $key ? ' is-active' : '' ?>" href="<?= e(url($key . '/')) ?>"><span class="side-symbol"><?= e($symbol) ?></span><span><?= e($label) ?></span><?= ($active ?? '') === $key ? '<span class="side-active-dot"></span>' : '' ?></a>

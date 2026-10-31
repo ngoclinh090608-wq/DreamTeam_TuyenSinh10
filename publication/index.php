@@ -2,6 +2,7 @@
 declare(strict_types=1);
 /** Trang chính module Công bố kết quả: UC15 (điểm thi) và UC22 (kết quả tuyển sinh). */
 require_once dirname(__DIR__) . '/includes/grading_ui.php';
+$nguoiDung = require_role(['BAN_TUYEN_SINH', 'HD_TUYEN_SINH']);   // UC15 / UC22
 
 ui_page_start('publication', 'Công bố kết quả', 'Công bố điểm & trúng tuyển', 'Công bố điểm thi theo kỳ thi, môn thi và công bố kết quả tuyển sinh.', 'UC15 · UC22');
 grading_tabs('publication', '');

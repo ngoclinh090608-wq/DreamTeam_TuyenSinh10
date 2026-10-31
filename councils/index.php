@@ -6,6 +6,7 @@ declare(strict_types=1);
  */
 require_once dirname(__DIR__) . '/includes/ui.php';
 require_once dirname(__DIR__) . '/services/council_service.php';
+$nguoiDung = require_role(['BAN_TUYEN_SINH']);   // UC10 – Ban Tuyển sinh Sở GD&ĐT
 
 $ma = ui_input('ma');
 $cheDo = isset($_GET['them']) ? 'them' : ($ma === '' ? 'ds' : (isset($_GET['sua']) ? 'sua' : (isset($_GET['xoa']) ? 'xoa' : 'xem')));
