@@ -229,3 +229,7 @@ DreamTeam_TuyenSinh10/
 ## 8. Bộ demo 1.750 học sinh trong database riêng
 
 Có bộ dữ liệu người dùng cung cấp cho 5 THCS, 1.750 học sinh và 5.250 nguyện vọng. Xem [hướng dẫn database/demo](database/demo/README.md) để khởi tạo `dreamteam_tuyensinh10_demo`, nhập bản SQL đầy đủ một lần vào database demo trống và chọn kết nối demo trên XAMPP. Không đổi bộ seed nhỏ mặc định hoặc ghi dữ liệu vào database phát triển.
+
+### Cấu hình riêng của nhánh vy
+
+Nhánh vy giữ mặc định database demo theo thay đổi của thành viên. `DB_NAME` và `config/database.local.php` vẫn được ưu tiên. Bản SQL demo đầy đủ chỉ nhập vào database trống, không nhập lại trên database đang dùng. Kiểm thử seed nhỏ phải đặt `DB_NAME=dreamteam_tuyensinh10` hoặc tên database kiểm thử riêng.

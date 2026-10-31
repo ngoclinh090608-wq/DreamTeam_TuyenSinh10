@@ -38,3 +38,7 @@ Các script nhập nhiều bước, dọn seed và đổi tên, cùng báo cáo 
 Bản xuất phpMyAdmin do người dùng cung cấp ngày 31/10/2026, SHA-256 gốc: `675a3c2c42bdcaca16f6070cb1b47db5f0e845b26043fc6f8f716a7b63868a9d`. Bản SQL hiện hành chỉ thêm chọn database, chuẩn hóa tên bảng/view và bỏ DEFINER cục bộ, giữ nguyên dữ liệu.
 
 Excel nguồn giai đoạn đầu, báo cáo trung gian và các script nhập nhiều bước đã bỏ khỏi nhánh hiện hành để tránh nhầm. Có thể khôi phục từ lịch sử Git. Thư mục demo chỉ giữ SQL đầy đủ, hướng dẫn này, mẫu cấu hình và công cụ kiểm tra chỉ đọc.
+
+### Nhánh vy
+
+Nhánh này giữ thay đổi riêng: mặc định chọn database demo nếu không có cấu hình ghi đè. Khi chạy kiểm thử bộ seed nhỏ, đặt DB_NAME sang database kiểm thử. Các sửa đổi tải lô bài và nhập điểm riêng của vy được giữ nguyên khi đồng bộ.
