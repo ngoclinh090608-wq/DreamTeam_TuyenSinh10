@@ -12,21 +12,33 @@ $maDiemThi = ui_input('diemThi');
 $maPhongLoc = ui_input('phong');
 
 $dsKyThi = exam_ds_ky_thi();
-$dsDiemThi = exam_ds_diem_thi($maKyThi);
+$dsDiemThi = exam_ds_diem_thi($maKyThi, true);
 
 if ($maKyThi === '' && !empty($dsKyThi)) {
     $maKyThi = (string)$dsKyThi[0]['maKyThi'];
-    $dsDiemThi = exam_ds_diem_thi($maKyThi);
+    $dsDiemThi = exam_ds_diem_thi($maKyThi, true);
 }
 if ($maDiemThi === '' && !empty($dsDiemThi)) {
     $diemCoTruong = array_values(array_filter($dsDiemThi, static fn($dt) => !empty($dt['maTruongTHPT'])));
     $maDiemThi = (string)($diemCoTruong[0]['maDiemThi'] ?? $dsDiemThi[0]['maDiemThi']);
 }
 
+$diemTaoPhong = ui_input('diemTaoPhong') ?: $maDiemThi;
+$luaChonDiemTao = exam_ds_diem_tao_phong($maKyThi);
+
 $action = $_SERVER['REQUEST_METHOD'] === 'POST' ? (string)($_POST['action'] ?? '') : '';
 $loi = null;
 $chiTietLoi = [];
 $loiHeThong = ui_csrf_error();
+if ($action === 'tao_diem_nv1' && !$loiHeThong) {
+    try {
+        $chuanBi = exam_tao_diem_thi_theo_nv1($maKyThi, ui_input('diemTaoPhong'));
+        flash_set('success', "Đã tạo {$chuanBi['phongThi']} phòng mới cho điểm thi đã chọn, mỗi phòng 30 thí sinh.");
+        ui_redirect('exam/phan-phong.php', ['kyThi' => $maKyThi, 'diemThi' => $chuanBi['maDiemThi']]);
+    } catch (BusinessException $e) { $loi = $e->getMessage(); $chiTietLoi = $e->details(); }
+    catch (Throwable $e) { error_log('UC06/07 NV1 sites: ' . $e->getMessage()); $loi = 'Không tạo được điểm thi theo NV1. Vui lòng thử lại.'; }
+}
+
 $preview = null;
 
 // Xử lý các thao tác POST
@@ -141,6 +153,8 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
 if ($loi) ui_notice('error', $loi, $chiTietLoi);
 ?>
 
+
+
 <section class="panel">
   <div class="panel-heading">
     <div>
@@ -150,12 +164,24 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
   </div>
   <form method="get" class="ui-search" novalidate>
     <?php ui_select('kyThi', 'Kỳ thi', $dsKyThi, 'maKyThi', 'tenKyThi', $maKyThi, '-- Chọn kỳ thi --'); ?>
-    <?php ui_select('diemThi', 'Điểm thi', $dsDiemThi, 'maDiemThi', 'tenDiemThi', $maDiemThi, '-- Chọn điểm thi --'); ?>
+    <?php ui_select('diemThi', 'Trường THPT đăng ký NV1 / điểm thi', $dsDiemThi, 'maDiemThi', 'tenTruongVaDiemThi', $maDiemThi, '-- Chọn điểm thi --'); ?>
     <div class="field ui-search-btn">
       <button class="btn btn-primary" type="submit">⌕ Xem thông tin</button>
     </div>
   </form>
 </section>
+<section class="panel">
+  <h2>Tạo phòng cho điểm thi</h2>
+  <p>Chọn một điểm thi để tạo đủ phòng theo số thí sinh đăng ký NV1, mỗi phòng mới có 30 chỗ. Hệ thống chỉ bổ sung phòng tại điểm đã chọn.</p>
+  <form method="post">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="tao_diem_nv1">
+    <input type="hidden" name="kyThi" value="<?= e($maKyThi) ?>">
+    <?php ui_select('diemTaoPhong', 'Điểm thi cần tạo phòng', $luaChonDiemTao, 'giaTri', 'nhan', $diemTaoPhong, '-- Chọn điểm thi --'); ?>
+    <div class="ui-actions"><button class="btn btn-primary" type="submit">Tạo phòng cho điểm thi đã chọn</button></div>
+  </form>
+</section>
+
 
 <?php if ($diemThiHienTai): ?>
 <div class="ui-kpi-grid" style="margin-bottom: 1.5rem;">
@@ -178,18 +204,18 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
 
 <!-- Nút thực hiện phân phòng tự động -->
 <section class="panel" style="margin-bottom: 1.5rem;">
-  <div class="panel-heading">
+  <div class="panel-heading exam-allocation-heading">
     <div>
-      <h2>2. Thực hiện phân phòng thi tự động</h2>
-      <p>Hệ thống lấy thí sinh đăng ký nguyện vọng 1 tại trường THPT của điểm thi, xếp ABC theo tên gọi, khi trùng tên thì xét họ và tên đệm. Xếp đầy phòng trước rồi mới sang phòng tiếp theo; phòng cuối có thể không đầy. Không phân theo khu vực trường THCS.</p>
+      <h2>2. Phân phòng</h2>
+      <p>Thí sinh đăng ký NV1 tại trường THPT của điểm thi được xếp ABC theo tên gọi, sau đó theo họ và tên đệm. Hệ thống xếp đầy phòng trước rồi chuyển sang phòng tiếp theo; phòng cuối có thể còn chỗ.</p>
     </div>
-    <div class="panel-actions">
-      <form method="post" novalidate style="display:inline">
+    <div class="panel-actions exam-room-actions">
+      <form method="post" novalidate>
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="xem_truoc">
         <input type="hidden" name="kyThi" value="<?= e($maKyThi) ?>">
         <input type="hidden" name="diemThi" value="<?= e($maDiemThi) ?>">
-        <button class="btn btn-primary" type="submit">⚙ Bắt đầu phân phòng (Xem trước)</button>
+        <button class="btn btn-primary" type="submit">⚙ Bắt đầu phân phòng</button>
       </form>
       <a class="btn btn-outline" href="<?= e(url('exam/tao-phong.php', ['kyThi' => $maKyThi, 'diemThi' => $maDiemThi])) ?>">+ Thêm phòng thi (UC06)</a>
     </div>
@@ -219,7 +245,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
 <section class="panel" style="margin-bottom: 1.5rem; border: 2px solid #2563eb;">
   <div class="panel-heading">
     <div>
-      <h2 style="color: #2563eb;">3. Kết quả phân phòng dự kiến (Xem trước)</h2>
+      <h2 style="color: #2563eb;">Kết quả phân phòng dự kiến</h2>
       <p>Kiểm tra danh sách bố trí từng phòng trước khi xác nhận lưu chính thức vào cơ sở dữ liệu.</p>
     </div>
   </div>
@@ -291,7 +317,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
 <section class="panel">
   <div class="panel-heading">
     <div>
-      <h2>4. Danh sách thí sinh đã phân phòng tại điểm thi</h2>
+      <h2>3. Danh sách thí sinh đã phân phòng tại điểm thi</h2>
       <p>Hiện có <strong><?= $soLuongDaPhan ?></strong> thí sinh đã được xếp phòng chính thức.</p>
     </div>
   </div>
