@@ -366,3 +366,13 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--secondary);
 /* Server-side directory pagination keeps large datasets bounded on mobile. */
 .directory-pagination { align-items: center; gap: 14px; flex-wrap: wrap; }
 @media(max-width:760px) { .directory-pagination { flex-direction: column; align-items: flex-start; } }
+
+/* Reserve enough room for counts and units without changing other dashboard charts. */
+.school-distribution .bars > div {
+  grid-template-columns: minmax(120px, 220px) minmax(0, 1fr) max-content;
+}
+.school-distribution .bars strong { white-space: nowrap; }
+@media (max-width: 720px) {
+  .school-distribution .bars > div { grid-template-columns: minmax(0, 1fr) max-content; gap: 8px 12px; }
+  .school-distribution .bars > div > span { grid-column: 1 / -1; }
+}
