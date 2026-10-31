@@ -44,6 +44,7 @@ function render_module(string $key): void {
     require_module($key);          // đăng nhập + đúng vai trò theo QUYEN_MODULE
     $module = $modules[$key];
     require_once dirname(__DIR__) . '/services/live_data.php';
+    $module['rows'] = []; // Never retain illustrative rows after a database failure.
     $liveStats = $liveAssign = null; $live = false;
     $kindNow = $module['kind'] ?? 'table';
     if ($kindNow === 'table') { $rows = live_rows($key); if ($rows !== null) { $module['rows'] = $rows; $live = true; } }

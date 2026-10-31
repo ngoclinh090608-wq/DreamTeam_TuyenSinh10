@@ -1,8 +1,0 @@
-{
-  "collision_rejected": true,
-  "conflicting_row_not_overwritten": true,
-  "counts_unchanged_after_rejection": true,
-  "imported_twice_no_duplicates": true,
-  "protected_fixture_dump_sha256": "5fd11f325bb2bd12b31f1be010b77c4add674e566a057d6691e6c2faa704ff2a",
-  "protected_fixture_dump_unchanged_by_import": true
-}

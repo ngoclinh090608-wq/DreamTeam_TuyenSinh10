@@ -4,13 +4,12 @@ Mật khẩu chung của 11 tài khoản mẫu là **`dreamteam2026`**:
 
 `quantri`, `bantuyensinh`, `hdtuyensinh`, `hdcoithi`, `hdchamthi`, `catphach`, `hdphuckhao`, `hdrade`, `gvcn`, `SBD0001`, `SBD0002`.
 
-- Database mới: nhập `database/install.sql` như bình thường; seed đã chứa mật khẩu mới dưới dạng bcrypt.
-- Database đã có trên XAMPP: cập nhật code, mở phpMyAdmin, chọn database `dreamteam_tuyensinh10`, tab Nhập (Import), chọn `database/update_demo_passwords.sql` và thực hiện. Sau đó đăng xuất/đăng nhập lại bằng `dreamteam2026`.
-- Script chỉ cập nhật đúng cặp mã/tên của 11 tài khoản mẫu và bỏ khóa tạm do đăng nhập sai; không xóa dữ liệu, không thay đổi vai trò hoặc trạng thái khóa tài khoản.
-- Các nhánh giao diện nền cũ chưa có bảng `TaiKhoan`/đăng nhập thật thì không dùng script này.
+- Máy cài demo mới: xem `database/demo/README.md` và nhập bản SQL đầy đủ vào database demo trống.
+- Bộ seed kiểm thử trong `database/install.sql` dùng mật khẩu mẫu trên.
+- Database đang dùng: giữ nguyên dữ liệu và mật khẩu hiện tại; pull code không tự đổi mật khẩu. Nếu còn đăng nhập được, sử dụng chức năng **Đổi mật khẩu** trên website.
 
 Đây là mật khẩu công khai dành cho dữ liệu thực hành. Quy tắc đổi mật khẩu trong tài khoản (ít nhất 8 ký tự), CSRF và phân quyền vẫn giữ nguyên.
 
-## Khôi phục mật khẩu ban đầu
+## Khi quên mật khẩu
 
-Nếu database của bạn chưa từng đổi sang `1234`, không cần chạy thêm SQL. Nếu đã đổi, lấy phiên bản mới nhất của `database/update_demo_passwords.sql` và nhập bằng phpMyAdmin để khôi phục về `dreamteam2026`. Cập nhật code trên GitHub không tự thay đổi database XAMPP trên máy bạn.
+Liên hệ người quản lý database để khôi phục đúng tài khoản sau khi sao lưu. Không nhập lại toàn bộ dữ liệu hoặc reset database chỉ để đổi mật khẩu. Script đặt lại mật khẩu hàng loạt đã được bỏ khỏi dự án.
