@@ -51,6 +51,13 @@ Làm theo đặc tả và Test Case Tuần 04, tên hàm theo bảng Message –
 | UC07 Phân phòng thi cho thí sinh | `/exam/phan-phong.php` | `bantuyensinh` | Chọn kỳ thi, điểm thi → Xem trước → (đổi phòng từng thí sinh nếu cần) → Xác nhận lưu. Có Chuyển phòng / Hủy phân phòng từng thí sinh |
 | UC08 Xem phân công ra đề thi | `/exam/phan-cong-ra-de.php` | `hdrade` | Chọn kỳ thi → danh sách môn được phân công → Xem chi tiết (kỳ thi, môn, thời gian thực hiện, nhiệm vụ) → Quay lại danh sách. Chỉ đọc |
 
+**UC05 có hai cách nhập điểm** tại `/grading/nhap-diem.php`:
+
+- **Nhập tay:** chọn kỳ thi / môn thi, nhập mã phách hoặc mã bài thi và điểm ngay trên trang → **Kiểm tra điểm** → **Xác nhận nhập điểm**. Có thể chọn bài chưa chấm trong danh sách bên dưới. Nếu môn đã chấm hết, chọn môn khác; điểm đã có chỉ sửa tại UC13.
+- **Import Excel:** tải **file Excel mẫu** trên trang, điền trang tính đầu tiên với cột A `MaPhach`, cột B `DiemThi`, giữ nguyên tiêu đề. Lưu `.xlsx` (không dùng `.xls` hoặc công thức), tối đa 500 bài / 2 MB. Tải lên → **Kiểm tra file Excel** → xem kết quả từng dòng → **Xác nhận nhập điểm từ Excel**. Mã phải thuộc đúng kỳ thi / môn thi, không trùng bài, điểm hợp lệ theo thang môn và bước 0.25. File có lỗi sẽ không được lưu; khi xác nhận, toàn bộ điểm được lưu trong một transaction và không ghi đè bài đã có điểm. Bản xem trước hết hạn sau 15 phút.
+
+Đọc `.xlsx` dùng các phần mở rộng PHP chuẩn `Phar` và `SimpleXML` (ngoài `pdo_mysql`, `mbstring`); không cần cài Composer. Kiểm thử bổ sung: `php tests/kiem_thu_uc05_excel.php` trên dữ liệu mẫu gốc; kiểm tra đọc Excel, lỗi điểm, trùng bài, sai môn, công thức và rollback khi lưu một phần thất bại.
+
 Quy tắc UC07: điểm thi chỉ nhận thí sinh **đủ điều kiện dự thi** của các trường THCS **cùng khu vực** với trường đặt điểm thi; thí sinh đã xếp ở điểm thi khác của cùng kỳ thi không bị kéo sang. Xếp theo trường THCS rồi họ tên, lấp lần lượt từng phòng, không vượt sức chứa. Khi lưu, server kiểm tra lại: thí sinh thuộc danh sách cần phân, phòng thuộc điểm thi, sức chứa (tính cả người đang ngồi trong phòng).
 
 Quy tắc UC08: tài khoản Hội đồng ra đề chỉ xem kỳ thi của Hội đồng ra đề (`HoiDongThi.loaiHoiDong = 'Ra đề'`) mà cán bộ của tài khoản là thành viên; kỳ thi khác báo “Không đủ quyền truy cập.” Ban Tuyển sinh xem được mọi kỳ thi.
