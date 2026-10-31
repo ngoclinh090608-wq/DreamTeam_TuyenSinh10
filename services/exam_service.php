@@ -42,21 +42,55 @@ function exam_ds_ky_thi(): array {
     return db()->query('SELECT maKyThi, tenKyThi, thoiGianKetThuc, maDot FROM KyThi ORDER BY maKyThi DESC')->fetchAll();
 }
 
-function exam_ds_diem_thi(string $maKyThi = ''): array {
+function exam_ds_diem_thi(string $maKyThi = '', bool $chiTruongNV1 = false): array {
     $sql = 'SELECT d.maDiemThi, d.tenDiemThi, d.maKyThi, d.maTruongTHCS, d.maTruongTHPT,
-                   k.tenKyThi, p.tenTruongTHPT,
+                   k.tenKyThi, p.tenTruongTHPT, CONCAT(p.tenTruongTHPT, " — ", d.tenDiemThi) AS tenTruongVaDiemThi,
                    COALESCE(c.tenTruongTHCS, p.tenTruongTHPT, "") AS tenTruongDatDiem,
                    COALESCE(c.maKhuVuc, p.maKhuVuc, "") AS maKhuVuc
             FROM DiemThi d
             JOIN KyThi k ON k.maKyThi = d.maKyThi
             LEFT JOIN TruongTHCS c ON c.maTruongTHCS = d.maTruongTHCS
             LEFT JOIN TruongTHPT p ON p.maTruongTHPT = d.maTruongTHPT';
-    if ($maKyThi !== '') {
-        $st = db()->prepare($sql . ' WHERE d.maKyThi = ? ORDER BY d.maDiemThi');
-        $st->execute([$maKyThi]);
-        return $st->fetchAll();
+    $where = []; $params = [];
+    if ($maKyThi !== '') { $where[] = 'd.maKyThi = ?'; $params[] = $maKyThi; }
+    if ($chiTruongNV1) $where[] = 'd.maTruongTHPT IS NOT NULL';
+    if ($where) $sql .= ' WHERE ' . implode(' AND ', $where);
+    $st = db()->prepare($sql . ' ORDER BY p.tenTruongTHPT, d.maDiemThi');
+    $st->execute($params);
+    return $st->fetchAll();
+}
+
+/** Create missing NV1 high-school sites only; preserve all existing rooms, papers and scores. */
+function exam_tao_diem_thi_theo_nv1(string $maKyThi): int {
+    $pdo = db();
+    try {
+        $pdo->beginTransaction();
+        $lock = $pdo->prepare('SELECT maKyThi FROM KyThi WHERE maKyThi = ? FOR UPDATE');
+        $lock->execute([$maKyThi]);
+        if (!$lock->fetchColumn()) throw new ExamException(EXAM_TB_CHUA_DU_DIEU_KIEN_PHAN_PHONG, ['Vui lòng chọn kỳ thi hợp lệ.']);
+        $st = $pdo->prepare('SELECT DISTINCT p.maTruongTHPT, p.tenTruongTHPT
+            FROM KyThi k JOIN DotTuyenSinh dot ON dot.maDot = k.maDot
+            JOIN QuyDinhNguyenVong q ON q.namTuyenSinh = dot.namTuyenSinh
+            JOIN NguyenVong nv ON nv.maQuyDinh = q.maQuyDinh AND nv.thuTuNguyenVong = 1
+            JOIN ThiSinh t ON t.maThiSinh = nv.maThiSinh AND t.dieuKienDuThi = 1 AND t.trangThaiDangKyDuThi = "Đã duyệt"
+            JOIN TruongTHPT p ON p.maTruongTHPT = nv.maTruongTHPT WHERE k.maKyThi = ? ORDER BY p.maTruongTHPT');
+        $st->execute([$maKyThi]); $schools = $st->fetchAll();
+        if (!$schools) throw new ExamException(EXAM_TB_CHUA_DU_DIEU_KIEN_PHAN_PHONG, ['Kỳ thi chưa có thí sinh đủ điều kiện đăng ký nguyện vọng 1.']);
+        $find = $pdo->prepare('SELECT maDiemThi FROM DiemThi WHERE maKyThi = ? AND maTruongTHPT = ? LIMIT 1');
+        $insert = $pdo->prepare('INSERT INTO DiemThi (maDiemThi, tenDiemThi, maTruongTHCS, maTruongTHPT, maKyThi) VALUES (?, ?, NULL, ?, ?)');
+        $n = 0;
+        foreach ($schools as $school) {
+            $find->execute([$maKyThi, $school['maTruongTHPT']]);
+            if ($find->fetchColumn()) continue;
+            $id = 'NV1_' . substr(hash('sha256', $maKyThi . ':' . $school['maTruongTHPT']), 0, 16);
+            $insert->execute([$id, 'Điểm thi ' . $school['tenTruongTHPT'], $school['maTruongTHPT'], $maKyThi]);
+            $n++;
+        }
+        $pdo->commit(); return $n;
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        throw $e;
     }
-    return db()->query($sql . ' ORDER BY d.maDiemThi')->fetchAll();
 }
 
 function exam_ds_phong_thi(string $maDiemThi = ''): array {
@@ -140,6 +174,8 @@ function kiemTraPhongThi(string $maDiemThi, string $maPhong, string $tenPhong, i
     if ((int)$st->fetchColumn() === 0) {
         throw new ExamException(EXAM_TB_PHONG_KHONG_HOP_LE, ['Địa điểm thi không tồn tại trong hệ thống.']);
     }
+
+    exam_kiem_tra_truong_diem_thi(layThongTinDiemThi($maDiemThi));
 
     // Kiểm tra trùng mã phòng trên toàn hệ thống (nếu thêm mới hoặc đổi mã)
     if ($maPhongCu === null || $maPhong !== $maPhongCu) {

@@ -12,11 +12,11 @@ $maDiemThi = ui_input('diemThi');
 $maPhongLoc = ui_input('phong');
 
 $dsKyThi = exam_ds_ky_thi();
-$dsDiemThi = exam_ds_diem_thi($maKyThi);
+$dsDiemThi = exam_ds_diem_thi($maKyThi, true);
 
 if ($maKyThi === '' && !empty($dsKyThi)) {
     $maKyThi = (string)$dsKyThi[0]['maKyThi'];
-    $dsDiemThi = exam_ds_diem_thi($maKyThi);
+    $dsDiemThi = exam_ds_diem_thi($maKyThi, true);
 }
 if ($maDiemThi === '' && !empty($dsDiemThi)) {
     $diemCoTruong = array_values(array_filter($dsDiemThi, static fn($dt) => !empty($dt['maTruongTHPT'])));
@@ -27,6 +27,15 @@ $action = $_SERVER['REQUEST_METHOD'] === 'POST' ? (string)($_POST['action'] ?? '
 $loi = null;
 $chiTietLoi = [];
 $loiHeThong = ui_csrf_error();
+if ($action === 'tao_diem_nv1' && !$loiHeThong) {
+    try {
+        $soDiemMoi = exam_tao_diem_thi_theo_nv1($maKyThi);
+        flash_set('success', "Đã tạo {$soDiemMoi} điểm thi còn thiếu theo trường THPT đăng ký NV1. Chọn trường để tạo phòng và phân phòng.");
+        ui_redirect('exam/phan-phong.php', ['kyThi' => $maKyThi]);
+    } catch (BusinessException $e) { $loi = $e->getMessage(); $chiTietLoi = $e->details(); }
+    catch (Throwable $e) { error_log('UC06/07 NV1 sites: ' . $e->getMessage()); $loi = 'Không tạo được điểm thi theo NV1. Vui lòng thử lại.'; }
+}
+
 $preview = null;
 
 // Xử lý các thao tác POST
@@ -140,6 +149,17 @@ ui_flashes();
 if ($loiHeThong) ui_notice('error', $loiHeThong);
 if ($loi) ui_notice('error', $loi, $chiTietLoi);
 ?>
+<section class="panel">
+  <h2>Tổ chức thi theo trường nguyện vọng 1</h2>
+  <p>Thí sinh thi tại trường THPT đăng ký NV1. Nếu chưa có trường trong danh sách, tạo các điểm thi theo NV1 của kỳ thi này, sau đó tạo phòng tại UC06 và phân tự động tại UC07.</p>
+  <form method="post">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="tao_diem_nv1">
+    <input type="hidden" name="kyThi" value="<?= e($maKyThi) ?>">
+    <button class="btn btn-outline" type="submit">Tạo điểm thi còn thiếu theo trường NV1</button>
+  </form>
+</section>
+
 
 <section class="panel">
   <div class="panel-heading">
@@ -150,7 +170,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
   </div>
   <form method="get" class="ui-search" novalidate>
     <?php ui_select('kyThi', 'Kỳ thi', $dsKyThi, 'maKyThi', 'tenKyThi', $maKyThi, '-- Chọn kỳ thi --'); ?>
-    <?php ui_select('diemThi', 'Điểm thi', $dsDiemThi, 'maDiemThi', 'tenDiemThi', $maDiemThi, '-- Chọn điểm thi --'); ?>
+    <?php ui_select('diemThi', 'Trường THPT đăng ký NV1 / điểm thi', $dsDiemThi, 'maDiemThi', 'tenTruongVaDiemThi', $maDiemThi, '-- Chọn điểm thi --'); ?>
     <div class="field ui-search-btn">
       <button class="btn btn-primary" type="submit">⌕ Xem thông tin</button>
     </div>
