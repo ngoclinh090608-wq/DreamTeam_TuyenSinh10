@@ -24,10 +24,14 @@ function base_path(): string {
     if (str_starts_with($r, $d . '/')) return substr(str_replace('\\','/',$root), strlen($docroot));
     return '';
 }
-function url(string $path = ''): string {
+function url(string $path = '', array $query = []): string {
     $prefix = rtrim(base_path(), '/');
     $clean = ltrim($path, '/');
-    return $prefix . '/' . $clean;
+    $target = $prefix . '/' . $clean;
+    if (!$query) return $target;
+    $parts = explode('#', $target, 2);
+    $parts[0] .= (str_contains($parts[0], '?') ? '&' : '?') . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+    return $parts[0] . (isset($parts[1]) ? '#' . $parts[1] : '');
 }
 function demo_mode(): bool { return (bool) app_config()['demo_mode']; }
 function ui_lower(string $value): string {
@@ -37,9 +41,10 @@ function render_module(string $key): void {
     $modules = require __DIR__ . '/module_config.php';
     if (!isset($modules[$key])) { http_response_code(404); require dirname(__DIR__) . '/404.php'; return; }
     require_once __DIR__ . '/auth.php';
-    require_auth();
+    require_module($key);          // đăng nhập + đúng vai trò theo QUYEN_MODULE
     $module = $modules[$key];
     require_once dirname(__DIR__) . '/services/live_data.php';
+    $module['rows'] = []; // Never retain illustrative rows after a database failure.
     $liveStats = $liveAssign = null; $live = false;
     $kindNow = $module['kind'] ?? 'table';
     if ($kindNow === 'table') { $rows = live_rows($key); if ($rows !== null) { $module['rows'] = $rows; $live = true; } }
