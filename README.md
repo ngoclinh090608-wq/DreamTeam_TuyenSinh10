@@ -62,7 +62,12 @@ Tối đa 500 bài / 2 MB mỗi file; không dùng `.xls` hoặc công thức. �
 
 Đọc/ghi `.xlsx` dùng phần mở rộng PHP `Phar` và `SimpleXML` (ngoài `pdo_mysql`, `mbstring`), không cần Composer. Kiểm thử: `php tests/kiem_thu_uc05_excel.php` trên dữ liệu mẫu gốc, và `BASE_URL=http://127.0.0.1:8080 bash tests/kiem_thu_uc05_08.sh`.
 
-Quy tắc UC07: điểm thi chỉ nhận thí sinh **đủ điều kiện dự thi** của các trường THCS **cùng khu vực** với trường đặt điểm thi; thí sinh đã xếp ở điểm thi khác của cùng kỳ thi không bị kéo sang. Hệ thống tự động xếp ABC tiếng Việt theo tên gọi, rồi họ và tên đệm khi trùng tên (trùng toàn bộ tên thì theo mã thí sinh), không ưu tiên nhóm theo trường THCS; lấp lần lượt từng phòng và không vượt sức chứa. Danh sách đã lưu cũng hiển thị theo thứ tự ABC trong mỗi phòng. Khi lưu, server kiểm tra lại: thí sinh thuộc danh sách cần phân, phòng thuộc điểm thi, sức chứa (tính cả người đang ngồi trong phòng).
+Quy tắc UC07: thí sinh thi tại **trường đăng ký nguyện vọng 1 trong năm tuyển sinh của kỳ thi**, không phân theo khu vực trường THCS. Điểm thi phải gắn rõ `DiemThi.maTruongTHPT`; chưa gắn trường thì báo thiếu cấu hình, không tự đoán trường. Chỉ lấy hồ sơ đủ điều kiện và đã duyệt. Thí sinh đang ở điểm thi sai trường có thể được phân lại về đúng trường NV1; người đã ở điểm thi khác của cùng trường sẽ không bị kéo sang.
+
+Hệ thống xếp ABC tiếng Việt theo **tên gọi → họ và tên đệm → mã thí sinh khi trùng tên**, rồi **xếp đầy phòng trước mới dùng phòng tiếp theo**; phòng cuối có thể không đầy, các phòng sau còn trống sẽ chưa được dùng. Không đổi phòng tùy ý trong bảng xem trước. Khi lưu, server tính lại kết quả, kiểm tra đúng NV1, đủ danh sách và sức chứa trong transaction; kết quả đã thay đổi phải xem trước lại. Chuyển phòng cũng chỉ được sang phòng thuộc đúng trường NV1 và cùng kỳ thi.
+
+Dữ liệu mẫu cũ có `DT01` đặt tại THCS và chưa gắn trường THPT nên UC07 sẽ báo thiếu cấu hình tại điểm này. `DT02` gắn `THPT_1`; các trường NV1 khác cần có điểm thi và phòng tương ứng trước khi phân. Kiểm thử tự tạo liên kết trường / nguyện vọng phù hợp rồi khôi phục, không sửa dữ liệu mẫu gốc. Các thí sinh đang ở điểm thi nhưng không thuộc danh sách NV1 hợp lệ được cảnh báo và vẫn chiếm chỗ cho đến khi chuyển/hủy.
+
 
 Quy tắc UC08: tài khoản Hội đồng ra đề chỉ xem kỳ thi của Hội đồng ra đề (`HoiDongThi.loaiHoiDong = 'Ra đề'`) mà cán bộ của tài khoản là thành viên; kỳ thi khác báo “Không đủ quyền truy cập.” Ban Tuyển sinh xem được mọi kỳ thi.
 
@@ -76,7 +81,7 @@ Thử nhanh:
 | UC05 “Điểm bài thi đã được xác nhận chính thức.” | Mở lại bài vừa nhập điểm |
 | UC06 tự sinh mã | Điểm thi THCS Mẫu A → ô mã phòng gợi ý `P103` |
 | UC06 “Thông tin phòng thi bị trùng.” | Mã `P101`, hoặc tên `Phòng 101` tại điểm thi THCS Mẫu A |
-| UC07 “Điểm thi không phù hợp với khu vực trường THCS.” | Điểm thi THCS Mẫu A: seed đang xếp thí sinh trường THCS C, D (khu vực 2, 3) vào đây → hiện cảnh báo, không phân tự động |
+| UC07 “Điểm thi không phù hợp với trường đăng ký nguyện vọng 1.” | Chọn điểm thi gắn THPT_1: chỉ thí sinh có NV1 THPT_1 được phân tự động, dù THCS ở khu vực khác |
 | UC08 xem chi tiết | Kỳ thi 2026 → Toán → Xem chi tiết |
 
 Mã nguồn: `services/exam_service.php` (UC06–UC08), phần UC05 cuối `services/grading_service.php`; giao diện `includes/exam_ui.php`. Kiểm thử: `BASE_URL=http://127.0.0.1:8080 bash tests/kiem_thu_uc05_08.sh` (tự sao lưu và khôi phục dữ liệu).

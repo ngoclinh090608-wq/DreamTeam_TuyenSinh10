@@ -30,7 +30,7 @@ sql(){ db_exec "$1"; }
 gtri(){ printf 'SET NAMES utf8mb4;\n%s;\n' "$1" > "$S/q.sql"; "$MYSQL" "${DB_ARGS[@]}" -N "$DB_NAME" < "$S/q.sql"; }
 
 # Sao lưu các bảng liên quan đến UC05-08
-BANG="PhongThi PhanPhongThi BaiThi KetQuaChamThi PhanCongRaDe"
+BANG="PhongThi PhanPhongThi BaiThi KetQuaChamThi PhanCongRaDe DiemThi NguyenVong"
 if [ "${SAO_LUU:-1}" != 0 ]; then
   "$MYSQLDUMP" "${DB_ARGS[@]}" "$DB_NAME" $BANG > "$S/saoluu.sql" 2>/dev/null || true
 fi
@@ -66,6 +66,9 @@ dang_nhap(){
 }
 
 echo "=== KIỂM THỬ UC05 – UC08 (Nguyễn Thị Thúy Vy) ==="
+# UC07 fixture: schools are explicit; six candidates register NV1 at THPT_1.
+sql "UPDATE DiemThi SET maTruongTHPT='THPT_1' WHERE maDiemThi='DT01'; UPDATE DiemThi SET maTruongTHPT='THPT_2' WHERE maDiemThi='DT02'; UPDATE NguyenVong SET maTruongTHPT='THPT_2' WHERE thuTuNguyenVong=1; UPDATE NguyenVong SET maTruongTHPT='THPT_1' WHERE thuTuNguyenVong=1 AND maThiSinh IN ('TS001','TS002','TS005','TS006','TS009','TS010');"
+
 
 # =============================================================================
 # UC05: NHẬP ĐIỂM THI (Actor: HD_CHAM_THI)
@@ -164,31 +167,40 @@ post "exam/tao-phong.php" --data-urlencode "tenPhong=Phòng 101" -d "action=tao_
 
 # UC07 6.3: cảnh báo thí sinh khác khu vực đang ở điểm thi
 T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
-post "exam/phan-phong.php" -d "action=xem_truoc&kyThi=KT2026&diemThi=DT01" | kiem UC07 "Cảnh báo điểm thi không phù hợp khu vực" "Điểm thi không phù hợp với khu vực trường THCS."
+post "exam/phan-phong.php" -d "action=xem_truoc&kyThi=KT2026&diemThi=DT01" | kiem UC07 "Cảnh báo thí sinh không đăng ký NV1 đúng trường" "Điểm thi không phù hợp với trường đăng ký nguyện vọng 1."
+# Không cho sửa kết quả tự động để bỏ trống phòng trước hoặc bỏ sót thí sinh.
+get "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01" | kiem UC07 "Hiển thị quy tắc theo NV1" "trường THPT của điểm thi"
+T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
+post "exam/phan-phong.php" -d "action=xem_truoc&kyThi=KT2026&diemThi=DT01" | khong UC07 "Xem trước không cho đổi phòng tùy ý" '<select name="phanBo['
+T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
+post "exam/phan-phong.php" -d "action=xac_nhan_luu&kyThi=KT2026&diemThi=DT01&phanBo[TS001]=P102&phanBo[TS002]=P102&phanBo[TS005]=P102&phanBo[TS006]=P102&phanBo[TS009]=P102&phanBo[TS010]=P102" | kiem UC07 "Chặn bỏ trống phòng trước để dùng phòng sau" "Kết quả không khớp phân phòng tự động"
+T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
+post "exam/phan-phong.php" -d "action=xac_nhan_luu&kyThi=KT2026&diemThi=DT01&phanBo[TS001]=P101" | kiem UC07 "Chặn lưu thiếu thí sinh" "Kết quả không khớp phân phòng tự động"
+
 # UC07 bước 10: lưu kết quả phân phòng
 T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
-post "exam/phan-phong.php" -d "action=xac_nhan_luu&kyThi=KT2026&diemThi=DT01&phanBo[TS001]=P102&phanBo[TS002]=P102&phanBo[TS005]=P102&phanBo[TS006]=P102&phanBo[TS009]=P102&phanBo[TS010]=P102" | kiem UC07 "Lưu kết quả phân phòng thành công" "Phân phòng thi thành công."
-dung UC07 "CSDL ghi nhận TS002 ở phòng P102" "$(gtri "SELECT maPhong FROM PhanPhongThi WHERE maThiSinh = 'TS002' AND trangThai = 'Đã phân'")" "P102"
+post "exam/phan-phong.php" -d "action=xac_nhan_luu&kyThi=KT2026&diemThi=DT01&phanBo[TS001]=P101&phanBo[TS002]=P101&phanBo[TS005]=P101&phanBo[TS006]=P101&phanBo[TS009]=P101&phanBo[TS010]=P101" | kiem UC07 "Lưu kết quả phân phòng thành công" "Phân phòng thi thành công."
+dung UC07 "CSDL ghi nhận TS002 ở phòng P101" "$(gtri "SELECT maPhong FROM PhanPhongThi WHERE maThiSinh = 'TS002' AND trangThai = 'Đã phân'")" "P101"
 # UC07: chặn dữ liệu sửa tay - thí sinh khác khu vực, phòng của điểm thi khác
 T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
-post "exam/phan-phong.php" -d "action=xac_nhan_luu&kyThi=KT2026&diemThi=DT01&phanBo[TS003]=P101" | kiem UC07 "Chặn phân thí sinh khác khu vực" "Điểm thi không phù hợp với khu vực trường THCS."
+post "exam/phan-phong.php" -d "action=xac_nhan_luu&kyThi=KT2026&diemThi=DT01&phanBo[TS003]=P101" | kiem UC07 "Chặn phân thí sinh NV1 ở trường khác" "Điểm thi không phù hợp với trường đăng ký nguyện vọng 1."
 T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
 post "exam/phan-phong.php" -d "action=xac_nhan_luu&kyThi=KT2026&diemThi=DT01&phanBo[TS001]=P201" | kiem UC07 "Chặn phân vào phòng của điểm thi khác" "Không thể lưu kết quả phân phòng."
-dung UC07 "Lưu lỗi không đổi dữ liệu phân phòng" "$(gtri "SELECT maPhong FROM PhanPhongThi WHERE maThiSinh = 'TS001' AND trangThai = 'Đã phân'")" "P102"
+dung UC07 "Lưu lỗi không đổi dữ liệu phân phòng" "$(gtri "SELECT maPhong FROM PhanPhongThi WHERE maThiSinh = 'TS001' AND trangThai = 'Đã phân'")" "P101"
 # UC07 9.1: chuyển sang điểm thi khác không cùng khu vực
 T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
-post "exam/phan-phong.php" -d "action=chuyen_phong&kyThi=KT2026&diemThi=DT01&maPhanPhong=PP003&maPhongMoi=P201" | kiem UC07 "Chặn chuyển sang điểm thi khác khu vực" "Điểm thi không phù hợp với khu vực trường THCS."
+post "exam/phan-phong.php" -d "action=chuyen_phong&kyThi=KT2026&diemThi=DT01&maPhanPhong=PP003&maPhongMoi=P201" | kiem UC07 "Chặn chuyển sang trường khác NV1" "Điểm thi không phù hợp với trường đăng ký nguyện vọng 1."
 # UC07 9.1: chuyển vào phòng đã đủ chỗ
-sql "UPDATE PhongThi SET sucChua = 2 WHERE maPhong = 'P101';"
+sql "UPDATE PhongThi SET sucChua = 1 WHERE maPhong = 'P102';"
 T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
-post "exam/phan-phong.php" -d "action=chuyen_phong&kyThi=KT2026&diemThi=DT01&maPhanPhong=PP001&maPhongMoi=P101" | kiem UC07 "Chặn chuyển vào phòng đã đủ chỗ" "Sức chứa phòng thi không đủ."
+post "exam/phan-phong.php" -d "action=chuyen_phong&kyThi=KT2026&diemThi=DT01&maPhanPhong=PP001&maPhongMoi=P102" | kiem UC07 "Chặn chuyển vào phòng đã đủ chỗ" "Sức chứa phòng thi không đủ."
 # UC07 6.2: tổng sức chứa không đủ
 sql "UPDATE PhongThi SET sucChua = 2 WHERE maDiemThi = 'DT01';"
 T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
 post "exam/phan-phong.php" -d "action=xem_truoc&kyThi=KT2026&diemThi=DT01" | kiem UC07 "Sức chứa không đủ báo số chỗ thiếu" "Số lượng chỗ còn thiếu"
 sql "UPDATE PhongThi SET sucChua = 12 WHERE maDiemThi = 'DT01';"
 # UC07 6.1: điểm thi chưa có phòng thi
-sql "INSERT INTO DiemThi (maDiemThi, tenDiemThi, maTruongTHCS, maTruongTHPT, maKyThi) VALUES ('DT_TEST', 'Điểm thi kiểm thử', 'THCS_C', NULL, 'KT2026');"
+sql "INSERT INTO DiemThi (maDiemThi, tenDiemThi, maTruongTHCS, maTruongTHPT, maKyThi) VALUES ('DT_TEST', 'Điểm thi kiểm thử', 'THCS_C', 'THPT_1', 'KT2026');"
 T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT_TEST")
 post "exam/phan-phong.php" -d "action=xem_truoc&kyThi=KT2026&diemThi=DT_TEST" | kiem UC07 "Điểm thi chưa có phòng" "Chưa đủ điều kiện phân phòng."
 
