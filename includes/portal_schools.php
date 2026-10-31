@@ -20,7 +20,7 @@ $school_regions = array_values(array_unique(array_column($public_schools, 'distr
  <div class="table-scroll" role="region" aria-label="Danh sách trường THPT và chỉ tiêu" tabindex="0">
   <table class="data-table school-table"><thead><tr><th scope="col">Mã trường</th><th scope="col">Tên trường THPT</th><th scope="col">Khu vực</th><th scope="col">Chỉ tiêu</th></tr></thead><tbody>
    <?php foreach ($public_schools as $school): ?>
-    <tr data-school-item data-region="<?= e($school['district']) ?>"><td><span class="code-tag"><?= e($school['code']) ?></span></td><th scope="row"><?= e($school['name']) ?></th><td><?= e($school['district']) ?></td><td><?= e($school['quota']) ?> <small>học sinh</small></td></tr>
+    <tr data-school-item data-region="<?= e($school['district']) ?>"><td><span class="code-tag"><?= e($school['code']) ?></span></td><th scope="row"><?= e(school_display_name($school['name'])) ?></th><td><?= e($school['district']) ?></td><td><?= e($school['quota']) ?> <small>học sinh</small></td></tr>
    <?php endforeach; ?>
   </tbody></table>
  </div>

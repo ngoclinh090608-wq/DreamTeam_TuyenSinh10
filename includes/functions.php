@@ -11,6 +11,10 @@ function app_config(): array {
 function e(mixed $str): string {
     return htmlspecialchars((string)$str, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
+/** Clean school labels for display without modifying stored names or identifiers. */
+function school_display_name(string $name): string {
+    return preg_replace('/\s*\(mẫu\)\s*$/iu', '', $name) ?? $name;
+}
 /** Works both from XAMPP subdirectory and from project's built-in PHP server. */
 function base_path(): string {
     $forced = app_config()['base_path'];
