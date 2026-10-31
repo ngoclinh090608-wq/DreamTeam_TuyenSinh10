@@ -54,10 +54,8 @@ Các module còn lại có mức độ hoàn thiện khác nhau; không coi toà
 
 Giữ logic nghiệp vụ trong `services/`, dùng layout `includes/` và CSS/JavaScript trong `assets/`. Không commit cấu hình chứa mật khẩu, dữ liệu học sinh thật hoặc file session/log. Tài liệu báo cáo môn học nằm trong `docs/tai-lieu-tham-khao/`; nguồn tài nguyên hình ảnh ghi tại `assets/images/SOURCES.md`.
 
-### UC06–UC07: điểm thi theo trường NV1
+### UC06–UC07: tạo phòng theo điểm thi được chọn
 
-Thí sinh thi tại trường THPT đăng ký nguyện vọng 1, theo năm tuyển sinh của kỳ thi. Hai trang UC06–UC07 chỉ hiển thị điểm thi gắn với trường THPT. Nếu bộ dữ liệu còn điểm thi THCS và chưa có trường trong danh sách, chọn kỳ thi rồi bấm **Tạo điểm thi và phòng thi**. Hệ thống tạo đủ phòng theo số thí sinh NV1, mỗi phòng mới có 30 chỗ. Bấm lại chỉ bổ sung chỗ còn thiếu, không tạo trùng; không xóa hoặc chuyển phòng, bài thi hay điểm đã lưu.
+Chọn kỳ thi và điểm thi, sau đó chọn đúng một mục ở **Điểm thi cần tạo phòng** và bấm **Tạo phòng cho điểm thi đã chọn**. Hệ thống chỉ tạo đủ phòng còn thiếu tại điểm đó, mỗi phòng mới 30 chỗ. Không tạo đồng loạt cho các trường hoặc điểm thi khác. Nếu trường chưa có điểm thi, chọn mục **Tạo điểm thi mới** của trường đó trong danh sách; mỗi lần cũng chỉ tạo một điểm.
 
-Sau đó chọn **Trường THPT đăng ký NV1 / điểm thi** để xem các phòng đã tạo, rồi phân tự động ở UC07. Có thể tạo thêm phòng thủ công tại UC06 khi cần. Thí sinh được xếp ABC theo tên gọi, họ và tên đệm; phòng trước đầy mới dùng phòng sau, phòng cuối có thể không đầy. Phòng/bài thi theo THCS từ dữ liệu cũ vẫn giữ nguyên; tạo điểm thi mới không tự di chuyển các lô bài và kết quả chấm cũ.
-
-Mã phòng mới theo số trường THPT: `THPT_5` → `P501`, `P502`…; `THPT_4` → `P401`, `P402`… Mã đã dùng trong hệ thống được bỏ qua. Với phòng mang mã tự sinh dài `R…_0001`, bấm lại **Tạo điểm thi và phòng thi** để đổi mã; liên kết phân phòng, lô bài và phân công coi thi được cập nhật trong cùng transaction, không xóa bài thi hay điểm.
+UC07 lấy thí sinh đăng ký NV1 đúng trường, xếp ABC theo tên gọi, họ và tên đệm; đầy phòng trước mới dùng phòng sau. Mã phòng mới: THPT_5 → P501, P502…; THPT_4 → P401, P402… Mã đã dùng được bỏ qua. Bấm tạo phòng tại điểm đã chọn cũng đổi mã tự sinh dài cũ R…_0001 sang dạng mới, giữ liên kết thí sinh, lô bài và phân công coi thi trong cùng transaction. Không xóa bài thi hoặc điểm cũ.
