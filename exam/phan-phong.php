@@ -204,18 +204,18 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
 
 <!-- Nút thực hiện phân phòng tự động -->
 <section class="panel" style="margin-bottom: 1.5rem;">
-  <div class="panel-heading">
+  <div class="panel-heading exam-allocation-heading">
     <div>
-      <h2>2. Thực hiện phân phòng thi tự động</h2>
-      <p>Hệ thống lấy thí sinh đăng ký nguyện vọng 1 tại trường THPT của điểm thi, xếp ABC theo tên gọi, khi trùng tên thì xét họ và tên đệm. Xếp đầy phòng trước rồi mới sang phòng tiếp theo; phòng cuối có thể không đầy. Không phân theo khu vực trường THCS.</p>
+      <h2>2. Phân phòng</h2>
+      <p>Thí sinh đăng ký NV1 tại trường THPT của điểm thi được xếp ABC theo tên gọi, sau đó theo họ và tên đệm. Hệ thống xếp đầy phòng trước rồi chuyển sang phòng tiếp theo; phòng cuối có thể còn chỗ.</p>
     </div>
-    <div class="panel-actions">
-      <form method="post" novalidate style="display:inline">
+    <div class="panel-actions exam-room-actions">
+      <form method="post" novalidate>
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="xem_truoc">
         <input type="hidden" name="kyThi" value="<?= e($maKyThi) ?>">
         <input type="hidden" name="diemThi" value="<?= e($maDiemThi) ?>">
-        <button class="btn btn-primary" type="submit">⚙ Bắt đầu phân phòng (Xem trước)</button>
+        <button class="btn btn-primary" type="submit">⚙ Bắt đầu phân phòng</button>
       </form>
       <a class="btn btn-outline" href="<?= e(url('exam/tao-phong.php', ['kyThi' => $maKyThi, 'diemThi' => $maDiemThi])) ?>">+ Thêm phòng thi (UC06)</a>
     </div>
@@ -245,7 +245,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
 <section class="panel" style="margin-bottom: 1.5rem; border: 2px solid #2563eb;">
   <div class="panel-heading">
     <div>
-      <h2 style="color: #2563eb;">3. Kết quả phân phòng dự kiến (Xem trước)</h2>
+      <h2 style="color: #2563eb;">Kết quả phân phòng dự kiến</h2>
       <p>Kiểm tra danh sách bố trí từng phòng trước khi xác nhận lưu chính thức vào cơ sở dữ liệu.</p>
     </div>
   </div>
@@ -317,7 +317,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
 <section class="panel">
   <div class="panel-heading">
     <div>
-      <h2>4. Danh sách thí sinh đã phân phòng tại điểm thi</h2>
+      <h2>3. Danh sách thí sinh đã phân phòng tại điểm thi</h2>
       <p>Hiện có <strong><?= $soLuongDaPhan ?></strong> thí sinh đã được xếp phòng chính thức.</p>
     </div>
   </div>
