@@ -94,4 +94,15 @@
    dialog.addEventListener('click',ev=>{const rect=dialog.getBoundingClientRect();if(ev.target===dialog && (ev.clientX<rect.left || ev.clientX>rect.right || ev.clientY<rect.top || ev.clientY>rect.bottom))dialog.close();});
    dialog.addEventListener('close',()=>{if(!document.querySelector('.student-dialog[open]'))document.body.classList.remove('student-dialog-open');});
  });
+ const studentDefaultAvatar=$('[data-student-default-avatar]');
+ const studentGender=$('#profile-gender');
+ if(studentDefaultAvatar && studentGender){
+   const syncStudentAvatar=()=>{
+     const kind=studentGender.value==='Nam'?'male':studentGender.value==='Nữ'?'female':'neutral';
+     studentDefaultAvatar.src=studentDefaultAvatar.dataset['avatar'+kind[0].toUpperCase()+kind.slice(1)];
+     studentDefaultAvatar.alt=kind==='male'?'Ảnh đại diện nam':kind==='female'?'Ảnh đại diện nữ':'Ảnh đại diện học sinh';
+   };
+   studentGender.addEventListener('change',syncStudentAvatar);
+   syncStudentAvatar();
+ }
 })();
