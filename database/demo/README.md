@@ -23,7 +23,7 @@ Không nhập lại SQL, không xóa/reset database. Pull chỉ cập nhật cod
 1. Sao lưu database hiện có nếu có. File này chỉ dành cho database demo **trống**; không nhập chồng, không dùng trên database chính. Các file full dump không phải migration và không có rollback toàn bộ DDL.
 2. Trong phpMyAdmin, nhập `database/demo/dreamteam_tuyensinh10_demo.sql` một lần. File tự chọn đúng tên database demo. Tài khoản import cần quyền tạo database, bảng, routine và view.
 3. Sao chép `database.local.example.php` sang `config/database.local.php` nếu chưa có. Nếu đã có thì chỉ sửa `name` sang `dreamteam_tuyensinh10_demo`, giữ thông tin kết nối cá nhân; DB_* trong môi trường vẫn được ưu tiên. Không commit file cấu hình thật.
-4. Mở website và kiểm tra dashboard. Không thay database mặc định chung trong `config/database.php`.
+4. Mở website và kiểm tra dashboard. Không sửa cấu hình chung chỉ để đổi host/user/password của riêng máy mình.
 
 ## Kiểm chứng chỉ đọc
 
@@ -39,6 +39,6 @@ Bản xuất phpMyAdmin do người dùng cung cấp ngày 31/10/2026, SHA-256 g
 
 Excel nguồn giai đoạn đầu, báo cáo trung gian và các script nhập nhiều bước đã bỏ khỏi nhánh hiện hành để tránh nhầm. Có thể khôi phục từ lịch sử Git. Thư mục demo chỉ giữ SQL đầy đủ, hướng dẫn này, mẫu cấu hình và công cụ kiểm tra chỉ đọc.
 
-### Nhánh vy
+### Cấu hình sau khi đồng bộ
 
-Nhánh này giữ thay đổi riêng: mặc định chọn database demo nếu không có cấu hình ghi đè. Khi chạy kiểm thử bộ seed nhỏ, đặt DB_NAME sang database kiểm thử. Các sửa đổi tải lô bài và nhập điểm riêng của vy được giữ nguyên khi đồng bộ.
+Các nhánh dùng mặc định database demo nếu không có cấu hình ghi đè. Khi chạy kiểm thử bộ seed nhỏ, đặt DB_NAME sang database kiểm thử.

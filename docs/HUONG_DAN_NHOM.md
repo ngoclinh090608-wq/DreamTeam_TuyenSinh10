@@ -20,26 +20,11 @@ Nhánh `main` đã khóa: không ai đẩy thẳng vào `main` được.
 
 ---
 
-## 2. Chuẩn bị (làm một lần)
+## 2. Chuẩn bị
 
-1. **Nhận lời mời** vào repo: mở email từ GitHub → **Accept invitation**.
-2. Cài **XAMPP** (Apache + MySQL) và **Git** (https://git-scm.com).
-3. Khai báo tên Git (dùng đúng email tài khoản GitHub của bạn):
-   ```bash
-   git config --global user.name "Họ Tên"
-   git config --global user.email "email-github-cua-ban@gmail.com"
-   ```
-4. Mở cửa sổ lệnh trong `C:\xampp\htdocs` (File Explorer → vào thư mục → gõ `cmd` vào thanh địa chỉ → Enter), chạy:
-   ```bash
-   git clone https://github.com/ngoclinh090608-wq/DreamTeam_TuyenSinh10.git
-   cd DreamTeam_TuyenSinh10
-   git switch ten-nhanh-cua-ban
-   ```
-   (ví dụ `git switch thien`). Thư mục phải tên đúng `DreamTeam_TuyenSinh10`.
-5. Bật **Apache** và **MySQL** trong XAMPP → mở http://localhost/phpmyadmin → **Nhập (Import)** → chọn `database/install.sql` → Thực hiện.
-6. Mở http://localhost/DreamTeam_TuyenSinh10/ để kiểm tra. Thử trang mẫu đã làm: `/grading/`, `/councils/`.
+Làm theo phần XAMPP trong [README chính](../README.md) và [hướng dẫn demo](../database/demo/README.md). Cài Git, clone repository và chuyển sang đúng nhánh của mình. Không nhập bộ seed kiểm thử vào database demo đang dùng.
 
-Kiểm tra mình đang ở nhánh nào: `git branch` (dòng có dấu `*`).
+Kiểm tra nhánh hiện tại bằng `git branch --show-current`. Nếu có thay đổi chưa commit, lưu lại trước khi chuyển nhánh hoặc đồng bộ; không dùng reset/force-push để bỏ qua xung đột.
 
 ---
 
@@ -47,7 +32,9 @@ Kiểm tra mình đang ở nhánh nào: `git branch` (dòng có dấu `*`).
 
 ```bash
 git switch ten-nhanh-cua-ban      # chắc chắn đang ở nhánh của mình
-git pull origin main              # lấy code mới nhất đã gộp vào main
+git pull origin ten-nhanh-cua-ban  # lấy thay đổi mới của nhánh mình
+git fetch origin
+git merge origin/main             # nhận các thay đổi chung đã được duyệt
 ```
 … code và chạy thử trên localhost …
 ```bash
@@ -76,15 +63,19 @@ Mỗi lần `git push` và mỗi Pull Request vào `main`, GitHub Actions tự c
 1. Kiểm tra cú pháp tất cả file PHP.
 2. Kiểm tra `database/install.sql` đã được build lại (`php database/build.php`) sau khi sửa file trong `database/`.
 3. Nhập `install.sql` vào MariaDB sạch — SQL hỏng sẽ báo lỗi ở đây.
-4. Chạy web và **kiểm thử chức năng** (`tests/kiem_thu_uc09_15.sh`, 98 ca cho UC9–UC15).
+4. Chạy web và các bài kiểm thử hiện có: URL, điều hướng/tải lô bài UC05, đọc/import Excel, phân phòng ABC UC07, UC05–UC08 và UC09–UC15. Danh sách lệnh chính xác nằm trong `.github/workflows/ci.yml`.
 
 Trong Pull Request sẽ thấy ✅ (qua) hoặc ❌ (lỗi). **Chỉ gộp khi ✅.** Nếu ❌: bấm **Details** để xem bước nào lỗi, sửa trên nhánh của mình rồi `git push` lại.
 
-Chạy bộ kiểm thử trên máy trước khi push (Git Bash, XAMPP đang bật, đã nhập `install.sql`):
+Các bài kiểm thử cần bộ seed nhỏ nguyên gốc trong database **kiểm thử riêng**, không chạy trên demo đang làm việc. Đặt DB_NAME cùng các biến kết nối cho cả PHP server và tiến trình kiểm thử; đặt BASE_URL trỏ tới server đó. Ví dụ Git Bash cho bộ nhỏ mặc định:
+
 ```bash
-bash tests/kiem_thu_uc09_15.sh
+DB_NAME=dreamteam_tuyensinh10 php -S 127.0.0.1:8080 router.php
+# Terminal khác, cùng cấu hình database:
+DB_NAME=dreamteam_tuyensinh10 BASE_URL=http://127.0.0.1:8080 bash tests/kiem_thu_uc09_15.sh
 ```
-Script tự sao lưu và khôi phục dữ liệu nên không làm mất dữ liệu trên máy. Khi làm xong UC của mình, mỗi bạn nên viết thêm ca kiểm thử theo cùng mẫu (hàm `kiem`, `dung`) để CI kiểm tra luôn phần mình.
+
+Các script có thao tác ghi, tạo tình huống lỗi và cơ chế khôi phục riêng; vẫn phải dùng database kiểm thử tách biệt. Không dựa vào sao lưu của test để bảo vệ dữ liệu đang làm việc.
 
 ---
 
@@ -117,5 +108,12 @@ Hai người cùng sửa một chỗ sẽ bị **conflict** khi gộp.
 | `git push` báo **protected branch** / bị từ chối | Bạn đang ở `main`. Chạy `git switch ten-nhanh-cua-ban` rồi push lại. |
 | Lỡ commit trên `main` ở máy mình | `git switch -c tam` (giữ commit sang nhánh tạm) → `git switch ten-nhanh-cua-ban` → `git merge tam` → `git branch -D tam`. Hoặc nhắn trưởng nhóm. |
 | `git pull origin main` báo **CONFLICT** | Mở file bị báo, tìm đoạn `<<<<<<<` … `>>>>>>>`, giữ phần đúng, xóa các dấu đó → `git add -A` → `git commit`. Không chắc thì hỏi nhóm. |
-| Trang trắng / lỗi CSDL | Kiểm tra XAMPP đã bật MySQL; nhập lại `install.sql` (xóa database `dreamteam_tuyensinh10` trước nếu đã có). |
-| Muốn dữ liệu mẫu về như ban đầu | phpMyAdmin → xóa database `dreamteam_tuyensinh10` → nhập lại `database/install.sql`. |
+| Trang trắng / lỗi CSDL | Kiểm tra Apache/MySQL, PHP error log, DB_* và config/database.local.php. Không tự xóa hoặc nhập lại database đang dùng. |
+| Cần bộ dữ liệu sạch để kiểm thử | Chuẩn bị database kiểm thử riêng và sao lưu trước; xem database/README.md. Không reset demo đang dùng. |
+
+## 8. Quy tắc giao diện và tài khoản
+
+- Dùng header, footer, sidebar chung; không tạo phiên bản riêng cho từng thành viên. Giữ bố cục công khai và quản trị hiện hành.
+- Dùng CSS/JS có sẵn; class mới đặt theo module. Không bỏ xác thực/phân quyền để xem trước trang quản trị.
+- Không hiển thị số liệu giả để thay lỗi kết nối database. Trường THCS của học sinh và THPT nhận nguyện vọng là hai danh mục khác nhau.
+- Các tài khoản/mật khẩu mô phỏng ghi tại README chính. Dùng chức năng Đổi mật khẩu nếu còn đăng nhập được; khi quên mật khẩu, nhờ người quản lý database xử lý đúng tài khoản sau khi sao lưu, không nhập lại toàn bộ dữ liệu.
