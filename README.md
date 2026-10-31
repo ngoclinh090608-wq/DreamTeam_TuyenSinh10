@@ -52,7 +52,7 @@ Các module còn lại có mức độ hoàn thiện khác nhau; không coi toà
 
 `database/install.sql` chứa bộ nhỏ 20 học sinh để kiểm thử; **không nhập chồng lên demo lớn**. CI kiểm tra cú pháp, SQL sinh lại, đường dẫn, Excel, phân phòng và UC05–UC15 trên database riêng. Kết quả mỗi lần chạy xem tại GitHub Actions.
 
-Giữ logic nghiệp vụ trong `services/`, dùng layout `includes/` và CSS/JavaScript trong `assets/`. Không commit cấu hình chứa mật khẩu, dữ liệu học sinh thật hoặc file session/log. Tài liệu báo cáo môn học nằm trong `docs/tai-lieu-tham-khao/`; nguồn tài nguyên hình ảnh ghi tại `assets/images/SOURCES.md`.
+Giữ logic nghiệp vụ trong `services/`, dùng layout `includes/` và CSS/JavaScript trong `assets/`. Không commit cấu hình chứa mật khẩu, dữ liệu học sinh thật hoặc file session/log. Nguồn tài nguyên hình ảnh ghi tại `assets/images/SOURCES.md`.
 
 ### UC06–UC07: tạo phòng theo điểm thi được chọn
 
