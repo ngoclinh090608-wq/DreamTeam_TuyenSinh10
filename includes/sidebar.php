@@ -1,5 +1,7 @@
-<?php $nav_sections = [
-  'TỔNG QUAN' => [ ['admin','Bảng điều khiển','▦'] ],
+<?php
+$sidebarUser = function_exists('current_user') ? current_user() : null;
+$nav_sections = [
+  'TỔNG QUAN' => [ ['admin', has_role($sidebarUser, ['HOC_SINH']) ? 'Trang cá nhân' : 'Bảng điều khiển','▦'] ],
   'TUYỂN SINH' => [ ['candidates','Thí sinh','♙'],['schools','Trường học','▤'],['admission-info','Thông tin tuyển sinh','▧'],['aspirations','Nguyện vọng','✧'],['results','Tra cứu kết quả','⌕'] ],
   'TỔ CHỨC THI' => [ ['exam','Kỳ thi & phòng thi','▣'],['councils','Hội đồng thi','♧'],['staff','Cán bộ','♙'],['assignments','Phân công nhiệm vụ','⇆'],['papers','Bài thi & số phách','▥'],['grading','Chấm thi & điểm','✓'] ],
   'KẾT QUẢ' => [ ['appeals','Phúc khảo','↺'],['admission','Xét tuyển','◇'],['enrollment','Nhập học','☑'],['publication','Công bố kết quả','◉'],['statistics','Thống kê','▥'] ],
@@ -9,8 +11,8 @@
  <div class="sidebar-group-list">
  <?php $__nu = function_exists('current_user') ? current_user() : null; foreach($nav_sections as $group => $items): $items = array_values(array_filter($items, fn($it) => $__nu && can_access_module($__nu, $it[0]))); if (!$items) continue; ?>
   <section class="sidebar-section"><h2><?= e($group) ?></h2>
-  <?php foreach($items as [$key,$label,$symbol]): ?>
-   <a class="side-link<?= ($active ?? '') === $key ? ' is-active' : '' ?>" href="<?= e(url($key . '/')) ?>"><span class="side-symbol"><?= e($symbol) ?></span><span><?= e($label) ?></span><?= ($active ?? '') === $key ? '<span class="side-active-dot"></span>' : '' ?></a>
+  <?php foreach($items as [$navKey,$label,$symbol]): ?>
+   <a class="side-link<?= ($active ?? '') === $navKey ? ' is-active' : '' ?>" href="<?= e(url($navKey . '/')) ?>"><span class="side-symbol"><?= e($symbol) ?></span><span><?= e($label) ?></span><?= ($active ?? '') === $navKey ? '<span class="side-active-dot"></span>' : '' ?></a>
   <?php endforeach; ?>
   </section>
  <?php endforeach; ?>

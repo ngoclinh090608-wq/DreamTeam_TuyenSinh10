@@ -73,8 +73,8 @@ function render_module(string $key): void {
     if ($isStudent && $key === 'appeals') { $module['title'] = 'Phúc khảo của tôi'; $module['desc'] = 'Theo dõi các yêu cầu phúc khảo của bạn.'; }
     if ($isStudent && $key === 'enrollment') { $module['title'] = 'Tình trạng nhập học'; $module['desc'] = 'Xem tình trạng nhập học gắn với hồ sơ của bạn.'; }
     $page_title = $module['title']; $layout = 'dashboard'; $active = $key;
+    $moduleTemplate = $isStudent && $key === 'admin' ? 'student_dashboard.php' : 'module_page.php';
     require __DIR__ . '/header.php';
-    if ($isStudent && $key === 'admin') require __DIR__ . '/student_dashboard.php';
-    else require __DIR__ . '/module_page.php';
+    require __DIR__ . '/' . $moduleTemplate;
     require __DIR__ . '/footer.php';
 }
