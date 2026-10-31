@@ -2,7 +2,7 @@
 declare(strict_types=1);
 /**
  * Dữ liệu thật từ database cho các trang danh sách (giữ nguyên layout giao diện chung).
- * Mọi hàm trả về null nếu chưa kết nối được DB -> giao diện tự dùng dữ liệu mẫu trong includes/.
+ * Khi không tải được dữ liệu, trả null để giao diện báo lỗi, không dùng dữ liệu mẫu.
  * Khi làm chức năng thật, mỗi thành viên thay truy vấn của module mình bằng service riêng.
  */
 require_once dirname(__DIR__) . '/config/database.php';
@@ -70,9 +70,15 @@ function live_stats(): ?array {
             'nvToiDa' => live_val('SELECT COALESCE(MAX(soLuongNguyenVongToiDa),0) FROM QuyDinhNguyenVong'),
             'nguyenVong' => live_val('SELECT COUNT(*) FROM NguyenVong'),
             'daXet' => live_val("SELECT COUNT(*) FROM KetQuaXetTuyen WHERE trangThaiXetTuyen<>'Chưa xét'"),
-            'theoTruong' => live_all("SELECT p.tenTruongTHPT, COUNT(n.maNguyenVong), i.chiTieuTuyenSinh FROM TruongTHPT p
-                 LEFT JOIN NguyenVong n ON n.maTruongTHPT=p.maTruongTHPT AND n.thuTuNguyenVong=1
-                 LEFT JOIN ThongTinTuyenSinh i ON i.maTruongTHPT=p.maTruongTHPT GROUP BY p.maTruongTHPT, p.tenTruongTHPT, i.chiTieuTuyenSinh ORDER BY p.maTruongTHPT"),
+             'baiThi' => live_val('SELECT COUNT(*) FROM BaiThi'),
+            'ketQuaChamThi' => live_val('SELECT COUNT(*) FROM KetQuaChamThi'),
+            'database' => (string)db()->query('SELECT DATABASE()')->fetchColumn(),
+            'theoTHCS' => live_all("SELECT c.tenTruongTHCS, COUNT(t.maThiSinh) FROM TruongTHCS c JOIN ThiSinh t ON t.maTruongTHCS=c.maTruongTHCS GROUP BY c.maTruongTHCS,c.tenTruongTHCS ORDER BY c.maTruongTHCS"),
+            'theoTruong' => live_all("SELECT p.tenTruongTHPT,
+                (SELECT COUNT(*) FROM NguyenVong n WHERE n.maTruongTHPT=p.maTruongTHPT AND n.thuTuNguyenVong=1),
+                COALESCE((SELECT SUM(i.chiTieuTuyenSinh) FROM ThongTinTuyenSinh i WHERE i.maTruongTHPT=p.maTruongTHPT
+                    AND i.maDot=(SELECT maDot FROM DotTuyenSinh ORDER BY namTuyenSinh DESC, maDot DESC LIMIT 1)),0)
+                FROM TruongTHPT p ORDER BY p.maTruongTHPT"),
         ];
     } catch (Throwable $e) { error_log('live_stats: ' . $e->getMessage()); return null; }
 }
@@ -96,7 +102,7 @@ function live_assignments(): ?array {
 function live_home_schools(): ?array {
     if (!live_available()) return null;
     try {
-        return live_all("SELECT p.maTruongTHPT, p.tenTruongTHPT, k.tenKhuVuc, COALESCE(i.chiTieuTuyenSinh,0)
-                         FROM TruongTHPT p JOIN KhuVuc k ON k.maKhuVuc=p.maKhuVuc LEFT JOIN ThongTinTuyenSinh i ON i.maTruongTHPT=p.maTruongTHPT ORDER BY p.maTruongTHPT");
+        return live_all("SELECT p.maTruongTHPT, p.tenTruongTHPT, k.tenKhuVuc, COALESCE((SELECT SUM(i.chiTieuTuyenSinh) FROM ThongTinTuyenSinh i WHERE i.maTruongTHPT=p.maTruongTHPT AND i.maDot=(SELECT maDot FROM DotTuyenSinh ORDER BY namTuyenSinh DESC, maDot DESC LIMIT 1)),0)
+                         FROM TruongTHPT p JOIN KhuVuc k ON k.maKhuVuc=p.maKhuVuc ORDER BY p.maTruongTHPT");
     } catch (Throwable $e) { return null; }
 }

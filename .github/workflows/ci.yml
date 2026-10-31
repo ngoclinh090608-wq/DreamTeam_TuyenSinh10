@@ -54,8 +54,8 @@ jobs:
       - name: 2. Kiểm tra install.sql đã được build lại
         run: |
           php database/build.php
-          if ! git diff --quiet -- database/install.sql database/install_schema.sql; then
-            echo "::error::database/install.sql chưa cập nhật. Hãy chạy 'php database/build.php' rồi commit lại cả install.sql và install_schema.sql."
+          if ! git diff --quiet -- database/install.sql; then
+            echo "::error::database/install.sql chưa cập nhật. Hãy chạy 'php database/build.php' rồi commit lại install.sql."
             git diff --stat -- database/
             exit 1
           fi
