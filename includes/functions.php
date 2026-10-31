@@ -43,7 +43,6 @@ function url(string $path = '', array $query = []): string {
     $parts[0] .= (str_contains($parts[0], '?') ? '&' : '?') . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
     return $parts[0] . (isset($parts[1]) ? '#' . $parts[1] : '');
 }
-function demo_mode(): bool { return (bool) app_config()['demo_mode']; }
 function ui_lower(string $value): string {
     return function_exists('mb_strtolower') ? mb_strtolower($value, 'UTF-8') : strtolower($value);
 }

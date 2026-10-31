@@ -19,7 +19,7 @@ Bản demo có 1.750 học sinh; bộ kiểm thử có 20 học sinh. Không nh�
 - `procedures/`: nghiệp vụ quản lý/phân phòng, phân công ra đề, nhập/sửa/công bố điểm và lịch sử điểm.
 - `seed/seed.sql`: dữ liệu mô phỏng nhỏ dùng cho kiểm thử.
 - `build.php`: gộp các phần trên thành `install.sql`.
-- `demo/`: một bản SQL đầy đủ của dữ liệu demo hiện hành, mẫu cấu hình và công cụ kiểm tra chỉ đọc.
+- `demo/`: ba snapshot SQL mới nhất người dùng gửi (demo, bản nhỏ, test), mẫu cấu hình và công cụ kiểm tra chỉ đọc. Xem bảng chọn file trong `demo/README.md`; hai snapshot nhỏ không thay thế bộ seed CI.
 
 Những file trong tables/views/functions/procedures là mã nguồn schema để nhóm phát triển, không phải nhiều bộ dữ liệu cần nhập lần lượt. File `install.sql` được sinh từ chúng; không sửa tay. Snapshot demo là bản xuất dữ liệu riêng, không được build từ seed nhỏ.
 
