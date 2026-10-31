@@ -62,7 +62,7 @@ Tối đa 500 bài / 2 MB mỗi file; không dùng `.xls` hoặc công thức. �
 
 Đọc/ghi `.xlsx` dùng phần mở rộng PHP `Phar` và `SimpleXML` (ngoài `pdo_mysql`, `mbstring`), không cần Composer. Kiểm thử: `php tests/kiem_thu_uc05_excel.php` trên dữ liệu mẫu gốc, và `BASE_URL=http://127.0.0.1:8080 bash tests/kiem_thu_uc05_08.sh`.
 
-Quy tắc UC07: điểm thi chỉ nhận thí sinh **đủ điều kiện dự thi** của các trường THCS **cùng khu vực** với trường đặt điểm thi; thí sinh đã xếp ở điểm thi khác của cùng kỳ thi không bị kéo sang. Xếp theo trường THCS rồi họ tên, lấp lần lượt từng phòng, không vượt sức chứa. Khi lưu, server kiểm tra lại: thí sinh thuộc danh sách cần phân, phòng thuộc điểm thi, sức chứa (tính cả người đang ngồi trong phòng).
+Quy tắc UC07: điểm thi chỉ nhận thí sinh **đủ điều kiện dự thi** của các trường THCS **cùng khu vực** với trường đặt điểm thi; thí sinh đã xếp ở điểm thi khác của cùng kỳ thi không bị kéo sang. Hệ thống tự động xếp ABC tiếng Việt theo tên gọi, rồi họ và tên đệm khi trùng tên (trùng toàn bộ tên thì theo mã thí sinh), không ưu tiên nhóm theo trường THCS; lấp lần lượt từng phòng và không vượt sức chứa. Danh sách đã lưu cũng hiển thị theo thứ tự ABC trong mỗi phòng. Khi lưu, server kiểm tra lại: thí sinh thuộc danh sách cần phân, phòng thuộc điểm thi, sức chứa (tính cả người đang ngồi trong phòng).
 
 Quy tắc UC08: tài khoản Hội đồng ra đề chỉ xem kỳ thi của Hội đồng ra đề (`HoiDongThi.loaiHoiDong = 'Ra đề'`) mà cán bộ của tài khoản là thành viên; kỳ thi khác báo “Không đủ quyền truy cập.” Ban Tuyển sinh xem được mọi kỳ thi.
 
