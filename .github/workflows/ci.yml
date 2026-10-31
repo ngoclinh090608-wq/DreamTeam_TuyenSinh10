@@ -75,6 +75,9 @@ jobs:
       - name: Kiểm thử đọc Excel và giao dịch UC05
         run: php tests/kiem_thu_uc05_excel.php
 
+      - name: Kiểm thử tự động phân phòng theo ABC UC07
+        run: php tests/kiem_thu_uc07_abc.php
+
       - name: Kiểm thử túi bài Excel UC05 và UC06–UC08
         env:
           BASE_URL: http://127.0.0.1:8080

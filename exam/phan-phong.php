@@ -116,7 +116,7 @@ if ($maDiemThi !== '') {
             $sqlDaPhan .= ' AND p.maPhong = ?';
             $paramsDaPhan[] = $maPhongLoc;
         }
-        $sqlDaPhan .= ' ORDER BY p.maPhong, t.soBaoDanh, t.maThiSinh';
+        $sqlDaPhan .= ' ORDER BY p.maPhong, ' . exam_thu_tu_ten_abc_sql();
         $st = db()->prepare($sqlDaPhan);
         $st->execute($paramsDaPhan);
         $dsDaPhanPhong = $st->fetchAll();
@@ -180,7 +180,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
   <div class="panel-heading">
     <div>
       <h2>2. Thực hiện phân phòng thi tự động</h2>
-      <p>Hệ thống lấy thí sinh đủ điều kiện của các trường THCS cùng khu vực với điểm thi, xếp theo trường THCS và họ tên, rồi lấp lần lượt từng phòng theo sức chứa.</p>
+      <p>Hệ thống lấy thí sinh đủ điều kiện của các trường THCS cùng khu vực với điểm thi, xếp ABC theo tên gọi, khi trùng tên thì xét họ và tên đệm, rồi tự động lấp lần lượt từng phòng theo sức chứa. Không chia nhóm theo trường THCS.</p>
     </div>
     <div class="panel-actions">
       <form method="post" novalidate style="display:inline">

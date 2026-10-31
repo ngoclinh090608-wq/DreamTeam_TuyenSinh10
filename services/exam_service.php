@@ -238,6 +238,16 @@ function layThongTinDiemThi(string $maDiemThi, string $maKyThi = ''): array {
     return $dt;
 }
 
+/** Thứ tự tiếng Việt: tên gọi → họ và tên đệm; không ưu tiên trường THCS.
+ * Chỉ trả về SQL cố định, không nhận đầu vào từ người dùng.
+ */
+function exam_thu_tu_ten_abc_sql(): string {
+    $hoTen = "TRIM(REGEXP_REPLACE(t.hoTen, '[[:space:]]+', ' '))";
+    $ten = "SUBSTRING_INDEX($hoTen, ' ', -1)";
+    $hoDem = "TRIM(LEFT($hoTen, CHAR_LENGTH($hoTen) - CHAR_LENGTH($ten)))";
+    return "$ten COLLATE utf8mb4_vietnamese_ci, $hoDem COLLATE utf8mb4_vietnamese_ci, t.maThiSinh";
+}
+
 /**
  * Bước 4, 6: danh sách thí sinh cần phân phòng tại điểm thi.
  * Quy tắc phân điểm thi (đặc tả UC07 bước 7):
@@ -270,8 +280,8 @@ function layDanhSachThiSinhPhuHopDiemThi(string $maKyThi, string $maDiemThi): ar
         $sql .= ' AND c.maKhuVuc = ?';
         $params[] = $maKhuVuc;
     }
-    // Xếp theo trường THCS rồi họ tên để thí sinh cùng trường ngồi gần nhau
-    $sql .= ' ORDER BY c.maTruongTHCS, t.hoTen, t.maThiSinh';
+    // Xếp ABC theo tên gọi trên toàn điểm thi; mã thí sinh giữ thứ tự ổn định khi trùng tên.
+    $sql .= ' ORDER BY ' . exam_thu_tu_ten_abc_sql();
 
     $st = db()->prepare($sql);
     $st->execute($params);
@@ -299,7 +309,7 @@ function layThiSinhKhongPhuHopDiemThi(string $maDiemThi): array {
 
 /**
  * Bước 6–8: kiểm tra điều kiện phân phòng và tính kết quả phân phòng dự kiến (chưa lưu).
- * Thí sinh được xếp lần lượt vào từng phòng theo thứ tự trường THCS, không vượt sức chứa còn trống của phòng.
+ * Thí sinh được xếp lần lượt vào từng phòng theo ABC của tên gọi, rồi họ và tên đệm, không vượt sức chứa còn trống của phòng.
  */
 function kiemTraVaTinhToanPhanPhong(string $maKyThi, string $maDiemThi): array {
     $maKyThi = trim($maKyThi);
