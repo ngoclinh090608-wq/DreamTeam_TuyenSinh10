@@ -42,21 +42,100 @@ function exam_ds_ky_thi(): array {
     return db()->query('SELECT maKyThi, tenKyThi, thoiGianKetThuc, maDot FROM KyThi ORDER BY maKyThi DESC')->fetchAll();
 }
 
-function exam_ds_diem_thi(string $maKyThi = ''): array {
+function exam_ds_diem_thi(string $maKyThi = '', bool $chiTruongNV1 = false): array {
     $sql = 'SELECT d.maDiemThi, d.tenDiemThi, d.maKyThi, d.maTruongTHCS, d.maTruongTHPT,
-                   k.tenKyThi, p.tenTruongTHPT,
+                   k.tenKyThi, p.tenTruongTHPT, CONCAT(p.tenTruongTHPT, " — ", d.tenDiemThi) AS tenTruongVaDiemThi,
                    COALESCE(c.tenTruongTHCS, p.tenTruongTHPT, "") AS tenTruongDatDiem,
                    COALESCE(c.maKhuVuc, p.maKhuVuc, "") AS maKhuVuc
             FROM DiemThi d
             JOIN KyThi k ON k.maKyThi = d.maKyThi
             LEFT JOIN TruongTHCS c ON c.maTruongTHCS = d.maTruongTHCS
             LEFT JOIN TruongTHPT p ON p.maTruongTHPT = d.maTruongTHPT';
-    if ($maKyThi !== '') {
-        $st = db()->prepare($sql . ' WHERE d.maKyThi = ? ORDER BY d.maDiemThi');
-        $st->execute([$maKyThi]);
-        return $st->fetchAll();
+    $where = []; $params = [];
+    if ($maKyThi !== '') { $where[] = 'd.maKyThi = ?'; $params[] = $maKyThi; }
+    if ($chiTruongNV1) $where[] = 'd.maTruongTHPT IS NOT NULL';
+    if ($where) $sql .= ' WHERE ' . implode(' AND ', $where);
+    $st = db()->prepare($sql . ' ORDER BY p.tenTruongTHPT, d.maDiemThi');
+    $st->execute($params);
+    return $st->fetchAll();
+}
+
+/** Choices include existing sites and one explicit new-site option per registered school. */
+function exam_ds_diem_tao_phong(string $maKyThi): array {
+    $st = db()->prepare('SELECT DISTINCT
+        COALESCE(d.maDiemThi, CONCAT("truong:", p.maTruongTHPT)) AS giaTri,
+        CONCAT(p.tenTruongTHPT, " — ", COALESCE(d.tenDiemThi, "Tạo điểm thi mới")) AS nhan
+        FROM KyThi k JOIN DotTuyenSinh dot ON dot.maDot = k.maDot
+        JOIN QuyDinhNguyenVong q ON q.namTuyenSinh = dot.namTuyenSinh
+        JOIN NguyenVong nv ON nv.maQuyDinh = q.maQuyDinh AND nv.thuTuNguyenVong = 1
+        JOIN ThiSinh t ON t.maThiSinh = nv.maThiSinh AND t.dieuKienDuThi = 1 AND t.trangThaiDangKyDuThi = "Đã duyệt"
+        JOIN TruongTHPT p ON p.maTruongTHPT = nv.maTruongTHPT
+        LEFT JOIN DiemThi d ON d.maTruongTHPT = p.maTruongTHPT AND d.maKyThi = k.maKyThi
+        WHERE k.maKyThi = ? ORDER BY nhan');
+    $st->execute([$maKyThi]); return $st->fetchAll();
+}
+
+/** Prepare NV1 high-school sites and enough new 30-seat rooms; preserve existing data. */
+function exam_tao_diem_thi_theo_nv1(string $maKyThi, string $diemDaChon): array {
+    $pdo = db();
+    try {
+        $pdo->beginTransaction();
+        $lock = $pdo->prepare('SELECT maKyThi FROM KyThi WHERE maKyThi = ? FOR UPDATE');
+        $lock->execute([$maKyThi]);
+        if (!$lock->fetchColumn()) throw new ExamException(EXAM_TB_CHUA_DU_DIEU_KIEN_PHAN_PHONG, ['Vui lòng chọn kỳ thi hợp lệ.']);
+        if ($diemDaChon === '') throw new ExamException(EXAM_TB_CHUA_DU_DIEU_KIEN_PHAN_PHONG, ['Vui lòng chọn một điểm thi cần tạo phòng.']);
+        $siteChosen = null;
+        if (str_starts_with($diemDaChon, 'truong:')) {
+            $schoolChosen = substr($diemDaChon, 7);
+        } else {
+            $siteChosen = layThongTinDiemThi($diemDaChon, $maKyThi);
+            exam_kiem_tra_truong_diem_thi($siteChosen);
+            $schoolChosen = $siteChosen['maTruongTHPT'];
+        }
+        $st = $pdo->prepare('SELECT p.maTruongTHPT, p.tenTruongTHPT, COUNT(*) AS soThiSinh
+            FROM KyThi k JOIN DotTuyenSinh dot ON dot.maDot = k.maDot
+            JOIN QuyDinhNguyenVong q ON q.namTuyenSinh = dot.namTuyenSinh
+            JOIN NguyenVong nv ON nv.maQuyDinh = q.maQuyDinh AND nv.thuTuNguyenVong = 1
+            JOIN ThiSinh t ON t.maThiSinh = nv.maThiSinh AND t.dieuKienDuThi = 1 AND t.trangThaiDangKyDuThi = "Đã duyệt"
+            JOIN TruongTHPT p ON p.maTruongTHPT = nv.maTruongTHPT WHERE k.maKyThi = ? AND p.maTruongTHPT = ? GROUP BY p.maTruongTHPT, p.tenTruongTHPT ORDER BY p.maTruongTHPT');
+        $st->execute([$maKyThi, $schoolChosen]); $schools = $st->fetchAll();
+        if (!$schools) throw new ExamException(EXAM_TB_CHUA_DU_DIEU_KIEN_PHAN_PHONG, ['Kỳ thi chưa có thí sinh đủ điều kiện đăng ký nguyện vọng 1.']);
+        $find = $pdo->prepare('SELECT maDiemThi FROM DiemThi WHERE maKyThi = ? AND maTruongTHPT = ? ORDER BY maDiemThi');
+        $insert = $pdo->prepare('INSERT INTO DiemThi (maDiemThi, tenDiemThi, maTruongTHCS, maTruongTHPT, maKyThi) VALUES (?, ?, NULL, ?, ?)');
+        $n = 0; $soPhongMoi = 0;
+        $insertRoom = $pdo->prepare('INSERT INTO PhongThi (maPhong, tenPhong, sucChua, maDiemThi) VALUES (?, ?, 30, ?)');
+        foreach ($schools as $school) {
+            $find->execute([$maKyThi, $school['maTruongTHPT']]);
+            $siteIds = $siteChosen ? [$siteChosen['maDiemThi']] : $find->fetchAll(PDO::FETCH_COLUMN);
+            // Exactly one target, even when a school has several exam sites.
+            $siteIds = array_slice($siteIds, 0, 1);
+            if (!$siteIds) {
+                $id = 'NV1_' . substr(hash('sha256', $maKyThi . ':' . $school['maTruongTHPT']), 0, 16);
+                $insert->execute([$id, 'Điểm thi ' . $school['tenTruongTHPT'], $school['maTruongTHPT'], $maKyThi]);
+                $siteIds = [$id]; $n++;
+            }
+            $freeCapacity = 0;
+            foreach ($siteIds as $siteId) {
+                exam_doi_ma_phong_tu_sinh($siteId);
+                $lockRooms = $pdo->prepare('SELECT maPhong, sucChua FROM PhongThi WHERE maDiemThi = ? ORDER BY maPhong FOR UPDATE');
+                $lockRooms->execute([$siteId]);
+                $existingRooms = $lockRooms->fetchAll();
+                $reserved = array_count_values(array_column(layThiSinhKhongPhuHopDiemThi($siteId), 'maPhong'));
+                foreach ($existingRooms as $room) $freeCapacity += max(0, (int)$room['sucChua'] - ($reserved[$room['maPhong']] ?? 0));
+            }
+            $cohort = count(layDanhSachThiSinhPhuHopDiemThi($maKyThi, $siteIds[0]));
+            $needed = (int)ceil(max(0, $cohort - $freeCapacity) / 30);
+            for ($i = 0; $i < $needed; $i++) {
+                $roomId = sinhMaPhongTuDong($siteIds[0]);
+                $insertRoom->execute([$roomId, 'Phòng ' . substr($roomId, 1), $siteIds[0]]);
+                $soPhongMoi++;
+            }
+        }
+        $pdo->commit(); return ['diemThi' => $n, 'phongThi' => $soPhongMoi, 'maDiemThi' => $siteIds[0]];
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        throw $e;
     }
-    return db()->query($sql . ' ORDER BY d.maDiemThi')->fetchAll();
 }
 
 function exam_ds_phong_thi(string $maDiemThi = ''): array {
@@ -91,26 +170,44 @@ function exam_ds_mon_thi(): array {
  * Mã phòng là khóa chính toàn hệ thống nên bỏ qua mã đã dùng ở điểm thi khác (8.1: sinh lại khi trùng).
  */
 function sinhMaPhongTuDong(string $maDiemThi): string {
-    $st = db()->prepare('SELECT maPhong FROM PhongThi WHERE maDiemThi = ? ORDER BY LENGTH(maPhong) DESC, maPhong DESC LIMIT 1');
-    $st->execute([$maDiemThi]);
-    $last = (string)$st->fetchColumn();
-    if ($last !== '' && preg_match('/^([A-Za-z]+)(\d+)$/', $last, $m)) {
-        $prefix = $m[1];
-        $num = (int)$m[2] + 1;
-        $len = strlen($m[2]);
+    $dt = layThongTinDiemThi($maDiemThi);
+    exam_kiem_tra_truong_diem_thi($dt);
+    $school = (string)$dt['maTruongTHPT'];
+    if (preg_match('/([0-9]{1,8})$/', $school, $m)) {
+        $number = (string)(int)$m[1];
     } else {
-        // Gợi ý theo mã điểm thi: DT01 -> P101, DT02 -> P201
-        $prefix = 'P';
-        $num = preg_match('/(\d+)$/', $maDiemThi, $m) ? (int)$m[1] * 100 + 1 : 1;
-        $len = 3;
+        $schools = db()->query('SELECT maTruongTHPT FROM TruongTHPT ORDER BY maTruongTHPT')->fetchAll(PDO::FETCH_COLUMN);
+        $number = (string)(array_search($school, $schools, true) + 1);
     }
-    $stTonTai = db()->prepare('SELECT COUNT(*) FROM PhongThi WHERE maPhong = ?');
-    for ($i = 0; $i < 1000; $i++, $num++) {
-        $ma = sprintf('%s%0' . $len . 'd', $prefix, $num);
-        $stTonTai->execute([$ma]);
-        if ((int)$stTonTai->fetchColumn() === 0) return $ma;
+    $st = db()->prepare('SELECT 1 FROM PhongThi WHERE maPhong = ? OR (maDiemThi = ? AND tenPhong = ?) LIMIT 1');
+    for ($index = 1; $index <= 9999; $index++) {
+        $code = 'P' . $number . sprintf('%02d', $index);
+        $st->execute([$code, $maDiemThi, 'Phòng ' . substr($code, 1)]);
+        if (!$st->fetchColumn()) return $code;
     }
-    return $prefix . date('His');
+    throw new ExamException(EXAM_TB_LOI_LUU_PHONG, ['Không còn mã phòng trống cho trường đã chọn.']);
+}
+
+/** Rename only our old hashed codes, preserving foreign keys without disabling constraints.
+ * The setup action owns the transaction; a failure rolls back all room/link changes.
+ */
+function exam_doi_ma_phong_tu_sinh(string $maDiemThi): void {
+    $pdo = db();
+    if (!$pdo->inTransaction()) throw new LogicException('Room code conversion requires a transaction.');
+    $st = $pdo->prepare('SELECT * FROM PhongThi WHERE maDiemThi = ? ORDER BY maPhong FOR UPDATE');
+    $st->execute([$maDiemThi]);
+    foreach ($st->fetchAll() as $room) {
+        if (!preg_match('/^R[a-f0-9]{10}_[0-9]+$/', $room['maPhong'])) continue;
+        $newCode = sinhMaPhongTuDong($maDiemThi);
+        $insert = $pdo->prepare('INSERT INTO PhongThi (maPhong, tenPhong, sucChua, maDiemThi) VALUES (?, ?, ?, ?)');
+        $insert->execute([$newCode, 'Phòng ' . substr($newCode, 1), $room['sucChua'], $maDiemThi]);
+        foreach (['PhanPhongThi', 'LoBaiThi', 'PhanCongCoiThi'] as $table) {
+            $update = $pdo->prepare('UPDATE ' . $table . ' SET maPhong = ? WHERE maPhong = ?');
+            $update->execute([$newCode, $room['maPhong']]);
+        }
+        $delete = $pdo->prepare('DELETE FROM PhongThi WHERE maPhong = ?');
+        $delete->execute([$room['maPhong']]);
+    }
 }
 
 /**
@@ -140,6 +237,8 @@ function kiemTraPhongThi(string $maDiemThi, string $maPhong, string $tenPhong, i
     if ((int)$st->fetchColumn() === 0) {
         throw new ExamException(EXAM_TB_PHONG_KHONG_HOP_LE, ['Địa điểm thi không tồn tại trong hệ thống.']);
     }
+
+    exam_kiem_tra_truong_diem_thi(layThongTinDiemThi($maDiemThi));
 
     // Kiểm tra trùng mã phòng trên toàn hệ thống (nếu thêm mới hoặc đổi mã)
     if ($maPhongCu === null || $maPhong !== $maPhongCu) {

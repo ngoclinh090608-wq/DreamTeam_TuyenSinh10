@@ -87,6 +87,9 @@ jobs:
       - name: Kiểm thử đọc Excel và giao dịch UC05
         run: php tests/kiem_thu_uc05_excel.php
 
+      - name: Kiểm thử điểm thi đúng trường NV1 UC06–UC07
+        run: php tests/kiem_thu_uc06_nv1.php
+
       - name: Kiểm thử tự động phân phòng theo ABC UC07
         run: php tests/kiem_thu_uc07_abc.php
 
