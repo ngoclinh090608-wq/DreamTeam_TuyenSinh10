@@ -46,10 +46,21 @@ Làm theo đặc tả và Test Case Tuần 04, tên hàm theo bảng Message –
 
 | UC | Trang | Tài khoản | Làm gì |
 |---|---|---|---|
-| UC05 Nhập điểm thi | `/grading/nhap-diem.php` | `hdchamthi` | Chọn kỳ thi, môn thi → chọn bài thi (chỉ thấy mã phách, không thấy tên thí sinh) → nhập điểm → **Kiểm tra điểm** → **Xác nhận nhập điểm** hoặc **Nhập lại điểm**. Lưu `KetQuaChamThi` (người nhập, thời điểm nhập) và đổi `BaiThi.trangThaiCham` trong 1 transaction |
+| UC05 Nhập điểm thi | `/grading/nhap-diem.php` | `hdchamthi` | Lọc kỳ thi, môn thi, phòng thi → chọn túi bài → tải Excel (Phòng thi, Số phách, Điểm) → người chấm điền điểm → import lại → kiểm tra → xác nhận lưu cả túi trong 1 transaction |
 | UC06 Tạo thông tin phòng thi | `/exam/tao-phong.php` | `bantuyensinh` | Chọn kỳ thi, điểm thi → hệ thống tự sinh mã phòng, tên phòng, sức chứa → chỉnh nếu cần → Tạo phòng. Chặn trùng mã phòng (toàn hệ thống) và trùng tên phòng trong cùng điểm thi |
 | UC07 Phân phòng thi cho thí sinh | `/exam/phan-phong.php` | `bantuyensinh` | Chọn kỳ thi, điểm thi → Xem trước → (đổi phòng từng thí sinh nếu cần) → Xác nhận lưu. Có Chuyển phòng / Hủy phân phòng từng thí sinh |
 | UC08 Xem phân công ra đề thi | `/exam/phan-cong-ra-de.php` | `hdrade` | Chọn kỳ thi → danh sách môn được phân công → Xem chi tiết (kỳ thi, môn, thời gian thực hiện, nhiệm vụ) → Quay lại danh sách. Chỉ đọc |
+
+**UC05 chỉ nhập điểm qua file Excel của túi bài thi** tại `/grading/nhap-diem.php`:
+
+1. Lọc **Kỳ thi → Môn thi → Phòng thi**, bấm **Lọc túi bài**, rồi chọn túi bài cần chấm.
+2. Bấm **Tải file túi bài (.xlsx)**. File chứa đúng ba cột **Phòng thi, Số phách, Điểm**; phòng thi và số phách được điền sẵn, điểm để trống. Chỉ xuất các bài chưa có điểm, không xuất thông tin thí sinh. Túi có bài chưa đánh phách phải hoàn tất đánh phách trước.
+3. Người chấm điền cột **Điểm** trong Excel, giữ nguyên phòng thi / số phách và tiêu đề, lưu `.xlsx` rồi **Import và kiểm tra file** trở lại đúng túi đã chọn.
+4. Xem lỗi từng dòng; nếu hợp lệ thì **Xác nhận lưu điểm**. Không có nhập tay trên web. Bài đã có điểm chỉ chỉnh sửa tại UC13.
+
+Tối đa 500 bài / 2 MB mỗi file; không dùng `.xls` hoặc công thức. Điểm theo thang môn, bước 0.25. Hệ thống kiểm tra đúng kỳ / môn / phòng / túi, số phách, trùng bài và điểm trước khi lưu. Khi xác nhận, kiểm tra lại dữ liệu và lưu toàn bộ trong một transaction; lỗi sẽ không lưu điểm nào. Bản xem trước hết hạn sau 15 phút.
+
+Đọc/ghi `.xlsx` dùng phần mở rộng PHP `Phar` và `SimpleXML` (ngoài `pdo_mysql`, `mbstring`), không cần Composer. Kiểm thử: `php tests/kiem_thu_uc05_excel.php` trên dữ liệu mẫu gốc, và `BASE_URL=http://127.0.0.1:8080 bash tests/kiem_thu_uc05_08.sh`.
 
 Quy tắc UC07: điểm thi chỉ nhận thí sinh **đủ điều kiện dự thi** của các trường THCS **cùng khu vực** với trường đặt điểm thi; thí sinh đã xếp ở điểm thi khác của cùng kỳ thi không bị kéo sang. Xếp theo trường THCS rồi họ tên, lấp lần lượt từng phòng, không vượt sức chứa. Khi lưu, server kiểm tra lại: thí sinh thuộc danh sách cần phân, phòng thuộc điểm thi, sức chứa (tính cả người đang ngồi trong phòng).
 
@@ -59,7 +70,7 @@ Thử nhanh:
 
 | Muốn thử | Làm |
 |---|---|
-| UC05 nhập điểm thành công | Môn Toán → bài `P0030` → điểm `8.75` → Kiểm tra → Xác nhận |
+| UC05 nhập điểm thành công | Môn Toán → phòng `P202` → túi `LO_P202_TOAN` → tải Excel → điền điểm 3 bài → import → xác nhận |
 | UC05 “Điểm thi không hợp lệ.” | Điểm `8.3` (sai bước 0.25), `11`, để trống hoặc `abc` |
 | UC05 “Không có bài thi cần nhập điểm.” | Chọn môn Ngữ văn (đã chấm hết) |
 | UC05 “Điểm bài thi đã được xác nhận chính thức.” | Mở lại bài vừa nhập điểm |
@@ -68,7 +79,7 @@ Thử nhanh:
 | UC07 “Điểm thi không phù hợp với khu vực trường THCS.” | Điểm thi THCS Mẫu A: seed đang xếp thí sinh trường THCS C, D (khu vực 2, 3) vào đây → hiện cảnh báo, không phân tự động |
 | UC08 xem chi tiết | Kỳ thi 2026 → Toán → Xem chi tiết |
 
-Mã nguồn: `services/exam_service.php` (UC06–UC08), phần UC05 cuối `services/grading_service.php`; giao diện `includes/exam_ui.php`. Kiểm thử: `BASE_URL=http://127.0.0.1:8080 bash tests/kiem_thu_uc05_08.sh` (58 ca, tự sao lưu và khôi phục dữ liệu).
+Mã nguồn: `services/exam_service.php` (UC06–UC08), phần UC05 cuối `services/grading_service.php`; giao diện `includes/exam_ui.php`. Kiểm thử: `BASE_URL=http://127.0.0.1:8080 bash tests/kiem_thu_uc05_08.sh` (tự sao lưu và khôi phục dữ liệu).
 
 ### UC09 – UC11: Lô bài thi, Hội đồng thi, Phân công coi thi (Trần Thị Cẩm Vân) — đã chạy với CSDL
 

@@ -75,26 +75,13 @@ dung UC05 "Tài khoản không phải HD_CHAM_THI bị chặn (HTTP 403)" "$(ma_
 get "grading/nhap-diem.php" | kiem UC05 "Thông báo chặn quyền truy cập" "Bạn không có quyền thực hiện chức năng này."
 
 dang_nhap "hdchamthi"
-get "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN" | kiem UC05 "Mở trang nhập điểm thành công" "Nhập điểm thi"
-get "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN" | kiem UC05 "Thấy bài thi chờ chấm P0030" "P0030"
-
-# Nhập điểm sai bước nhảy (8.3)
-T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&baiThi=BT046")
-post "grading/nhap-diem.php" -d "action=nhap_diem&maBaiThi=BT046&kyThi=KT2026&monThi=TOAN&diemThi=8.3" | kiem UC05 "Điểm sai bước 0.25 (8.3) bị báo lỗi" "Điểm thi không hợp lệ."
-
-# Nhập điểm quá thang điểm (11)
-T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&baiThi=BT046")
-post "grading/nhap-diem.php" -d "action=nhap_diem&maBaiThi=BT046&kyThi=KT2026&monThi=TOAN&diemThi=11" | kiem UC05 "Điểm vượt thang điểm (>10) bị báo lỗi" "Điểm thi không hợp lệ."
-
-# Nhập điểm thành công cho BT046 (8.75)
-T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&baiThi=BT046")
-post "grading/nhap-diem.php" -d "action=nhap_diem&maBaiThi=BT046&kyThi=KT2026&monThi=TOAN&diemThi=8.75" | kiem UC05 "Nhập điểm thành công cho BT046" "Nhập điểm thi thành công."
-dung UC05 "CSDL ghi nhận kết quả điểm 8.75" "$(gtri "SELECT diemThi FROM KetQuaChamThi WHERE maBaiThi = 'BT046'")" "8.75"
-dung UC05 "Trạng thái bài thi chuyển sang Đã chấm" "$(gtri "SELECT trangThaiCham FROM BaiThi WHERE maBaiThi = 'BT046'")" "Đã chấm"
-
-# Thử nhập đè lên bài vừa có kết quả -> báo đã xác nhận
-T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&baiThi=BT046")
-post "grading/nhap-diem.php" -d "action=nhap_diem&maBaiThi=BT046&kyThi=KT2026&monThi=TOAN&diemThi=9.0" | kiem UC05 "Chặn nhập đè bài đã có kết quả" "Điểm bài thi đã được xác nhận chính thức."
+get "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&phongThi=P202&tuiBai=LO_P202_TOAN" | kiem UC05 "Hiển thị túi bài theo kỳ, môn, phòng" "LO_P202_TOAN"
+get "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&phongThi=P202&tuiBai=LO_P202_TOAN" | kiem UC05 "Có tải túi Excel" "Tải file túi bài (.xlsx)"
+get "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&phongThi=P202&tuiBai=LO_P202_TOAN" | kiem UC05 "Có import lại túi đã điền điểm" "Import và kiểm tra file"
+get "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN" | khong UC05 "Không còn ô nhập tay" 'name="diemThi"'
+T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN")
+post "grading/nhap-diem.php" -d "action=nhap_diem&maBaiThi=BT046&kyThi=KT2026&monThi=TOAN&diemThi=8.75" | kiem UC05 "Chặn API nhập tay cũ" "UC05 chỉ nhập điểm bằng file Excel"
+dung UC05 "Nhập tay không lưu điểm" "$(gtri "SELECT COUNT(*) FROM KetQuaChamThi WHERE maBaiThi='BT046'")" 0
 
 # =============================================================================
 # UC06: TẠO THÔNG TIN PHÒNG THI (Actor: BAN_TUYEN_SINH)
@@ -165,30 +152,6 @@ get "exam/phan-cong-ra-de.php?kyThi=KT2026&monThi=TOAN" | kiem UC08 "Lọc theo 
 # =============================================================================
 # BỔ SUNG: các luồng phụ / ngoại lệ theo đặc tả và Test Case Tuần 04
 # =============================================================================
-dang_nhap "hdchamthi"
-# UC05 bước 8–9: kiểm tra điểm hợp lệ -> chờ xác nhận, chưa lưu
-T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&baiThi=BT049")
-post "grading/nhap-diem.php" -d "action=kiem_tra&maBaiThi=BT049&kyThi=KT2026&monThi=TOAN&diemThi=7.5" | kiem UC05 "Kiểm tra điểm hợp lệ, chờ xác nhận" "Vui lòng xác nhận nhập điểm."
-dung UC05 "Chưa xác nhận thì chưa lưu điểm" "$(gtri "SELECT COUNT(*) FROM KetQuaChamThi WHERE maBaiThi = 'BT049'")" 0
-# UC05 9.1: nhập lại điểm -> giữ biểu mẫu nhập điểm
-T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&baiThi=BT049")
-post "grading/nhap-diem.php" -d "action=nhap_lai&maBaiThi=BT049&kyThi=KT2026&monThi=TOAN&diemThi=7.5" | kiem UC05 "Nhập lại điểm trước khi lưu" "Kiểm tra điểm"
-# UC05 8.1: không nhập điểm / sai định dạng
-T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&baiThi=BT049")
-post "grading/nhap-diem.php" -d "action=kiem_tra&maBaiThi=BT049&kyThi=KT2026&monThi=TOAN&diemThi=" | kiem UC05 "Không nhập điểm bị báo lỗi" "Điểm thi không hợp lệ."
-T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&baiThi=BT049")
-post "grading/nhap-diem.php" -d "action=kiem_tra&maBaiThi=BT049&kyThi=KT2026&monThi=TOAN&diemThi=abc" | kiem UC05 "Điểm sai định dạng bị báo lỗi" "Điểm thi không hợp lệ."
-# UC05 8.2: bài thi chưa đủ điều kiện (chưa có số phách)
-sql "UPDATE BaiThi SET soPhach = NULL WHERE maBaiThi = 'BT052';"
-T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=TOAN&baiThi=BT052")
-post "grading/nhap-diem.php" -d "action=nhap_diem&maBaiThi=BT052&kyThi=KT2026&monThi=TOAN&diemThi=6" | kiem UC05 "Bài chưa đủ điều kiện nhập điểm" "Bài thi chưa đủ điều kiện nhập điểm."
-dung UC05 "Bài chưa đủ điều kiện không được ghi điểm" "$(gtri "SELECT COUNT(*) FROM KetQuaChamThi WHERE maBaiThi = 'BT052'")" 0
-# UC05 4.1: môn không còn bài cần nhập điểm
-get "grading/nhap-diem.php?kyThi=KT2026&monThi=VAN" | kiem UC05 "Không có bài thi cần nhập điểm" "Không có bài thi cần nhập điểm."
-# Bài thi không thuộc môn đã chọn
-T=$(tok "grading/nhap-diem.php?kyThi=KT2026&monThi=VAN")
-post "grading/nhap-diem.php" -d "action=nhap_diem&maBaiThi=BT049&kyThi=KT2026&monThi=VAN&diemThi=6" | kiem UC05 "Chặn nhập điểm bài không thuộc môn đã chọn" "Không tìm thấy bài thi tương ứng với mã phách."
-
 dang_nhap "bantuyensinh"
 # UC06 bước 5: hệ thống tự sinh mã phòng tiếp theo
 get "exam/tao-phong.php?kyThi=KT2026&diemThi=DT01" | kiem UC06 "Tự động sinh mã phòng P103" 'value="P103"'
