@@ -53,3 +53,9 @@ Các module còn lại có mức độ hoàn thiện khác nhau; không coi toà
 `database/install.sql` chứa bộ nhỏ 20 học sinh để kiểm thử; **không nhập chồng lên demo lớn**. CI kiểm tra cú pháp, SQL sinh lại, đường dẫn, Excel, phân phòng và UC05–UC15 trên database riêng. Kết quả mỗi lần chạy xem tại GitHub Actions.
 
 Giữ logic nghiệp vụ trong `services/`, dùng layout `includes/` và CSS/JavaScript trong `assets/`. Không commit cấu hình chứa mật khẩu, dữ liệu học sinh thật hoặc file session/log. Tài liệu báo cáo môn học nằm trong `docs/tai-lieu-tham-khao/`; nguồn tài nguyên hình ảnh ghi tại `assets/images/SOURCES.md`.
+
+### UC06–UC07: điểm thi theo trường NV1
+
+Thí sinh thi tại trường THPT đăng ký nguyện vọng 1, theo năm tuyển sinh của kỳ thi. Hai trang UC06–UC07 chỉ hiển thị điểm thi gắn với trường THPT. Nếu bộ dữ liệu còn điểm thi THCS và chưa có trường trong danh sách, chọn kỳ thi rồi bấm **Tạo điểm thi còn thiếu theo trường NV1**. Bấm lại không tạo trùng; thao tác không xóa hoặc chuyển phòng, bài thi hay điểm đã lưu.
+
+Sau đó chọn **Trường THPT đăng ký NV1 / điểm thi**, tạo phòng và sức chứa ở UC06, rồi phân tự động ở UC07. Thí sinh được xếp ABC theo tên gọi, họ và tên đệm; phòng trước đầy mới dùng phòng sau, phòng cuối có thể không đầy. Phòng/bài thi theo THCS từ dữ liệu cũ vẫn giữ nguyên; tạo điểm thi mới không tự di chuyển các lô bài và kết quả chấm cũ.
