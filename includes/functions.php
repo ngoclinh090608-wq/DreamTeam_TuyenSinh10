@@ -11,6 +11,16 @@ function app_config(): array {
 function e(mixed $str): string {
     return htmlspecialchars((string)$str, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
+/** Format existing catalogue labels without changing stored records or keys. */
+function catalog_display_name(string $name): string {
+    $name = preg_replace('/\s*\(mẫu\)\s*$/iu', '', $name) ?? $name;
+    $name = preg_replace('/Phòng\s+demo\s+(\d+)-(\d{2})/iu', 'Phòng thi $1$2', $name) ?? $name;
+    $name = preg_replace('/\bdemo\b\s*/iu', '', $name) ?? $name;
+    return trim(preg_replace('/[ \t]{2,}/u', ' ', $name) ?? $name);
+}
+function school_display_name(string $name): string {
+    return catalog_display_name($name);
+}
 /** Works both from XAMPP subdirectory and from project's built-in PHP server. */
 function base_path(): string {
     $forced = app_config()['base_path'];

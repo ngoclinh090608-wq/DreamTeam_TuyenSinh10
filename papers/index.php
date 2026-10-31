@@ -67,7 +67,7 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
     <thead><tr><th>STT</th><th>Mã lô</th><th>Môn thi</th><th>Phòng thi</th><th>Điểm thi</th><th>Số bài</th><th>Đã đánh phách</th><th></th></tr></thead>
     <tbody>
     <?php foreach ($ketQua as $i => $r): ?>
-      <tr<?= $r['maLoBaiThi'] === $maLoChon ? ' class="ui-row-on"' : '' ?>><td class="muted"><?= $i + 1 ?></td><td><span class="code-tag"><?= e($r['maLoBaiThi']) ?></span></td><td><?= e($r['tenMonThi']) ?></td><td><?= e($r['tenPhong']) ?></td><td><?= e($r['tenDiemThi']) ?></td><td><strong><?= (int)$r['soBai'] ?></strong></td><td><?= (int)$r['soBaiCoPhach'] ?>/<?= (int)$r['soBai'] ?></td>
+      <tr<?= $r['maLoBaiThi'] === $maLoChon ? ' class="ui-row-on"' : '' ?>><td class="muted"><?= $i + 1 ?></td><td><span class="code-tag"><?= e($r['maLoBaiThi']) ?></span></td><td><?= e($r['tenMonThi']) ?></td><td><?= e(catalog_display_name((string)$r['tenPhong'])) ?></td><td><?= e(catalog_display_name((string)$r['tenDiemThi'])) ?></td><td><strong><?= (int)$r['soBai'] ?></strong></td><td><?= (int)$r['soBaiCoPhach'] ?>/<?= (int)$r['soBai'] ?></td>
         <td><a class="btn btn-outline btn-sm" href="?<?= e(http_build_query($q + ['lo' => $r['maLoBaiThi']])) ?>#chi-tiet">Xem</a></td></tr>
     <?php endforeach; ?>
     </tbody>
@@ -79,11 +79,11 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
 
 <?php if ($chiTiet): ?>
 <section class="panel" id="chi-tiet">
-  <div class="panel-heading"><div><h2>Thông tin lô bài thi <span class="code-tag"><?= e($chiTiet['maLoBaiThi']) ?></span></h2><p><?= e($chiTiet['thongTinLoBaiThi']) ?></p></div></div>
+  <div class="panel-heading"><div><h2>Thông tin lô bài thi <span class="code-tag"><?= e($chiTiet['maLoBaiThi']) ?></span></h2><p><?= e(catalog_display_name((string)$chiTiet['thongTinLoBaiThi'])) ?></p></div></div>
   <dl class="ui-kv">
     <div><dt>Môn thi</dt><dd><?= e($chiTiet['tenMonThi']) ?></dd></div>
-    <div><dt>Phòng thi</dt><dd><?= e($chiTiet['tenPhong']) ?> (<?= e($chiTiet['maPhong']) ?>)</dd></div>
-    <div><dt>Điểm thi</dt><dd><?= e($chiTiet['tenDiemThi']) ?></dd></div>
+    <div><dt>Phòng thi</dt><dd><?= e(catalog_display_name((string)$chiTiet['tenPhong'])) ?> (<?= e($chiTiet['maPhong']) ?>)</dd></div>
+    <div><dt>Điểm thi</dt><dd><?= e(catalog_display_name((string)$chiTiet['tenDiemThi'])) ?></dd></div>
     <div><dt>Số bài thi trong lô</dt><dd class="ui-score"><?= (int)$chiTiet['soBai'] ?> <small>bài</small></dd></div>
     <div><dt>Đã đánh phách</dt><dd><?= (int)$chiTiet['soBaiCoPhach'] ?>/<?= (int)$chiTiet['soBai'] ?> bài</dd></div>
     <div><dt>Sức chứa phòng</dt><dd><?= (int)$chiTiet['sucChua'] ?> thí sinh</dd></div>

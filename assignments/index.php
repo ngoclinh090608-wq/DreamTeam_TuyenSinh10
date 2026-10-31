@@ -89,7 +89,7 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
 <?php if ($daChonDu): ?>
 <div class="ui-stack">
 <section class="panel">
-  <div class="panel-heading"><div><h2>Phân công hiện có</h2><p><?= e($phong['tenPhong']) ?> · môn <?= e($tenMon) ?></p></div><?= ui_status_badge($tinhTrang['du'] ? 'Đủ giám thị' : 'Chưa đủ 2 giám thị') ?></div>
+  <div class="panel-heading"><div><h2>Phân công hiện có</h2><p><?= e(catalog_display_name((string)$phong['tenPhong'])) ?> · môn <?= e($tenMon) ?></p></div><?= ui_status_badge($tinhTrang['du'] ? 'Đủ giám thị' : 'Chưa đủ 2 giám thị') ?></div>
   <?php if (!$hienCo): ?><p class="muted">Chưa có cán bộ nào được phân công.</p><?php else: ?>
   <ul class="ui-list">
     <?php foreach ($hienCo as $p): ?>
@@ -107,7 +107,7 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
 <section class="panel">
 <?php if ($xacNhan): ?>
   <div class="panel-heading"><div><h2>Bước 3 · Xác nhận phân công</h2><p>Kiểm tra lại trước khi lưu.</p></div></div>
-  <p class="ui-confirm">Phân công coi thi <strong><?= e($xacNhan['phong']['tenPhong']) ?></strong> – môn <strong><?= e($xacNhan['mon']['tenMonThi']) ?></strong>:</p>
+  <p class="ui-confirm">Phân công coi thi <strong><?= e(catalog_display_name((string)$xacNhan['phong']['tenPhong'])) ?></strong> – môn <strong><?= e($xacNhan['mon']['tenMonThi']) ?></strong>:</p>
   <ul class="ui-list">
     <?php foreach ($xacNhan['canBo'] as $c): ?><li><span><strong><?= e($c['vaiTro']) ?>:</strong> <?= e($c['hoTen']) ?> <span class="muted">(<?= e($c['maCanBo']) ?>)</span></span></li><?php endforeach; ?>
   </ul>

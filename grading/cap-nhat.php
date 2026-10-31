@@ -63,7 +63,7 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
 <?php if ($ketQua): ?>
 <div class="dash-panels ui-two">
 <section class="panel">
-  <div class="panel-heading"><div><h2>Kết quả chấm thi</h2><p><?= e($ketQua['tenKyThi']) ?></p></div><?= ui_status_badge($ketQua['trangThaiCongBo']) ?></div>
+  <div class="panel-heading"><div><h2>Kết quả chấm thi</h2><p><?= e(catalog_display_name((string)$ketQua['tenKyThi'])) ?></p></div><?= ui_status_badge($ketQua['trangThaiCongBo']) ?></div>
   <dl class="ui-kv ui-kv-1">
     <div><dt>Mã phách</dt><dd><span class="code-tag"><?= e($ketQua['soPhach']) ?></span></dd></div>
     <div><dt>Môn thi</dt><dd><?= e($ketQua['tenMonThi']) ?></dd></div>
