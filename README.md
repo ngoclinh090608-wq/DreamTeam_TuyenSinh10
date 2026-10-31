@@ -26,7 +26,7 @@ Bản SQL demo hiện hành có **1.750 học sinh, 5.250 nguyện vọng, 5.250
 
 Năm THPT: Sao Mai, Bình Minh, Hòa An, Ánh Dương, Trần Quốc Khải. Dashboard thống kê nguyện vọng theo THPT và học sinh theo THCS từ database đang kết nối; khi không tải được dữ liệu, hiển thị thông báo lỗi.
 
-Tài khoản mô phỏng: `quantri`, `bantuyensinh`, `hdtuyensinh`, `hdcoithi`, `hdchamthi`, `catphach`, `hdphuckhao`, `hdrade`, `gvcn`, `SBD0001`, `SBD0002`. Mật khẩu mẫu: **`dreamteam2026`**. Nếu đã đổi mật khẩu trong database hiện tại thì dùng mật khẩu đã đổi; pull code không đặt lại mật khẩu.
+Danh sách tài khoản và mật khẩu khởi tạo nằm trong [bảng tài khoản riêng](docs/TAI_KHOAN.md), không hiển thị trên website. Pull code không đặt lại mật khẩu.
 
 ## Các màn hình chính
 
@@ -41,7 +41,7 @@ Tài khoản mô phỏng: `quantri`, `bantuyensinh`, `hdtuyensinh`, `hdcoithi`, 
 | UC12–UC14 | `grading/` | Lịch sử sửa điểm, cập nhật điểm, thống kê |
 | UC15 | `publication/diem-thi.php` | Công bố điểm theo điều kiện nghiệp vụ |
 
-Các module còn lại có mức độ hoàn thiện khác nhau; không coi toàn bộ chức năng trong menu là nghiệp vụ đã hoàn chỉnh. Trang `results/` vẫn có tra cứu minh họa `DEMO001`, không phải cổng kết quả tuyển sinh thật.
+Các module còn lại có mức độ hoàn thiện khác nhau; không coi toàn bộ chức năng trong menu là nghiệp vụ đã hoàn chỉnh. Trang `results/` thông báo trạng thái tra cứu trực tuyến chưa mở; không trả thẻ điểm cố định hoặc kết quả giả.
 
 ## Kiểm thử và phát triển
 
