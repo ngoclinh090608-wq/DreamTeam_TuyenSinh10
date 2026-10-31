@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 require_once dirname(__DIR__) . '/config/database.php';
 require_once __DIR__ . '/business_exception.php';
+require_once dirname(__DIR__) . '/includes/permissions.php';
 
 // ---------- Câu thông báo theo Test Case Tuần 04 ----------
 // UC06: Tạo thông tin phòng thi
@@ -86,24 +87,30 @@ function exam_ds_mon_thi(): array {
 // =============================================================================
 
 /**
- * Tự động sinh mã phòng tiếp theo cho một điểm thi (vd P101, P102 -> P103).
+ * Bước 5: tự động sinh mã phòng tiếp theo cho một điểm thi (vd P101, P102 -> P103).
+ * Mã phòng là khóa chính toàn hệ thống nên bỏ qua mã đã dùng ở điểm thi khác (8.1: sinh lại khi trùng).
  */
 function sinhMaPhongTuDong(string $maDiemThi): string {
-    $st = db()->prepare('SELECT maPhong FROM PhongThi WHERE maDiemThi = ? ORDER BY maPhong DESC LIMIT 1');
+    $st = db()->prepare('SELECT maPhong FROM PhongThi WHERE maDiemThi = ? ORDER BY LENGTH(maPhong) DESC, maPhong DESC LIMIT 1');
     $st->execute([$maDiemThi]);
     $last = (string)$st->fetchColumn();
     if ($last !== '' && preg_match('/^([A-Za-z]+)(\d+)$/', $last, $m)) {
         $prefix = $m[1];
         $num = (int)$m[2] + 1;
         $len = strlen($m[2]);
-        return sprintf('%s%0' . $len . 'd', $prefix, $num);
+    } else {
+        // Gợi ý theo mã điểm thi: DT01 -> P101, DT02 -> P201
+        $prefix = 'P';
+        $num = preg_match('/(\d+)$/', $maDiemThi, $m) ? (int)$m[1] * 100 + 1 : 1;
+        $len = 3;
     }
-    // Gợi ý theo mã điểm thi: DT01 -> P101, DT02 -> P201
-    if (preg_match('/(\d+)$/', $maDiemThi, $m)) {
-        $prefixNum = (int)$m[1];
-        return sprintf('P%d01', $prefixNum);
+    $stTonTai = db()->prepare('SELECT COUNT(*) FROM PhongThi WHERE maPhong = ?');
+    for ($i = 0; $i < 1000; $i++, $num++) {
+        $ma = sprintf('%s%0' . $len . 'd', $prefix, $num);
+        $stTonTai->execute([$ma]);
+        if ((int)$stTonTai->fetchColumn() === 0) return $ma;
     }
-    return 'P001';
+    return $prefix . date('His');
 }
 
 /**
@@ -176,7 +183,7 @@ function luuPhongThi(string $maDiemThi, string $maPhong, string $tenPhong, int $
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
         error_log('luuPhongThi: ' . $e->getMessage());
-        throw new ExamException(EXAM_TB_LOI_LUU_PHONG, [$e->getMessage()]);
+        throw new ExamException(EXAM_TB_LOI_LUU_PHONG, ['Tạo phòng thi không thành công. Phòng thi mới không được ghi nhận.']);
     }
 
     return [
@@ -209,50 +216,62 @@ function xoaPhongThi(string $maPhong): void {
 // =============================================================================
 
 /**
- * Lấy danh sách thí sinh đủ điều kiện dự thi phù hợp với Điểm thi.
- * Quy tắc phân điểm thi:
- * - Điểm thi gắn với trường THCS (hoặc THPT) thuộc khu vực `maKhuVuc`.
- * - Thí sinh thuộc các trường THCS nằm trong cùng khu vực với điểm thi.
- * - Chỉ lấy thí sinh đã duyệt (dieuKienDuThi = 1, trangThaiDangKyDuThi = 'Đã duyệt').
+ * Thông tin điểm thi kèm khu vực của trường đặt điểm thi. Kiểm tra điểm thi thuộc kỳ thi (nếu truyền kỳ thi).
  */
-function layDanhSachThiSinhPhuHopDiemThi(string $maKyThi, string $maDiemThi): array {
-    // Thông tin điểm thi và khu vực
+function layThongTinDiemThi(string $maDiemThi, string $maKyThi = ''): array {
     $st = db()->prepare('SELECT d.maDiemThi, d.tenDiemThi, d.maKyThi,
                                 COALESCE(c.maKhuVuc, p.maKhuVuc, "") AS maKhuVuc,
-                                k.tenKhuVuc
+                                kv.tenKhuVuc
                          FROM DiemThi d
                          LEFT JOIN TruongTHCS c ON c.maTruongTHCS = d.maTruongTHCS
                          LEFT JOIN TruongTHPT p ON p.maTruongTHPT = d.maTruongTHPT
-                         LEFT JOIN KhuVuc k ON k.maKhuVuc = COALESCE(c.maKhuVuc, p.maKhuVuc)
+                         LEFT JOIN KhuVuc kv ON kv.maKhuVuc = COALESCE(c.maKhuVuc, p.maKhuVuc)
                          WHERE d.maDiemThi = ?');
     $st->execute([$maDiemThi]);
     $dt = $st->fetch();
     if (!$dt) {
-        throw new ExamException('Điểm thi không tồn tại trong hệ thống.');
+        throw new ExamException(EXAM_TB_CHUA_DU_DIEU_KIEN_PHAN_PHONG, ['Điểm thi không tồn tại trong hệ thống.']);
     }
+    if ($maKyThi !== '' && $dt['maKyThi'] !== $maKyThi) {
+        throw new ExamException(EXAM_TB_CHUA_DU_DIEU_KIEN_PHAN_PHONG, ['Điểm thi được chọn không thuộc kỳ thi đã chọn.']);
+    }
+    return $dt;
+}
 
+/**
+ * Bước 4, 6: danh sách thí sinh cần phân phòng tại điểm thi.
+ * Quy tắc phân điểm thi (đặc tả UC07 bước 7):
+ * - Điểm thi phục vụ thí sinh của các trường THCS cùng khu vực (phường/quận lân cận) với trường đặt điểm thi.
+ * - Chỉ lấy thí sinh đủ điều kiện dự thi (dieuKienDuThi = 1, trangThaiDangKyDuThi = 'Đã duyệt').
+ * - Bỏ qua thí sinh đã được phân phòng ở một điểm thi khác của cùng kỳ thi (không “kéo” thí sinh của điểm thi khác).
+ */
+function layDanhSachThiSinhPhuHopDiemThi(string $maKyThi, string $maDiemThi): array {
+    $dt = layThongTinDiemThi($maDiemThi, $maKyThi);
     $maKhuVuc = (string)$dt['maKhuVuc'];
 
-    // Lấy thí sinh thuộc các trường THCS cùng khu vực với điểm thi (nếu điểm thi có khu vực xác định)
-    // Nếu điểm thi không có khu vực (chưa gán trường), lấy tất cả thí sinh hợp lệ của kỳ thi
     $sql = 'SELECT t.maThiSinh, t.maHoSo, t.hoTen, t.ngaySinh, t.soBaoDanh,
                    t.dieuKienDuThi, t.trangThaiDangKyDuThi,
                    c.maTruongTHCS, c.tenTruongTHCS, c.maKhuVuc, kv.tenKhuVuc,
-                   pp.maPhanPhong, pp.maPhong, pt.tenPhong, dt.maDiemThi AS diemThiHienTai, dt.tenDiemThi AS tenDiemThiHienTai
+                   hp.maPhanPhong, hp.maPhong, hp.tenPhong, hp.maDiemThi AS diemThiHienTai, hp.tenDiemThi AS tenDiemThiHienTai
             FROM ThiSinh t
             JOIN TruongTHCS c ON c.maTruongTHCS = t.maTruongTHCS
             JOIN KhuVuc kv ON kv.maKhuVuc = c.maKhuVuc
-            LEFT JOIN PhanPhongThi pp ON pp.maThiSinh = t.maThiSinh AND pp.trangThai = "Đã phân"
-            LEFT JOIN PhongThi pt ON pt.maPhong = pp.maPhong
-            LEFT JOIN DiemThi dt ON dt.maDiemThi = pt.maDiemThi
-            WHERE t.dieuKienDuThi = 1 AND t.trangThaiDangKyDuThi = "Đã duyệt"';
-
-    $params = [];
+            LEFT JOIN (
+                SELECT pp.maPhanPhong, pp.maThiSinh, pp.maPhong, pt.tenPhong, d.maDiemThi, d.tenDiemThi
+                FROM PhanPhongThi pp
+                JOIN PhongThi pt ON pt.maPhong = pp.maPhong
+                JOIN DiemThi d ON d.maDiemThi = pt.maDiemThi
+                WHERE pp.trangThai = "Đã phân" AND d.maKyThi = ?
+            ) hp ON hp.maThiSinh = t.maThiSinh
+            WHERE t.dieuKienDuThi = 1 AND t.trangThaiDangKyDuThi = "Đã duyệt"
+              AND (hp.maDiemThi IS NULL OR hp.maDiemThi = ?)';
+    $params = [$dt['maKyThi'], $maDiemThi];
     if ($maKhuVuc !== '') {
         $sql .= ' AND c.maKhuVuc = ?';
         $params[] = $maKhuVuc;
     }
-    $sql .= ' ORDER BY t.soBaoDanh, t.maThiSinh';
+    // Xếp theo trường THCS rồi họ tên để thí sinh cùng trường ngồi gần nhau
+    $sql .= ' ORDER BY c.maTruongTHCS, t.hoTen, t.maThiSinh';
 
     $st = db()->prepare($sql);
     $st->execute($params);
@@ -260,7 +279,27 @@ function layDanhSachThiSinhPhuHopDiemThi(string $maKyThi, string $maDiemThi): ar
 }
 
 /**
- * Kiểm tra điều kiện phân phòng và tính toán phân phòng tự động.
+ * Exception 6.3: thí sinh đang được phân vào điểm thi nhưng trường THCS không cùng khu vực với điểm thi.
+ * Những thí sinh này không được phân tự động vào điểm thi; họ vẫn chiếm chỗ trong phòng cho tới khi được chuyển/hủy.
+ */
+function layThiSinhKhongPhuHopDiemThi(string $maDiemThi): array {
+    $dt = layThongTinDiemThi($maDiemThi);
+    if ((string)$dt['maKhuVuc'] === '') return [];
+    $st = db()->prepare('SELECT pp.maPhanPhong, pp.maPhong, t.maThiSinh, t.hoTen, c.tenTruongTHCS, c.maKhuVuc, kv.tenKhuVuc
+                         FROM PhanPhongThi pp
+                         JOIN PhongThi p ON p.maPhong = pp.maPhong
+                         JOIN ThiSinh t ON t.maThiSinh = pp.maThiSinh
+                         JOIN TruongTHCS c ON c.maTruongTHCS = t.maTruongTHCS
+                         JOIN KhuVuc kv ON kv.maKhuVuc = c.maKhuVuc
+                         WHERE p.maDiemThi = ? AND pp.trangThai = "Đã phân" AND c.maKhuVuc <> ?
+                         ORDER BY pp.maPhong, t.hoTen');
+    $st->execute([$maDiemThi, $dt['maKhuVuc']]);
+    return $st->fetchAll();
+}
+
+/**
+ * Bước 6–8: kiểm tra điều kiện phân phòng và tính kết quả phân phòng dự kiến (chưa lưu).
+ * Thí sinh được xếp lần lượt vào từng phòng theo thứ tự trường THCS, không vượt sức chứa còn trống của phòng.
  */
 function kiemTraVaTinhToanPhanPhong(string $maKyThi, string $maDiemThi): array {
     $maKyThi = trim($maKyThi);
@@ -271,55 +310,61 @@ function kiemTraVaTinhToanPhanPhong(string $maKyThi, string $maDiemThi): array {
             'Vui lòng chọn đầy đủ Kỳ thi và Điểm thi cần phân phòng.',
         ]);
     }
+    $dt = layThongTinDiemThi($maDiemThi, $maKyThi);
 
-    // 1. Kiểm tra phòng thi tại điểm thi
+    // 6.1: điểm thi chưa có phòng thi
     $dsPhong = exam_ds_phong_thi($maDiemThi);
     if (empty($dsPhong)) {
         throw new ExamException(EXAM_TB_CHUA_DU_DIEU_KIEN_PHAN_PHONG, [
-            'Điểm thi được chọn chưa có phòng thi nào. Vui lòng tạo phòng thi trước khi phân phòng.',
+            'Điểm thi được chọn chưa có phòng thi nào. Vui lòng thực hiện chức năng Tạo thông tin phòng thi (UC06) trước khi phân phòng.',
         ]);
     }
 
-    $tongSucChua = array_sum(array_column($dsPhong, 'sucChua'));
-
-    // 2. Lấy danh sách thí sinh phù hợp
+    // 6.3: điểm thi không phục vụ thí sinh nào thuộc khu vực của mình
     $dsThiSinh = layDanhSachThiSinhPhuHopDiemThi($maKyThi, $maDiemThi);
     $tongThiSinh = count($dsThiSinh);
-
     if ($tongThiSinh === 0) {
-        throw new ExamException('Không có thí sinh đủ điều kiện dự thi thuộc khu vực điểm thi này.');
+        throw new ExamException(EXAM_TB_DIEM_THI_KHONG_PHU_HOP, [
+            'Không có thí sinh đủ điều kiện dự thi thuộc các trường THCS cùng khu vực' . ($dt['tenKhuVuc'] ? " ({$dt['tenKhuVuc']})" : '') . ' với điểm thi này cần phân phòng.',
+            'Vui lòng chọn điểm thi phù hợp khác.',
+        ]);
     }
 
-    // 3. Kiểm tra sức chứa
+    // Chỗ đang bị chiếm bởi thí sinh không thuộc danh sách cần phân (vd thí sinh khác khu vực)
+    $maCanPhan = array_flip(array_column($dsThiSinh, 'maThiSinh'));
+    $chiemCho = [];
+    foreach (layThiSinhKhongPhuHopDiemThi($maDiemThi) as $r) {
+        if (!isset($maCanPhan[$r['maThiSinh']])) $chiemCho[$r['maPhong']] = ($chiemCho[$r['maPhong']] ?? 0) + 1;
+    }
+
+    // 6.2: tổng sức chứa còn trống không đủ
+    $tongSucChua = 0;
+    foreach ($dsPhong as $p) $tongSucChua += max(0, (int)$p['sucChua'] - ($chiemCho[$p['maPhong']] ?? 0));
     if ($tongSucChua < $tongThiSinh) {
         $thieu = $tongThiSinh - $tongSucChua;
         throw new ExamException(EXAM_TB_SUC_CHUA_KHONG_DU, [
-            "Tổng sức chứa của các phòng thi tại điểm thi ({$tongSucChua} chỗ) không đủ cho {$tongThiSinh} thí sinh.",
+            "Tổng sức chứa còn trống của các phòng thi tại điểm thi ({$tongSucChua} chỗ) không đủ cho {$tongThiSinh} thí sinh.",
             "Số lượng chỗ còn thiếu: {$thieu} chỗ. Vui lòng tạo thêm phòng thi hoặc tăng sức chứa.",
         ]);
     }
 
-    // 4. Thuật toán phân phòng tự động: lấp đầy từng phòng theo sức chứa
-    $phanBo = []; // [maPhong => [phongInfo, dsThiSinh]]
+    // Bước 7: lấp đầy lần lượt từng phòng theo sức chứa còn trống
+    $phanBo = [];
     $tsIndex = 0;
-
     foreach ($dsPhong as $p) {
-        $phongKey = $p['maPhong'];
-        $sucChua = (int)$p['sucChua'];
+        $conTrong = max(0, (int)$p['sucChua'] - ($chiemCho[$p['maPhong']] ?? 0));
         $tsPhong = [];
-
-        for ($i = 0; $i < $sucChua && $tsIndex < $tongThiSinh; $i++) {
-            $ts = $dsThiSinh[$tsIndex];
+        for ($i = 0; $i < $conTrong && $tsIndex < $tongThiSinh; $i++) {
+            $ts = $dsThiSinh[$tsIndex++];
             $ts['phongDuKien'] = $p['maPhong'];
             $ts['tenPhongDuKien'] = $p['tenPhong'];
             $tsPhong[] = $ts;
-            $tsIndex++;
         }
-
-        $phanBo[$phongKey] = [
+        $phanBo[$p['maPhong']] = [
             'phong' => $p,
             'soLuong' => count($tsPhong),
-            'sucChua' => $sucChua,
+            'sucChua' => (int)$p['sucChua'],
+            'chiemCho' => $chiemCho[$p['maPhong']] ?? 0,
             'thiSinh' => $tsPhong,
         ];
     }
@@ -335,52 +380,62 @@ function kiemTraVaTinhToanPhanPhong(string $maKyThi, string $maDiemThi): array {
 }
 
 /**
- * Lưu kết quả phân phòng thi vào CSDL (trong 1 Transaction).
- * @param array $phanBo Danh sách phân phòng [maThiSinh => maPhong]
+ * Bước 10: lưu kết quả phân phòng thi (1 transaction). Dữ liệu gửi lên được kiểm tra lại toàn bộ:
+ * thí sinh phải thuộc danh sách cần phân của điểm thi, phòng phải thuộc điểm thi, không vượt sức chứa.
+ * @param array<string,string> $phanBoMap [maThiSinh => maPhong]
  */
 function luuKetQuaPhanPhong(string $maKyThi, string $maDiemThi, array $phanBoMap): array {
+    $phanBoMap = array_filter($phanBoMap, fn($v, $k) => is_string($v) && trim($v) !== '' && is_string($k) && $k !== '', ARRAY_FILTER_USE_BOTH);
     if (empty($phanBoMap)) {
-        throw new ExamException('Dữ liệu phân phòng thi trống.');
+        throw new ExamException(EXAM_TB_LOI_LUU_PHAN_PHONG, ['Dữ liệu phân phòng thi trống.']);
+    }
+
+    // 9.1 bước 3 / 6.3: chỉ phân thí sinh phù hợp khu vực điểm thi
+    $maCanPhan = array_flip(array_column(layDanhSachThiSinhPhuHopDiemThi($maKyThi, $maDiemThi), 'maThiSinh'));
+    $khongPhuHop = array_values(array_diff(array_map('strval', array_keys($phanBoMap)), array_keys($maCanPhan)));
+    if ($khongPhuHop) {
+        throw new ExamException(EXAM_TB_DIEM_THI_KHONG_PHU_HOP, [
+            'Thí sinh ' . implode(', ', array_slice($khongPhuHop, 0, 10)) . ' không thuộc danh sách cần phân phòng của điểm thi đã chọn.',
+        ]);
     }
 
     $pdo = db();
     $soLuongLuu = 0;
-
     try {
         $pdo->beginTransaction();
 
-        // Kiểm tra sức chứa từng phòng trong map
-        $phongCounts = array_count_values($phanBoMap);
-        foreach ($phongCounts as $maPhong => $count) {
-            $st = $pdo->prepare('SELECT sucChua FROM PhongThi WHERE maPhong = ? FOR UPDATE');
-            $st->execute([$maPhong]);
-            $sc = (int)$st->fetchColumn();
-            if ($count > $sc) {
+        // Kiểm tra phòng thuộc điểm thi và sức chứa (tính cả thí sinh đang ở phòng mà không nằm trong lần phân này)
+        $stPhong = $pdo->prepare('SELECT sucChua, maDiemThi FROM PhongThi WHERE maPhong = ? FOR UPDATE');
+        $stDangO = $pdo->prepare('SELECT maThiSinh FROM PhanPhongThi WHERE maPhong = ? AND trangThai = "Đã phân" FOR UPDATE');
+        foreach (array_count_values($phanBoMap) as $maPhong => $count) {
+            $stPhong->execute([$maPhong]);
+            $ph = $stPhong->fetch();
+            if (!$ph || $ph['maDiemThi'] !== $maDiemThi) {
+                throw new ExamException(EXAM_TB_LOI_LUU_PHAN_PHONG, ["Phòng {$maPhong} không thuộc điểm thi đã chọn."]);
+            }
+            $stDangO->execute([$maPhong]);
+            $khac = count(array_filter($stDangO->fetchAll(PDO::FETCH_COLUMN), fn($ma) => !isset($phanBoMap[$ma])));
+            if ($count + $khac > (int)$ph['sucChua']) {
                 throw new ExamException(EXAM_TB_SUC_CHUA_KHONG_DU, [
-                    "Phòng {$maPhong} được phân {$count} thí sinh, vượt quá sức chứa ({$sc} chỗ).",
+                    "Phòng {$maPhong} sẽ có " . ($count + $khac) . " thí sinh, vượt quá sức chứa ({$ph['sucChua']} chỗ).",
                 ]);
             }
         }
 
-        // Tạo mã phân phòng duy nhất
-        $stMax = $pdo->query('SELECT MAX(CAST(SUBSTRING(maPhanPhong, 3) AS UNSIGNED)) FROM PhanPhongThi WHERE maPhanPhong LIKE "PP%"');
+        $stMax = $pdo->query('SELECT MAX(CAST(SUBSTRING(maPhanPhong, 3) AS UNSIGNED)) FROM PhanPhongThi WHERE maPhanPhong LIKE "PP%" FOR UPDATE');
         $maxNum = (int)$stMax->fetchColumn();
 
-        $stCheck = $pdo->prepare('SELECT maPhanPhong FROM PhanPhongThi WHERE maThiSinh = ? AND trangThai = "Đã phân" FOR UPDATE');
-        $stUpdate = $pdo->prepare('UPDATE PhanPhongThi SET maPhong = ?, ngayPhan = NOW(), trangThai = "Đã phân" WHERE maPhanPhong = ?');
+        $stCheck = $pdo->prepare('SELECT maPhanPhong, maPhong FROM PhanPhongThi WHERE maThiSinh = ? AND trangThai = "Đã phân" FOR UPDATE');
+        $stUpdate = $pdo->prepare('UPDATE PhanPhongThi SET maPhong = ?, ngayPhan = NOW() WHERE maPhanPhong = ?');
         $stInsert = $pdo->prepare('INSERT INTO PhanPhongThi (maPhanPhong, maThiSinh, maPhong, ngayPhan, trangThai) VALUES (?, ?, ?, NOW(), "Đã phân")');
 
         foreach ($phanBoMap as $maThiSinh => $maPhong) {
             $stCheck->execute([$maThiSinh]);
             $cur = $stCheck->fetch();
-
             if ($cur) {
-                // Cập nhật phòng thi mới nếu khác
-                $stUpdate->execute([$maPhong, $cur['maPhanPhong']]);
+                if ($cur['maPhong'] !== $maPhong) $stUpdate->execute([$maPhong, $cur['maPhanPhong']]);
             } else {
-                $maxNum++;
-                $maPP = sprintf('PP%03d', $maxNum);
-                $stInsert->execute([$maPP, $maThiSinh, $maPhong]);
+                $stInsert->execute([sprintf('PP%03d', ++$maxNum), $maThiSinh, $maPhong]);
             }
             $soLuongLuu++;
         }
@@ -388,9 +443,10 @@ function luuKetQuaPhanPhong(string $maKyThi, string $maDiemThi, array $phanBoMap
         $pdo->commit();
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
-        error_log('luuKetQuaPhanPhong: ' . $e->getMessage());
         if ($e instanceof BusinessException) throw $e;
-        throw new ExamException(EXAM_TB_LOI_LUU_PHAN_PHONG, [$e->getMessage()]);
+        error_log('luuKetQuaPhanPhong: ' . $e->getMessage());
+        // 10.1: dữ liệu phân phòng chính thức không bị thay đổi (đã rollback)
+        throw new ExamException(EXAM_TB_LOI_LUU_PHAN_PHONG, ['Kết quả chưa được ghi nhận. Dữ liệu phân phòng chính thức không bị thay đổi.']);
     }
 
     return [
@@ -400,9 +456,10 @@ function luuKetQuaPhanPhong(string $maKyThi, string $maDiemThi, array $phanBoMap
 }
 
 /**
- * Chuyển một thí sinh từ phòng hiện tại sang phòng mới còn chỗ.
+ * Alternative 9.1: chuyển một thí sinh sang phòng khác còn chỗ.
+ * Nếu chuyển sang điểm thi khác thì điểm thi mới phải cùng kỳ thi và cùng khu vực với trường THCS của thí sinh.
  */
-function chuyenPhongThiSinh(string $maPhanPhong, string $maPhongMoi, string $lyDo = ''): void {
+function chuyenPhongThiSinh(string $maPhanPhong, string $maPhongMoi): void {
     $maPhanPhong = trim($maPhanPhong);
     $maPhongMoi = trim($maPhongMoi);
 
@@ -410,9 +467,12 @@ function chuyenPhongThiSinh(string $maPhanPhong, string $maPhongMoi, string $lyD
     try {
         $pdo->beginTransaction();
 
-        $st = $pdo->prepare('SELECT pp.maThiSinh, pp.maPhong AS maPhongCu, p.maDiemThi
+        $st = $pdo->prepare('SELECT pp.maThiSinh, pp.maPhong AS maPhongCu, p.maDiemThi, d.maKyThi, c.maKhuVuc AS khuVucThiSinh
                              FROM PhanPhongThi pp
                              JOIN PhongThi p ON p.maPhong = pp.maPhong
+                             JOIN DiemThi d ON d.maDiemThi = p.maDiemThi
+                             JOIN ThiSinh t ON t.maThiSinh = pp.maThiSinh
+                             JOIN TruongTHCS c ON c.maTruongTHCS = t.maTruongTHCS
                              WHERE pp.maPhanPhong = ? AND pp.trangThai = "Đã phân"
                              FOR UPDATE');
         $st->execute([$maPhanPhong]);
@@ -420,24 +480,31 @@ function chuyenPhongThiSinh(string $maPhanPhong, string $maPhongMoi, string $lyD
         if (!$pp) {
             throw new ExamException('Không tìm thấy thông tin phân phòng của thí sinh.');
         }
-
         if ($pp['maPhongCu'] === $maPhongMoi) {
             throw new ExamException('Phòng thi mới trùng với phòng thi hiện tại của thí sinh.');
         }
 
-        // Kiểm tra phòng mới và sức chứa
-        $st = $pdo->prepare('SELECT sucChua, maDiemThi FROM PhongThi WHERE maPhong = ? FOR UPDATE');
+        $st = $pdo->prepare('SELECT p.sucChua, p.maDiemThi, d.maKyThi, COALESCE(c.maKhuVuc, t.maKhuVuc, "") AS maKhuVuc
+                             FROM PhongThi p
+                             JOIN DiemThi d ON d.maDiemThi = p.maDiemThi
+                             LEFT JOIN TruongTHCS c ON c.maTruongTHCS = d.maTruongTHCS
+                             LEFT JOIN TruongTHPT t ON t.maTruongTHPT = d.maTruongTHPT
+                             WHERE p.maPhong = ? FOR UPDATE');
         $st->execute([$maPhongMoi]);
         $pm = $st->fetch();
         if (!$pm) {
             throw new ExamException('Phòng thi mới không tồn tại.');
         }
+        if ($pm['maDiemThi'] !== $pp['maDiemThi']
+            && ($pm['maKyThi'] !== $pp['maKyThi'] || ($pm['maKhuVuc'] !== '' && $pm['maKhuVuc'] !== $pp['khuVucThiSinh']))) {
+            throw new ExamException(EXAM_TB_DIEM_THI_KHONG_PHU_HOP, [
+                "Phòng {$maPhongMoi} thuộc điểm thi không phù hợp với khu vực trường THCS của thí sinh.",
+            ]);
+        }
 
         $st = $pdo->prepare('SELECT COUNT(*) FROM PhanPhongThi WHERE maPhong = ? AND trangThai = "Đã phân"');
         $st->execute([$maPhongMoi]);
-        $daPhan = (int)$st->fetchColumn();
-
-        if ($daPhan >= (int)$pm['sucChua']) {
+        if ((int)$st->fetchColumn() >= (int)$pm['sucChua']) {
             throw new ExamException(EXAM_TB_SUC_CHUA_KHONG_DU, [
                 "Phòng thi {$maPhongMoi} đã đủ {$pm['sucChua']} thí sinh, không thể chuyển thêm vào phòng này.",
             ]);
@@ -449,8 +516,8 @@ function chuyenPhongThiSinh(string $maPhanPhong, string $maPhongMoi, string $lyD
         $pdo->commit();
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
-        error_log('chuyenPhongThiSinh: ' . $e->getMessage());
         if ($e instanceof BusinessException) throw $e;
+        error_log('chuyenPhongThiSinh: ' . $e->getMessage());
         throw new ExamException('Không thể chuyển phòng thi cho thí sinh. Vui lòng thử lại.');
     }
 }
@@ -468,7 +535,47 @@ function huyPhanPhongThiSinh(string $maPhanPhong): void {
 // =============================================================================
 
 /**
- * Lấy danh sách phân công ra đề thi (chỉ đọc, phục vụ đối chiếu và giám sát).
+ * Kỳ thi mà tài khoản được xem phân công ra đề (bước 2, 4).
+ * - Ban Tuyển sinh, Quản trị: mọi kỳ thi.
+ * - Hội đồng ra đề: kỳ thi của Hội đồng ra đề mà cán bộ gắn với tài khoản là thành viên.
+ * @return list<string>|null null = không giới hạn
+ */
+function layPhamViKyThiRaDe(array $user): ?array {
+    if (has_role($user, ['BAN_TUYEN_SINH', 'QUAN_TRI'])) return null;
+    $maCanBo = (string)($user['maCanBo'] ?? '');
+    if ($maCanBo === '') return [];
+    $st = db()->prepare('SELECT DISTINCT h.maKyThi
+                         FROM CanBo c
+                         JOIN HoiDongThi h ON h.maHoiDongThi = c.maHoiDongThi
+                         WHERE c.maCanBo = ? AND h.loaiHoiDong = "Ra đề"');
+    $st->execute([$maCanBo]);
+    return $st->fetchAll(PDO::FETCH_COLUMN);
+}
+
+/** Bước 2: các kỳ thi có phân công ra đề thuộc phạm vi tài khoản. */
+function timKyThiDuocPhanCong(?array $phamVi): array {
+    if ($phamVi === []) return [];
+    $sql = 'SELECT k.maKyThi, k.tenKyThi, k.thoiGianKetThuc, COUNT(*) AS soPhanCong
+            FROM PhanCongRaDe pc JOIN KyThi k ON k.maKyThi = pc.maKyThi';
+    $params = [];
+    if ($phamVi !== null) {
+        $sql .= ' WHERE pc.maKyThi IN (' . implode(',', array_fill(0, count($phamVi), '?')) . ')';
+        $params = $phamVi;
+    }
+    $st = db()->prepare($sql . ' GROUP BY k.maKyThi, k.tenKyThi, k.thoiGianKetThuc ORDER BY k.maKyThi DESC');
+    $st->execute($params);
+    return $st->fetchAll();
+}
+
+/** Bước 4 / exception 4.1: kiểm tra quyền xem phân công của kỳ thi đã chọn. */
+function kiemTraQuyenXemPhanCong(?array $phamVi, string $maKyThi): void {
+    if ($phamVi !== null && !in_array($maKyThi, $phamVi, true)) {
+        throw new ExamException(EXAM_TB_KHONG_DU_QUYEN, ['Tài khoản không thuộc Hội đồng ra đề thi của kỳ thi đã chọn nên không được cung cấp thông tin phân công.']);
+    }
+}
+
+/**
+ * Bước 5, 7: danh sách phân công ra đề (chỉ đọc). Lọc theo kỳ thi, cán bộ, môn thi.
  */
 function layDanhSachPhanCongRaDe(string $maKyThi = '', ?string $maCanBo = null, ?string $maMonThi = null): array {
     $sql = 'SELECT pc.maPhanCong, pc.maKyThi, k.tenKyThi, pc.maMonThi, m.tenMonThi, m.thangDiem,
@@ -504,3 +611,14 @@ function layDanhSachPhanCongRaDe(string $maKyThi = '', ?string $maCanBo = null, 
     return $st->fetchAll();
 }
 
+/** Bước 5: gom phân công theo môn thi để hiển thị danh sách môn được phân công ra đề. */
+function nhomPhanCongTheoMon(array $dsPhanCong): array {
+    $mon = [];
+    foreach ($dsPhanCong as $pc) {
+        $k = $pc['maMonThi'];
+        $mon[$k] ??= ['maMonThi' => $k, 'tenMonThi' => $pc['tenMonThi'], 'thangDiem' => $pc['thangDiem'], 'soNhiemVu' => 0, 'canBo' => []];
+        $mon[$k]['soNhiemVu']++;
+        $mon[$k]['canBo'][$pc['maCanBo']] = $pc['tenCanBo'];
+    }
+    return array_values($mon);
+}
