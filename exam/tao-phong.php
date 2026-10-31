@@ -11,24 +11,36 @@ $maKyThi = ui_input('kyThi');
 $maDiemThi = ui_input('diemThi');
 
 $dsKyThi = exam_ds_ky_thi();
-$dsDiemThi = exam_ds_diem_thi($maKyThi);
+$dsDiemThi = exam_ds_diem_thi($maKyThi, true);
 
 if ($maKyThi === '' && !empty($dsKyThi)) {
     $maKyThi = (string)$dsKyThi[0]['maKyThi'];
-    $dsDiemThi = exam_ds_diem_thi($maKyThi);
+    $dsDiemThi = exam_ds_diem_thi($maKyThi, true);
 }
 if ($maDiemThi === '' && !empty($dsDiemThi)) {
     $maDiemThi = (string)$dsDiemThi[0]['maDiemThi'];
 }
 
+$diemTaoPhong = ui_input('diemTaoPhong') ?: $maDiemThi;
+$luaChonDiemTao = exam_ds_diem_tao_phong($maKyThi);
+
 $action = $_SERVER['REQUEST_METHOD'] === 'POST' ? (string)($_POST['action'] ?? '') : '';
 $loi = null;
 $chiTietLoi = [];
 $loiHeThong = ui_csrf_error();
+if ($action === 'tao_diem_nv1' && !$loiHeThong) {
+    try {
+        $chuanBi = exam_tao_diem_thi_theo_nv1($maKyThi, ui_input('diemTaoPhong'));
+        flash_set('success', "Đã tạo {$chuanBi['phongThi']} phòng mới cho điểm thi đã chọn, mỗi phòng 30 thí sinh.");
+        ui_redirect('exam/tao-phong.php', ['kyThi' => $maKyThi, 'diemThi' => $chuanBi['maDiemThi']]);
+    } catch (BusinessException $e) { $loi = $e->getMessage(); $chiTietLoi = $e->details(); }
+    catch (Throwable $e) { error_log('UC06/07 NV1 sites: ' . $e->getMessage()); $loi = 'Không tạo được điểm thi theo NV1. Vui lòng thử lại.'; }
+}
+
 
 $formMaPhong = trim((string)($_POST['maPhong'] ?? ''));
 $formTenPhong = trim((string)($_POST['tenPhong'] ?? ''));
-$formSucChua = trim((string)($_POST['sucChua'] ?? '12'));
+$formSucChua = trim((string)($_POST['sucChua'] ?? '30'));
 
 if ($action === 'tao_phong' && !$loiHeThong) {
     $postDiemThi = ui_input('maDiemThi');
@@ -93,21 +105,35 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
 if ($loi) ui_notice('error', $loi, $chiTietLoi);
 ?>
 
+
+
 <section class="panel">
   <div class="panel-heading">
     <div>
       <h2>1. Chọn Điểm thi cần tạo phòng</h2>
-      <p>Chọn Kỳ thi và Điểm thi tổ chức.</p>
+      <p>Chọn kỳ thi và trường THPT nhận nguyện vọng 1. Phòng thi được tạo trong điểm thi của trường đã chọn.</p>
     </div>
   </div>
   <form method="get" class="ui-search" novalidate>
     <?php ui_select('kyThi', 'Kỳ thi', $dsKyThi, 'maKyThi', 'tenKyThi', $maKyThi, '-- Chọn kỳ thi --'); ?>
-    <?php ui_select('diemThi', 'Điểm thi', $dsDiemThi, 'maDiemThi', 'tenDiemThi', $maDiemThi, '-- Chọn điểm thi --'); ?>
+    <?php ui_select('diemThi', 'Trường THPT đăng ký NV1 / điểm thi', $dsDiemThi, 'maDiemThi', 'tenTruongVaDiemThi', $maDiemThi, '-- Chọn điểm thi --'); ?>
     <div class="field ui-search-btn">
       <button class="btn btn-primary" type="submit">Chọn điểm thi</button>
     </div>
   </form>
 </section>
+<section class="panel">
+  <h2>Tạo phòng cho điểm thi</h2>
+  <p>Chọn một điểm thi để tạo đủ phòng theo số thí sinh đăng ký NV1, mỗi phòng mới có 30 chỗ. Hệ thống chỉ bổ sung phòng tại điểm đã chọn.</p>
+  <form method="post">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="tao_diem_nv1">
+    <input type="hidden" name="kyThi" value="<?= e($maKyThi) ?>">
+    <?php ui_select('diemTaoPhong', 'Điểm thi cần tạo phòng', $luaChonDiemTao, 'giaTri', 'nhan', $diemTaoPhong, '-- Chọn điểm thi --'); ?>
+    <div class="ui-actions"><button class="btn btn-primary" type="submit">Tạo phòng cho điểm thi đã chọn</button></div>
+  </form>
+</section>
+
 
 <?php if ($diemThiHienTai): ?>
 <div class="ui-kpi-grid" style="margin-bottom: 1.5rem;">
@@ -155,7 +181,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
       </div>
       <div class="field">
         <label for="sucChua">Sức chứa tối đa (số thí sinh) <span>*</span></label>
-        <input id="sucChua" name="sucChua" type="number" min="1" max="100" value="<?= e($formSucChua) ?>" placeholder="Ví dụ: 12 hoặc 24" required>
+        <input id="sucChua" name="sucChua" type="number" min="1" max="100" value="<?= e($formSucChua) ?>" placeholder="Ví dụ: 30" required>
         <small class="field-hint">Số lượng thí sinh tối đa có thể xếp vào phòng.</small>
       </div>
     </div>
