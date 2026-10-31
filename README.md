@@ -172,7 +172,7 @@ Chỉ là cách ghép nhóm chức năng. Tên, thứ tự và nghiệp vụ ph�
 
 Nhóm dùng **MySQL/MariaDB** (XAMPP). Schema bám theo báo cáo Tuần 08 `(1)`: 30 bảng, giữ nguyên tên bảng và cột của nhóm (xem `database/README.md`).
 
-Cài đặt:
+Cài đặt seed nhỏ để kiểm thử (đặt `DB_NAME=dreamteam_tuyensinh10` hoặc khóa `name` tương ứng trong `config/database.local.php`; mặc định website dùng database demo, xem mục 8):
 1. Bật **Apache** và **MySQL** trong XAMPP.
 2. Mở `http://localhost/phpmyadmin` → tab **Nhập (Import)** → chọn `database/install.sql` → Thực hiện (tự tạo database `dreamteam_tuyensinh10`, 30 bảng, dữ liệu mẫu).
 3. Mở lại `http://localhost/DreamTeam_TuyenSinh10/admin/`: các thẻ số liệu và bảng đã đọc từ database. Nếu chưa nhập DB, giao diện tự dùng dữ liệu giả như cũ.
@@ -228,4 +228,4 @@ DreamTeam_TuyenSinh10/
 
 ## 8. Bộ demo 1.750 học sinh trong database riêng
 
-Có bộ dữ liệu người dùng cung cấp cho 5 THCS, 1.750 học sinh và 5.250 nguyện vọng. Xem [hướng dẫn database/demo](database/demo/README.md) để khởi tạo `dreamteam_tuyensinh10_demo`, import lặp an toàn và chọn kết nối demo trên XAMPP. Không đổi bộ seed nhỏ mặc định hoặc ghi dữ liệu vào database phát triển.
+Có bộ dữ liệu người dùng cung cấp cho 5 THCS, 1.750 học sinh và 5.250 nguyện vọng. Xem [hướng dẫn database/demo](database/demo/README.md) để khởi tạo `dreamteam_tuyensinh10_demo`, import lặp an toàn và chọn kết nối demo trên XAMPP. Website mặc định dùng `dreamteam_tuyensinh10_demo` khi không có cấu hình riêng. Nếu `config/database.local.php` hoặc biến môi trường `DB_NAME` vẫn trỏ `dreamteam_tuyensinh10`, hãy đổi lại tên database để dùng dữ liệu demo. Pull mã không tự import hay thay đổi dữ liệu MySQL.

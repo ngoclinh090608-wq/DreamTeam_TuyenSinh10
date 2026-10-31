@@ -10,7 +10,7 @@ function db(): PDO {
     if (!is_array($local)) throw new RuntimeException('database.local.php must return an array');
     $host = getenv('DB_HOST') ?: ($local['host'] ?? '127.0.0.1');
     $port = getenv('DB_PORT') ?: ($local['port'] ?? '3306');
-    $name = getenv('DB_NAME') ?: ($local['name'] ?? 'dreamteam_tuyensinh10');
+    $name = getenv('DB_NAME') ?: ($local['name'] ?? 'dreamteam_tuyensinh10_demo');
     $user = getenv('DB_USER') ?: ($local['user'] ?? 'root');
     $passEnv = getenv('DB_PASS');
     $pass = $passEnv !== false ? $passEnv : ($local['pass'] ?? '');
