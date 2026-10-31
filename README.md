@@ -22,7 +22,7 @@ Dùng PHP 8.2 với `pdo_mysql`, `mbstring`, `Phar`, `SimpleXML`; thao tác Exce
 
 ## REST API hướng dịch vụ
 
-API phiên bản 1 nằm tại `api/v1` và dùng lại nghiệp vụ trong `services/`. Các endpoint đọc danh sách trường, kỳ thi, điểm thi và phòng thi trả JSON. Endpoint `POST /api/v1/exams/{examId}/room-preparations` yêu cầu session của Ban Tuyển sinh hoặc Quản trị cùng header `X-CSRF-Token`, rồi thực hiện transaction UC06–UC07 hiện có. Đặc tả đầy đủ nằm trong [`api/openapi.yaml`](api/openapi.yaml); API không cần Node.js hoặc MongoDB.
+API phiên bản 1 nằm tại `api/v1` và dùng lại nghiệp vụ trong `services/`. Các endpoint đọc danh sách trường, kỳ thi, điểm thi và phòng thi trả JSON. Trang [`api/docs.php`](api/docs.php) cho phép thử trực tiếp các API GET; danh sách trường trên website cũng đồng bộ qua API và giữ HTML PHP làm dự phòng. Endpoint `POST /api/v1/exams/{examId}/room-preparations` yêu cầu session của Ban Tuyển sinh hoặc Quản trị cùng header `X-CSRF-Token`, rồi thực hiện transaction UC06–UC07 hiện có. Nhóm có thể dùng [`OpenAPI 3.0`](api/openapi.yaml), [Postman Collection](api/DreamTeam_TuyenSinh10.postman_collection.json) và [mô tả kiến trúc](docs/KIEN_TRUC_HUONG_DICH_VU.md) để kiểm thử hoặc trình bày. API không cần Node.js hoặc MongoDB.
 
 ## Dữ liệu và tài khoản
 

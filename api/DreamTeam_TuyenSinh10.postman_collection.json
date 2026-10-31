@@ -1,0 +1,55 @@
+{
+  "info": {
+    "name": "DreamTeam Tuyển sinh lớp 10 API",
+    "description": "Các yêu cầu minh họa REST API v1. Đăng nhập trên cùng host trước khi gọi endpoint POST, sau đó điền csrfToken từ session hiện tại.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost/DreamTeam_TuyenSinh10/api/v1"},
+    {"key": "examId", "value": "KT2026"},
+    {"key": "siteId", "value": "DT02"},
+    {"key": "csrfToken", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "Danh mục công khai",
+      "item": [
+        {
+          "name": "Danh sách trường",
+          "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}], "url": "{{baseUrl}}/schools"}
+        },
+        {
+          "name": "Danh sách kỳ thi",
+          "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}], "url": "{{baseUrl}}/exams"}
+        },
+        {
+          "name": "Điểm thi theo kỳ thi",
+          "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}], "url": "{{baseUrl}}/exams/{{examId}}/sites"}
+        },
+        {
+          "name": "Phòng theo điểm thi",
+          "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}], "url": "{{baseUrl}}/exam-sites/{{siteId}}/rooms"}
+        }
+      ]
+    },
+    {
+      "name": "Nghiệp vụ có bảo vệ",
+      "item": [
+        {
+          "name": "Chuẩn bị phòng thi đã chọn",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Accept", "value": "application/json"},
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-CSRF-Token", "value": "{{csrfToken}}", "type": "text"}
+            ],
+            "body": {"mode": "raw", "raw": "{\n  \"selection\": \"{{siteId}}\"\n}"},
+            "url": "{{baseUrl}}/exams/{{examId}}/room-preparations",
+            "description": "Dùng cookie PHPSESSID của tài khoản Ban Tuyển sinh hoặc Quản trị. API thực hiện transaction hiện có và có thể ghi database."
+          }
+        }
+      ]
+    }
+  ]
+}
