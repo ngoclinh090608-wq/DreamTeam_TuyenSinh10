@@ -17,7 +17,7 @@ curl_setopt_array($c, [
         'csrf_token' => $tok,
         'tab' => 'admin',
         'tenDangNhap' => 'hdchamthi',
-        'matKhau' => '1234',
+        'matKhau' => 'dreamteam2026',
     ]),
     CURLOPT_FOLLOWLOCATION => true,
 ]);
