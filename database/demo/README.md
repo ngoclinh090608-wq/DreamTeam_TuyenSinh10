@@ -42,3 +42,11 @@ Excel nguồn giai đoạn đầu, báo cáo trung gian và các script nhập n
 ### Cấu hình sau khi đồng bộ
 
 Các nhánh dùng mặc định database demo nếu không có cấu hình ghi đè. Khi chạy kiểm thử bộ seed nhỏ, đặt DB_NAME sang database kiểm thử.
+
+## Bổ sung hồ sơ học sinh theo biểu mẫu
+
+Máy đã có database: sao lưu trước, chọn database demo trong phpMyAdmin và nhập **`database/migrations/20261031_student_profile.sql`** một lần. Migration chỉ thêm ba bảng `HoSoBoSung`, `GiaDinhThiSinh`, `HocTapTHCS`; không xóa/import lại học sinh, nguyện vọng, bài thi, điểm hoặc tài khoản. Chạy lại migration không tạo trùng dữ liệu.
+
+Máy mới dùng snapshot SQL hiện hành đã bao gồm các bảng này. Sau cập nhật, học sinh có thể lưu ảnh, liên hệ, gia đình, học bạ lớp 6–9 và khai báo diện ưu tiên của mình. Họ tên/ngày sinh/trường/SBD chính thức vẫn do nhà trường quản lý. Điểm học bạ và diện ưu tiên do học sinh khai báo không tự thay đổi điểm thi hoặc điểm xét tuyển.
+
+Ảnh lưu trong `storage/student-photos/` (Git bỏ qua), không nằm trong SQL. Giới hạn ảnh 2 MB, định dạng JPG/PNG/WebP; PHP cần cho phép upload và ghi vào storage. Ảnh chỉ được trả qua endpoint có xác thực của chính học sinh. Sao lưu cả database và thư mục ảnh khi cần chuyển máy. Các trường chưa nhập được để trống; không tạo dữ liệu gia đình/học bạ giả cho 1.750 học sinh.

@@ -84,4 +84,6 @@
    filterSchools();
  }));
  $('[data-school-search]')?.addEventListener('input',filterSchools);
+ $$('[data-student-print]').forEach(button=>button.addEventListener('click',()=>window.print()));
+ $$('[data-student-scores]').forEach(button=>button.addEventListener('click',()=>{const panel=$('#student-scores');if(panel){panel.open=true;panel.scrollIntoView({block:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}}));
 })();
