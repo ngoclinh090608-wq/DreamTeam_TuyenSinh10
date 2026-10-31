@@ -1,7 +1,7 @@
-# Nguồn dữ liệu
+# Nguồn dữ liệu hiện hành
 
-Workbook người dùng cung cấp: `DuLieuMau_5Truong_1750HocSinh.xlsx`. SHA-256: `21802353b2c975ab74cc1143fbada28954a60a1d5b55b2bf77c02d639de86f57`. Các sheet xác nhận đây là dữ liệu mô phỏng, không phải học sinh thật.
+Nguồn: bản xuất phpMyAdmin `dreamteam_tuyensinh10_demo.sql` do chủ dự án cung cấp ngày 31/10/2026. SHA-256 file gốc: `675a3c2c42bdcaca16f6070cb1b47db5f0e845b26043fc6f8f716a7b63868a9d`.
 
-Nguồn chính: 5 dòng Truong_THCS, 1.750 dòng ThiSinh, 5.250 dòng NguyenVong, 5 dòng ChiTieu_THPT. Mã, tên tiếng Việt, ngày sinh, số báo danh và nguyện vọng được giữ theo Excel. ZIP được dùng để đối chiếu, không chạy trực tiếp vì các INSERT trong đó chưa idempotent.
+File trong repository giữ dữ liệu của bản gốc; chỉ bổ sung CREATE DATABASE/USE để chọn đúng database demo, chuẩn hóa chữ hoa/thường tên bảng/view theo schema PHP và bỏ DEFINER root@localhost. Các file gốc người dùng gửi được giữ ngoài checkout trong phiên làm việc, không bị xóa.
 
-Tạo lại SQL (chỉ khi thay nguồn/schema): cài `openpyxl`, chạy `python3 database/demo/build_demo.py`. Không đổi bộ seed nhỏ của dự án.
+Excel trong `source/` là nguồn giai đoạn đầu cho 1.750 học sinh/5.250 nguyện vọng, không chứa toàn bộ trạng thái bài thi/điểm hiện hành. Không dùng để ghi đè database đã được cập nhật.
