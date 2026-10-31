@@ -56,7 +56,8 @@ Làm theo đặc tả và Test Case Tuần 04, tên hàm theo bảng Message –
 1. Lọc **Kỳ thi → Môn thi → Phòng thi**, bấm **Lọc túi bài**, rồi chọn túi bài cần chấm.
 2. Bấm **Tải file túi bài (.xlsx)**. File chứa đúng ba cột **Phòng thi, Số phách, Điểm**; phòng thi và số phách được điền sẵn, điểm để trống. Chỉ xuất các bài chưa có điểm, không xuất thông tin thí sinh. Túi có bài chưa đánh phách phải hoàn tất đánh phách trước.
 3. Người chấm điền cột **Điểm** trong Excel, giữ nguyên phòng thi / số phách và tiêu đề, lưu `.xlsx` rồi **Import và kiểm tra file** trở lại đúng túi đã chọn.
-4. Xem lỗi từng dòng; nếu hợp lệ thì **Xác nhận lưu điểm**. Không có nhập tay trên web. Bài đã có điểm chỉ chỉnh sửa tại UC13.
+4. Xem lỗi từng dòng; nếu hợp lệ thì **Xác nhận lưu điểm**. Điểm vừa lưu hiển thị ngay trong bảng **Điểm đã nhập của túi** ở cuối trang. Không có nhập tay trên web. Bài đã có điểm chỉ chỉnh sửa tại UC13.
+5. Túi đã có đủ điểm vẫn chọn được, xem được bảng điểm và **Tải bảng điểm của túi (.xlsx)**. Ô import vẫn hiện nhưng bị khóa kèm giải thích; chọn túi còn bài chưa nhập để nhập mới. Cập nhật mã từ GitHub không tự sửa dữ liệu MySQL trên máy.
 
 Tối đa 500 bài / 2 MB mỗi file; không dùng `.xls` hoặc công thức. Điểm theo thang môn, bước 0.25. Hệ thống kiểm tra đúng kỳ / môn / phòng / túi, số phách, trùng bài và điểm trước khi lưu. Khi xác nhận, kiểm tra lại dữ liệu và lưu toàn bộ trong một transaction; lỗi sẽ không lưu điểm nào. Bản xem trước hết hạn sau 15 phút.
 
