@@ -25,5 +25,5 @@ $school_regions = array_values(array_unique(array_column($public_schools, 'distr
   </tbody></table>
  </div>
  <p class="empty-state" id="school-empty" role="status" hidden>Không có trường phù hợp. Hãy thử tên hoặc khu vực khác.</p>
- <div class="directory-note"><span data-school-count aria-live="polite"><?= count($public_schools) ?> trường</span><span>Danh sách phục vụ thực hành · Không dùng làm căn cứ đăng ký thực tế</span></div>
+ <div class="directory-note"><span data-school-count aria-live="polite"><?= count($public_schools) ?> trường</span><span>Thông tin trường THPT và chỉ tiêu tuyển sinh trên hệ thống</span></div>
 </div>

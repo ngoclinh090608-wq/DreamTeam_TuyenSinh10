@@ -116,4 +116,4 @@ Hai người cùng sửa một chỗ sẽ bị **conflict** khi gộp.
 - Dùng header, footer, sidebar chung; không tạo phiên bản riêng cho từng thành viên. Giữ bố cục công khai và quản trị hiện hành.
 - Dùng CSS/JS có sẵn; class mới đặt theo module. Không bỏ xác thực/phân quyền để xem trước trang quản trị.
 - Không hiển thị số liệu giả để thay lỗi kết nối database. Trường THCS của học sinh và THPT nhận nguyện vọng là hai danh mục khác nhau.
-- Các tài khoản/mật khẩu mô phỏng ghi tại README chính. Dùng chức năng Đổi mật khẩu nếu còn đăng nhập được; khi quên mật khẩu, nhờ người quản lý database xử lý đúng tài khoản sau khi sao lưu, không nhập lại toàn bộ dữ liệu.
+- Các tài khoản/mật khẩu khởi tạo ghi trong [bảng tài khoản riêng](TAI_KHOAN.md). Dùng chức năng Đổi mật khẩu nếu còn đăng nhập được; khi quên mật khẩu, nhờ người quản lý database xử lý đúng tài khoản sau khi sao lưu, không nhập lại toàn bộ dữ liệu.

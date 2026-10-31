@@ -59,9 +59,9 @@
  $$('[data-demo-form]').forEach(form=>form.addEventListener('submit',ev=>{
    ev.preventDefault(); if(!form.reportValidity())return;
    const context=form.dataset.demoContext||'Thao tác';
-   toast(`${context}: Đây là giao diện minh họa, chưa xử lý hoặc lưu dữ liệu. Không nhập thông tin thật.`);
+   toast(`${context}: Chức năng chưa sẵn sàng. Chưa có dữ liệu nào được lưu.`);
  }));
- $$('[data-demo-action]').forEach(btn=>btn.addEventListener('click',()=>toast('Chức năng này sẽ được kết nối khi hoàn thiện module.')));
+ $$('[data-demo-action]').forEach(btn=>btn.addEventListener('click',()=>toast('Chức năng này hiện chưa sẵn sàng.')));
  // Frontend table filtering
  $('[data-table-search]')?.addEventListener('input',ev=>{
    const query=ev.target.value.trim().toLocaleLowerCase('vi');
@@ -84,14 +84,4 @@
    filterSchools();
  }));
  $('[data-school-search]')?.addEventListener('input',filterSchools);
- // Client-side fake result for DEMO001 ONLY. No API or personal data.
- $('#lookup-demo-form')?.addEventListener('submit',ev=>{
-   ev.preventDefault();const form=ev.currentTarget;if(!form.reportValidity())return;
-   const id=($('#lookup-id')?.value||'').trim().toUpperCase();const box=$('#lookup-result');
-   if(id==='DEMO001') {if(box){box.hidden=false;box.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});}toast('Đã hiển thị kết quả mẫu DEMO001. Đây không phải kết quả thật.');}
-   else{if(box)box.hidden=true;toast('Bộ giao diện chỉ có mã mẫu DEMO001. Không có dữ liệu thí sinh thật để tra cứu.');}
- });
- if(new URLSearchParams(window.location.search).has('lookup_id')){
-   const form=$('#lookup-demo-form'); if(form?.checkValidity())form.requestSubmit();
- }
 })();
