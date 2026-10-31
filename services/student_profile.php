@@ -26,11 +26,11 @@ function student_profile_phone(string $value): void {
 }
 function student_profile_save(array $account,array $input,?array $photo=null): void {
     if(($account['vaiTro'] ?? '')!=='HOC_SINH' || empty($account['maThiSinh']))throw new BusinessException('Tài khoản không được phép cập nhật hồ sơ học sinh.');
+    if(array_key_exists('soDinhDanh',$input))throw new BusinessException('Số định danh/CCCD do nhà trường quản lý và học sinh không được phép chỉnh sửa.');
     if(!student_profile_ready())throw new BusinessException('Chưa có cấu trúc lưu hồ sơ bổ sung. Vui lòng liên hệ quản trị hệ thống.');
-    $owner=(string)$account['maThiSinh'];$fields=['gioiTinh'=>10,'soDinhDanh'=>12,'noiSinh'=>150,'danToc'=>50,'quocTich'=>50,'tonGiao'=>50,'dienThoai'=>20,'email'=>150,'lop'=>20,'diaChiThuongTru'=>500,'choOHienNay'=>500,'doiTuongUuTien'=>250];$values=[];
+    $owner=(string)$account['maThiSinh'];$fields=['gioiTinh'=>10,'noiSinh'=>150,'danToc'=>50,'quocTich'=>50,'tonGiao'=>50,'dienThoai'=>20,'email'=>150,'lop'=>20,'diaChiThuongTru'=>500,'choOHienNay'=>500,'doiTuongUuTien'=>250];$values=[];
     foreach($fields as $key=>$max)$values[$key]=student_profile_text($input,$key,$max);
     if(!in_array($values['gioiTinh'],['','Nam','Nữ','Khác'],true))throw new BusinessException('Giới tính không hợp lệ.');
-    if($values['soDinhDanh']!=='' && !preg_match('/^[0-9]{12}$/D',$values['soDinhDanh']))throw new BusinessException('Số định danh/CCCD cần đủ 12 chữ số.');
     student_profile_phone($values['dienThoai']);
     if($values['email']!=='' && !filter_var($values['email'],FILTER_VALIDATE_EMAIL))throw new BusinessException('Email không hợp lệ.');
     $families=[];$years=[];
@@ -62,7 +62,7 @@ function student_profile_save(array $account,array $input,?array $photo=null): v
         $st=$pdo->prepare("SELECT maThiSinh FROM TaiKhoan WHERE maTaiKhoan=? AND maThiSinh=? AND vaiTro='HOC_SINH' AND trangThai='Hoạt động' FOR UPDATE");$st->execute([$account['maTaiKhoan'],$owner]);
         if(!$st->fetchColumn())throw new BusinessException('Tài khoản không có quyền ghi hồ sơ này.');
         $st=$pdo->prepare('SELECT anhHoSo FROM HoSoBoSung WHERE maThiSinh=? FOR UPDATE');$st->execute([$owner]);$oldPhoto=$st->fetchColumn() ?: null;
-        $columns=array_keys($fields);$columns[]='anhHoSo';$args=array_values($values);$args[1]=$values['soDinhDanh']===''?null:$values['soDinhDanh'];$args[]=$newPhoto ?? $oldPhoto;
+        $columns=array_keys($fields);$columns[]='anhHoSo';$args=array_values($values);$args[]=$newPhoto ?? $oldPhoto;
         $st=$pdo->prepare('INSERT INTO HoSoBoSung (maThiSinh,'.implode(',',$columns).') VALUES ('.implode(',',array_fill(0,count($columns)+1,'?')).') ON DUPLICATE KEY UPDATE '.implode(',',array_map(fn($c)=>"$c=VALUES($c)",$columns)));$st->execute(array_merge([$owner],$args));
         $st=$pdo->prepare('INSERT INTO GiaDinhThiSinh (maThiSinh,quanHe,hoTen,namSinh,dienThoai) VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE hoTen=VALUES(hoTen),namSinh=VALUES(namSinh),dienThoai=VALUES(dienThoai)');foreach($families as $row)$st->execute($row);
         $st=$pdo->prepare('INSERT INTO HocTapTHCS (maThiSinh,lop,diemTrungBinh,hocLuc,hanhKiem) VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE diemTrungBinh=VALUES(diemTrungBinh),hocLuc=VALUES(hocLuc),hanhKiem=VALUES(hanhKiem)');foreach($years as $row)$st->execute($row);
