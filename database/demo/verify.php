@@ -22,6 +22,17 @@ try {
         'mot_ky_thi' => live_val('SELECT COUNT(*) FROM KyThi') === 1,
         'khong_mo_coi_ket_qua' => live_val('SELECT COUNT(*) FROM KetQuaChamThi k LEFT JOIN BaiThi b ON b.maBaiThi=k.maBaiThi WHERE b.maBaiThi IS NULL') === 0,
         'khong_mo_coi_nguyen_vong' => live_val('SELECT COUNT(*) FROM NguyenVong n LEFT JOIN ThiSinh t ON t.maThiSinh=n.maThiSinh WHERE t.maThiSinh IS NULL') === 0,
+        'diem_thi_dung_nguyen_vong_1' => live_val("SELECT COUNT(*) FROM PhanPhongThi pp
+            JOIN ThiSinh t ON t.maThiSinh=pp.maThiSinh
+            JOIN NguyenVong nv ON nv.maThiSinh=t.maThiSinh AND nv.thuTuNguyenVong=1
+            JOIN PhongThi p ON p.maPhong=pp.maPhong
+            JOIN DiemThi d ON d.maDiemThi=p.maDiemThi
+            WHERE pp.trangThai='Đã phân' AND (d.maTruongTHPT IS NULL OR d.maTruongTHPT<>nv.maTruongTHPT)") === 0,
+        'phong_khong_vuot_suc_chua' => live_val("SELECT COUNT(*) FROM (
+            SELECT p.maPhong FROM PhongThi p
+            LEFT JOIN PhanPhongThi pp ON pp.maPhong=p.maPhong AND pp.trangThai='Đã phân'
+            GROUP BY p.maPhong,p.sucChua HAVING COUNT(pp.maPhanPhong)>p.sucChua
+        ) vuot") === 0,
     ];
     echo json_encode(['database'=>$stats['database'], 'counts'=>[
         'hocSinh'=>$stats['thiSinh'], 'nguyenVong'=>$stats['nguyenVong'],
