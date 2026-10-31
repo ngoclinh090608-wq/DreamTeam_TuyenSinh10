@@ -15,7 +15,7 @@ Ba file SQL dưới đây là các bản xuất mới nhất do người dùng c
 - Mỗi file tự chọn database riêng. Chỉ nhập vào database trống; không nhập ba file chồng lên nhau. Máy đã có dữ liệu đang làm việc không cần nhập lại sau khi pull code.
 - Sao chép `database.local.example.php` sang `config/database.local.php` nếu cần thay host/user/password/name. Biến môi trường DB_* được ưu tiên; cấu hình local không đưa lên Git.
 
-Bản demo có 11 tài khoản, 380 bài chưa chấm, 1.750 hồ sơ bổ sung, 5.250 dòng gia đình và 7.000 dòng học bạ. Giữ nguyên tên người nhập, thời gian, điểm, mật khẩu và nội dung các dòng dữ liệu trong file người dùng gửi. Chỉ chuẩn hóa tên bảng/view cho Windows và Linux, bỏ DEFINER gắn với máy xuất, thêm CREATE DATABASE/USE và thống nhất xuống dòng.
+Bản demo có 11 tài khoản, 380 bài chưa chấm, 1.750 hồ sơ bổ sung, 5.250 dòng gia đình và 7.000 dòng học bạ. Tên người nhập, thời gian, điểm và mật khẩu được giữ nguyên. Điểm thi và phòng thi được chuẩn hóa theo trường THPT nguyện vọng 1; trường THPT Sao Mai được bổ sung phòng thứ 12 để đủ 359 thí sinh.
 
 ## Máy đã dùng bản demo cũ
 
@@ -24,6 +24,7 @@ Không nhập lại full dump để cập nhật máy đang có dữ liệu. Cá
 1. `20261031_student_profile.sql`: thêm ba bảng hồ sơ còn thiếu.
 2. `20261031_fill_student_profiles.sql`: tùy chọn điền hồ sơ giả lập vào ô trống, không ghi đè nội dung đã nhập.
 3. `20261101_demo_grading_author.sql`: chỉ thay nhãn người nhập tự động cũ bằng Phan Thùy Dương, người nhập giả lập của buổi demo; giữ nguyên thời gian và điểm.
+4. `20261101_reassign_demo_exam_sites_by_nv1.sql`: đổi 5 điểm thi demo sang trường THPT và phân lại phòng theo NV1. Chạy file này trên máy đang hiện điểm thi THCS; migration có thể chạy lại an toàn.
 
 Máy nhập snapshot demo mới đã có các nội dung trên, không cần chạy migration riêng. Ảnh học sinh nằm trong `storage/student-photos/` trên máy, không nằm trong SQL; sao lưu thư mục ảnh cùng database.
 
