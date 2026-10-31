@@ -101,26 +101,34 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
     <?php foreach ($dsTui as $tui): ?>
       <tr><td><?= e($tui['maLoBaiThi']) ?></td><td><?= e($tui['tenPhong'] . ' (' . $tui['maPhong'] . ')') ?></td>
       <td><?= (int)$tui['soBai'] ?></td><td><?= (int)$tui['chuaNhap'] ?></td>
-      <td><a class="btn btn-outline" href="<?= e(url('grading/nhap-diem.php', array_merge($scope, ['tuiBai' => $tui['maLoBaiThi']])) . '#chi-tiet-tui') ?>">Chọn túi bài</a></td></tr>
+      <td><a class="btn btn-outline" href="<?= e(url('grading/nhap-diem.php', array_merge($scope, ['tuiBai' => $tui['maLoBaiThi'], 'taiNgay' => '1'])) . ((int)$tui['chuaNhap'] > 0 ? '#nhap-excel' : '#chi-tiet-tui')) ?>"><?= (int)$tui['chuaNhap'] > 0 ? 'Chọn túi bài' : 'Tải danh sách điểm' ?></a></td></tr>
     <?php endforeach; ?>
   </tbody></table></div>
   <?php endif; ?>
 </section>
 <?php if ($dsBai && $phongHopLe): ?>
+<?php
+$downloadQuery = $scope + ['download' => '1'];
+if (!$soChuaNhap) $downloadQuery['loaiFile'] = 'bang_diem';
+$downloadUrl = url('grading/nhap-diem.php', $downloadQuery);
+?>
+<?php if (!$isPost && ui_input('taiNgay') === '1'): ?>
+  <iframe hidden title="Tải Excel của túi đã chọn" src="<?= e($downloadUrl) ?>"></iframe>
+<?php endif; ?>
+<?php if (!$soChuaNhap): ?>
 <section class="panel" id="chi-tiet-tui">
-  <div class="panel-heading"><div><h2>2. Tải túi bài <?= e($maTui) ?></h2>
-    <p>File Excel có ba cột: <strong>Phòng thi · Số phách · Điểm</strong>. Chỉ gồm <?= $soChuaNhap ?> bài chưa có điểm. Điền cột Điểm, giữ nguyên phòng thi và số phách.</p>
+  <div class="panel-heading"><div>
+    <h2>Danh sách điểm đã nhập <?= e($maTui) ?></h2>
+    <p>Túi đã nhập đủ <?= count($dsBai) ?> bài. File tải về là danh sách có điểm đã lưu; xem điểm bên dưới. Muốn điều chỉnh điểm, dùng UC13.</p>
   </div></div>
-  <?php if ($soChuaNhap): ?>
-    <a class="btn btn-primary" href="<?= e(url('grading/nhap-diem.php', $scope + ['download' => '1'])) ?>">Tải file túi bài (.xlsx)</a>
-  <?php else: ui_notice('info', 'Túi bài đã nhập đủ điểm. Không có bài thi cần nhập điểm.'); endif; ?>
-  <p><a class="btn btn-outline" href="<?= e(url('grading/nhap-diem.php', $scope + ['download' => '1', 'loaiFile' => 'bang_diem'])) ?>">Tải bảng điểm của túi (.xlsx)</a></p>
+  <a class="btn btn-primary" href="<?= e($downloadUrl) ?>">Tải danh sách điểm (.xlsx)</a>
 </section>
+<?php endif; ?>
+<?php if ($soChuaNhap || $importPreview !== null): ?>
 <section class="panel" id="nhap-excel">
-  <div class="panel-heading"><div><h2>3. Import lại túi bài đã điền điểm</h2>
+  <div class="panel-heading"><div><h2>2. Import lại túi bài đã điền điểm</h2>
     <p>Chọn file .xlsx của túi <?= e($maTui) ?> sau khi điền điểm. Tối đa 500 bài / 2 MB, không dùng công thức. Điểm theo thang môn thi, bước 0.25. Hệ thống kiểm tra từng dòng trước khi lưu.</p>
   </div></div>
-  <?php if (!$soChuaNhap): ui_notice('info', 'Túi này đã có đủ điểm. Xem điểm bên dưới hoặc chọn túi còn bài chưa nhập để import điểm mới. Muốn sửa điểm đã lưu, dùng UC13.'); endif; ?>
   <form method="post" enctype="multipart/form-data">
     <?= csrf_field() ?>
     <?php foreach ($scope as $name => $value): ?><input type="hidden" name="<?= e($name) ?>" value="<?= e($value) ?>"><?php endforeach; ?>
@@ -148,8 +156,9 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
     <?php else: ?><p role="alert">File có lỗi. Chưa lưu điểm nào; hãy sửa các dòng lỗi và import lại.</p><?php endif; ?>
   <?php endif; ?>
 </section>
+<?php endif; ?>
 <section class="panel" id="ket-qua-diem">
-  <div class="panel-heading"><div><h2>4. Điểm đã nhập của túi <?= e($maTui) ?></h2>
+  <div class="panel-heading"><div><h2>Điểm đã nhập của túi <?= e($maTui) ?></h2>
     <p>Đã nhập <?= count($dsBai) - $soChuaNhap ?> / <?= count($dsBai) ?> bài. Sau khi xác nhận import thành công, điểm được hiển thị tại đây.</p>
   </div></div>
   <div class="table-wrap"><table class="data-table">
@@ -161,6 +170,6 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
   </tbody></table></div>
 </section>
 <?php else: ?>
-<section class="panel"><h2>Tải file, import và xem điểm</h2><p>Chọn kỳ thi, môn thi và phòng thi rồi bấm Chọn túi bài. Túi đã có điểm vẫn xem và tải được bảng điểm; túi còn bài chưa nhập sẽ có nút tải file để điền điểm và import lại.</p></section>
+<section class="panel"><h2>Tải file, import và xem điểm</h2><p>Chọn kỳ thi, môn thi và phòng thi rồi bấm Chọn túi bài để tải ngay file Điểm trống và mở chỗ upload. Túi đã nhập đủ điểm có nút Tải danh sách điểm.</p></section>
 <?php endif; ?>
 <?php ui_page_end(); ?>

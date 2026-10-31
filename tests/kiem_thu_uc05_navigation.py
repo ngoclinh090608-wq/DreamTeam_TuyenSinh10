@@ -16,9 +16,12 @@ class Links(html.parser.HTMLParser):
     def __init__(self, markup):
         super().__init__()
         self.links = []
+        self.frames = []
         self.feed(markup)
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
+        if tag == 'iframe' and 'src' in attrs:
+            self.frames.append(attrs['src'])
         if tag == 'a' and 'href' in attrs:
             self.links.append(attrs['href'])
 
@@ -35,20 +38,25 @@ for subject, room, bag in [('NN', 'P101', 'LO_P101_NN'), ('TOAN', 'P202', 'LO_P2
     page = request('grading/nhap-diem.php?' + urllib.parse.urlencode(dict(kyThi='KT2026', monThi=subject, phongThi=room))).decode()
     selection = next(link for link in Links(page).links if urllib.parse.parse_qs(urllib.parse.urlsplit(link).query).get('tuiBai') == [bag])
     selected = request(selection).decode()
-    assert 'id="ket-qua-diem"' in selected and 'id="excel"' in selected
+    assert 'id="ket-qua-diem"' in selected
+    assert len(Links(selected).frames) == 1
+    automatic_file = request(Links(selected).frames[0])
+    assert zipfile.is_zipfile(io.BytesIO(automatic_file))
     assert bag in selected
     print('PASS select actual bag link, import section and score table:', bag)
     links = Links(selected).links
-    report = next(link for link in links if 'loaiFile=bang_diem' in link)
-    with zipfile.ZipFile(io.BytesIO(request(report))) as archive:
+    with zipfile.ZipFile(io.BytesIO(automatic_file)) as archive:
         sheet = archive.read('xl/worksheets/sheet1.xml').decode()
         assert room in sheet and 'Số phách' in sheet
         if subject == 'NN':
             assert '<t>9.50</t>' in sheet or re.search(r'<t>\d+\.\d{2}</t>', sheet)
-            assert 'Túi này đã có đủ điểm' in selected
+            assert 'id="excel"' not in selected and 'Túi đã nhập đủ' in selected
             print('PASS fully graded bag still downloads recorded scores')
     if subject == 'TOAN':
-        download = next(link for link in links if 'download=1' in link and 'loaiFile=' not in link)
+        assert 'id="excel"' in selected
+        assert not any('loaiFile=bang_diem' in link for link in links)
+        assert 'Tải lại file túi bài' not in selected and 'Túi bài để nhập điểm' not in selected
+        download = Links(selected).frames[0]
         original = request(download)
         filled = io.BytesIO()
         with zipfile.ZipFile(io.BytesIO(original)) as source, zipfile.ZipFile(filled, 'w', zipfile.ZIP_DEFLATED) as target:
