@@ -5,7 +5,7 @@
   'KẾT QUẢ' => [ ['appeals','Phúc khảo','↺'],['admission','Xét tuyển','◇'],['enrollment','Nhập học','☑'],['publication','Công bố kết quả','◉'],['statistics','Thống kê','▥'] ],
 ]; ?>
 <aside class="sidebar" id="sidebar">
- <a class="sidebar-brand" href="<?= e(url('admin/')) ?>"><img src="<?= e(url('assets/images/logo.svg')) ?>" alt=""><span><strong>DREAM TEAM</strong><small>Admission Portal</small></span></a>
+ <a class="sidebar-brand" href="<?= e(url('admin/')) ?>"><img src="<?= e(url('assets/images/logo.svg')) ?>" alt=""><span><strong>TUYỂN SINH LỚP 10</strong><small>Cổng quản lý tuyển sinh</small></span></a>
  <div class="sidebar-group-list">
  <?php foreach($nav_sections as $group => $items): ?>
   <section class="sidebar-section"><h2><?= e($group) ?></h2>
