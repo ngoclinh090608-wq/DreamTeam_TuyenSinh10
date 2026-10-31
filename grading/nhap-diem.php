@@ -23,13 +23,15 @@ try {
     }
     $dsPhong = grading_ds_phong_nhap_diem($maKyThi, $maMonThi);
     $dsTui = grading_ds_tui_bai($maKyThi, $maMonThi, $maPhong);
+    if (!$isPost && $maTui === '' && count($dsTui) === 1) $maTui = (string)$dsTui[0]['maLoBaiThi'];
     if ($maTui !== '') $dsBai = grading_bai_trong_tui($maKyThi, $maMonThi, $maPhong, $maTui);
     if (!$isPost && ui_input('download') === '1') {
         if (!$dsBai) throw new GradingException('Vui lòng chọn túi bài thi trước khi tải Excel.');
-        $file = grading_xuat_tui_excel($dsBai);
+        $bangDiem = ui_input('loaiFile') === 'bang_diem';
+        $file = grading_xuat_tui_excel($dsBai, $bangDiem);
         try {
             header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            header('Content-Disposition: attachment; filename="tui-bai-' . preg_replace('/[^A-Za-z0-9_-]/', '_', $maTui) . '.xlsx"');
+            header('Content-Disposition: attachment; filename="' . ($bangDiem ? 'bang-diem-' : 'tui-bai-') . preg_replace('/[^A-Za-z0-9_-]/', '_', $maTui) . '.xlsx"');
             header('Cache-Control: private, no-store');
             header('Content-Length: ' . filesize($file));
             readfile($file);
@@ -99,38 +101,32 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
     <?php foreach ($dsTui as $tui): ?>
       <tr><td><?= e($tui['maLoBaiThi']) ?></td><td><?= e($tui['tenPhong'] . ' (' . $tui['maPhong'] . ')') ?></td>
       <td><?= (int)$tui['soBai'] ?></td><td><?= (int)$tui['chuaNhap'] ?></td>
-      <td><a class="btn btn-outline" href="<?= e(url('grading/nhap-diem.php', array_merge($scope, ['tuiBai' => $tui['maLoBaiThi']]))) ?>">Chọn túi bài</a></td></tr>
+      <td><a class="btn btn-outline" href="<?= e(url('grading/nhap-diem.php', array_merge($scope, ['tuiBai' => $tui['maLoBaiThi']])) . '#chi-tiet-tui') ?>">Chọn túi bài</a></td></tr>
     <?php endforeach; ?>
   </tbody></table></div>
   <?php endif; ?>
 </section>
 <?php if ($dsBai && $phongHopLe): ?>
-<section class="panel">
+<section class="panel" id="chi-tiet-tui">
   <div class="panel-heading"><div><h2>2. Tải túi bài <?= e($maTui) ?></h2>
     <p>File Excel có ba cột: <strong>Phòng thi · Số phách · Điểm</strong>. Chỉ gồm <?= $soChuaNhap ?> bài chưa có điểm. Điền cột Điểm, giữ nguyên phòng thi và số phách.</p>
   </div></div>
   <?php if ($soChuaNhap): ?>
     <a class="btn btn-primary" href="<?= e(url('grading/nhap-diem.php', $scope + ['download' => '1'])) ?>">Tải file túi bài (.xlsx)</a>
   <?php else: ui_notice('info', 'Túi bài đã nhập đủ điểm. Không có bài thi cần nhập điểm.'); endif; ?>
-  <div class="table-wrap"><table class="data-table">
-    <thead><tr><th>Phòng thi</th><th>Số phách</th><th>Điểm</th></tr></thead><tbody>
-    <?php foreach ($dsBai as $bai): ?>
-      <tr><td><?= e($bai['maPhong']) ?></td><td><?= e($bai['soPhach'] ?? 'Chưa đánh phách') ?></td>
-        <td><?= $bai['diemThi'] === null ? 'Chưa nhập' : e(grading_fmt_diem($bai['diemThi'])) ?></td></tr>
-    <?php endforeach; ?>
-  </tbody></table></div>
+  <p><a class="btn btn-outline" href="<?= e(url('grading/nhap-diem.php', $scope + ['download' => '1', 'loaiFile' => 'bang_diem'])) ?>">Tải bảng điểm của túi (.xlsx)</a></p>
 </section>
-<?php if ($soChuaNhap || $importPreview !== null): ?>
 <section class="panel" id="nhap-excel">
   <div class="panel-heading"><div><h2>3. Import lại túi bài đã điền điểm</h2>
     <p>Chọn file .xlsx của túi <?= e($maTui) ?> sau khi điền điểm. Tối đa 500 bài / 2 MB, không dùng công thức. Điểm theo thang môn thi, bước 0.25. Hệ thống kiểm tra từng dòng trước khi lưu.</p>
   </div></div>
+  <?php if (!$soChuaNhap): ui_notice('info', 'Túi này đã có đủ điểm. Xem điểm bên dưới hoặc chọn túi còn bài chưa nhập để import điểm mới. Muốn sửa điểm đã lưu, dùng UC13.'); endif; ?>
   <form method="post" enctype="multipart/form-data">
     <?= csrf_field() ?>
     <?php foreach ($scope as $name => $value): ?><input type="hidden" name="<?= e($name) ?>" value="<?= e($value) ?>"><?php endforeach; ?>
     <input type="hidden" name="action" value="kiem_tra_excel">
-    <div class="field"><label for="excel">File túi bài đã nhập điểm (.xlsx)</label><input id="excel" name="excel" type="file" accept=".xlsx" required></div>
-    <div class="ui-actions"><button class="btn btn-primary" type="submit">Import và kiểm tra file</button></div>
+    <div class="field"><label for="excel">File túi bài đã nhập điểm (.xlsx)</label><input id="excel" name="excel" type="file" accept=".xlsx" required<?= !$soChuaNhap ? ' disabled' : '' ?>></div>
+    <div class="ui-actions"><button class="btn btn-primary" type="submit"<?= !$soChuaNhap ? ' disabled' : '' ?>>Import và kiểm tra file</button></div>
   </form>
   <?php if ($importPreview !== null): ?>
     <h3>Kết quả kiểm tra — chưa lưu điểm</h3>
@@ -152,5 +148,19 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
     <?php else: ?><p role="alert">File có lỗi. Chưa lưu điểm nào; hãy sửa các dòng lỗi và import lại.</p><?php endif; ?>
   <?php endif; ?>
 </section>
-<?php endif; endif; ?>
+<section class="panel" id="ket-qua-diem">
+  <div class="panel-heading"><div><h2>4. Điểm đã nhập của túi <?= e($maTui) ?></h2>
+    <p>Đã nhập <?= count($dsBai) - $soChuaNhap ?> / <?= count($dsBai) ?> bài. Sau khi xác nhận import thành công, điểm được hiển thị tại đây.</p>
+  </div></div>
+  <div class="table-wrap"><table class="data-table">
+    <thead><tr><th>Phòng thi</th><th>Số phách</th><th>Điểm</th></tr></thead><tbody>
+    <?php foreach ($dsBai as $bai): ?>
+      <tr><td><?= e($bai['maPhong']) ?></td><td><?= e($bai['soPhach'] ?? 'Chưa đánh phách') ?></td>
+        <td><?= $bai['diemThi'] === null ? 'Chưa nhập' : e(grading_fmt_diem($bai['diemThi'])) ?></td></tr>
+    <?php endforeach; ?>
+  </tbody></table></div>
+</section>
+<?php else: ?>
+<section class="panel"><h2>Tải file, import và xem điểm</h2><p>Chọn kỳ thi, môn thi và phòng thi rồi bấm Chọn túi bài. Túi đã có điểm vẫn xem và tải được bảng điểm; túi còn bài chưa nhập sẽ có nút tải file để điền điểm và import lại.</p></section>
+<?php endif; ?>
 <?php ui_page_end(); ?>

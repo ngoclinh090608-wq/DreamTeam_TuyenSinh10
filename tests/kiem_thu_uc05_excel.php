@@ -17,7 +17,7 @@ function edit_sheet(string $path, callable $edit): void {
 }
 function has_errors(array $rows): bool { return (bool)array_filter($rows, static fn($r) => $r['loi'] !== ''); }
 $ky = 'KT2026'; $mon = 'TOAN'; $phong = 'P202'; $tui = 'LO_P202_TOAN';
-$path = '';
+$path = ''; $reportPath = '';
 $pdo = db();
 try {
     check(in_array($phong, array_column(grading_ds_phong_nhap_diem($ky, $mon), 'maPhong')), 'Room filter follows exam and subject');
@@ -57,6 +57,9 @@ try {
     check((int)$pdo->query("SELECT COUNT(*) FROM KetQuaChamThi WHERE maBaiThi IN ('BT046','BT049','BT052')")->fetchColumn() === 0, 'No partial scores remain after rollback');
     check((int)$pdo->query("SELECT COUNT(*) FROM BaiThi WHERE maBaiThi IN ('BT046','BT049','BT052') AND trangThaiCham='Chưa chấm'")->fetchColumn() === 3, 'Paper statuses roll back too');
     rejects(fn() => grading_xuat_tui_excel(grading_bai_trong_tui($ky, 'NN', $phong, 'LO_P202_NN')), 'Fully graded bag has no new score file');
+    $reportPath = grading_xuat_tui_excel(grading_bai_trong_tui($ky, 'NN', $phong, 'LO_P202_NN'), true);
+    $reportRows = grading_doc_excel($reportPath);
+    check(count($reportRows) > 0 && !in_array('', array_column($reportRows, 'diem'), true), 'Fully graded bag exports stored scores for viewing');
     $withoutCode = $papers; $withoutCode[0]['soPhach'] = null;
     rejects(fn() => grading_xuat_tui_excel($withoutCode), 'Do not export papers before anonymous codes are ready');
     edit_sheet($path, static fn($xml) => str_replace('<c r="C2" t="inlineStr">', '<c r="C2" t="inlineStr"><f>1+1</f>', $xml));
@@ -64,4 +67,5 @@ try {
     echo "UC05 Excel: $count checks passed.\n";
 } finally {
     if ($path !== '') @unlink($path);
+    if ($reportPath !== '') @unlink($reportPath);
 }

@@ -151,8 +151,8 @@ function grading_luu_import(array $rows, string $ky, string $mon, string $phong,
 }
 
 /** Create a real XLSX for the selected bag; only room, anonymous code and blank score leave the server. */
-function grading_xuat_tui_excel(array $papers): string {
-    $pending = array_values(array_filter($papers, 'baiThiCanNhapDiem'));
+function grading_xuat_tui_excel(array $papers, bool $bangDiem = false): string {
+    $pending = $bangDiem ? $papers : array_values(array_filter($papers, 'baiThiCanNhapDiem'));
     if (!$pending) throw new GradingException('Túi bài đã nhập đủ điểm. Không có bài thi cần nhập điểm.');
     if (count($pending) > 500) throw new GradingException('Túi bài vượt giới hạn 500 bài cho một file Excel.');
     foreach ($pending as $bai) {
@@ -166,7 +166,7 @@ function grading_xuat_tui_excel(array $papers): string {
         $zip['xl/workbook.xml'] = '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Túi bài thi" sheetId="1" r:id="rId1"/></sheets></workbook>';
         $zip['xl/_rels/workbook.xml.rels'] = '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>';
         $data = [['Phòng thi', 'Số phách', 'Điểm']];
-        foreach ($pending as $bai) $data[] = [$bai['maPhong'], $bai['soPhach'], ''];
+        foreach ($pending as $bai) $data[] = [$bai['maPhong'], $bai['soPhach'], $bangDiem && $bai['diemThi'] !== null ? grading_fmt_diem($bai['diemThi']) : ''];
         $xml = '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="3" width="24" customWidth="1"/></cols><sheetData>';
         foreach ($data as $i => $values) {
             $n = $i + 1; $xml .= '<row r="' . $n . '">';
