@@ -431,6 +431,7 @@ JOIN ThiSinh t ON t.maThiSinh = pp.maThiSinh
 JOIN PhongThi p ON p.maPhong = pp.maPhong
 JOIN DiemThi d ON d.maDiemThi = p.maDiemThi;
 
+
 -- 4.7. vw_PhanCongRaDe (theo báo cáo Tuần 08)
 -- Tra cứu nhiệm vụ ra đề thi của cán bộ theo môn và kỳ thi.
 CREATE OR REPLACE VIEW vw_PhanCongRaDe AS
@@ -448,6 +449,7 @@ FROM PhanCongRaDe pc
 JOIN CanBo c ON c.maCanBo = pc.maCanBo
 JOIN KyThi k ON k.maKyThi = pc.maKyThi
 JOIN MonThi m ON m.maMonThi = pc.maMonThi;
+
 
 -- 4.8. vw_KetQuaThiTheoMon (Nguyễn Thị Ngọc Linh)
 -- Điểm từng môn của thí sinh và trạng thái công bố. Bài chưa chấm có diemThi = NULL.
@@ -487,6 +489,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+
 -- 6.8. fn_TongSucChuaDiemThi (theo báo cáo Tuần 08)
 -- Tính tổng sức chứa phòng tại một địa điểm thi.
 DROP FUNCTION IF EXISTS fn_TongSucChuaDiemThi;
@@ -501,6 +504,7 @@ BEGIN
   RETURN v_sum;
 END$$
 DELIMITER ;
+
 
 -- 6.9. fn_DemThiSinhTheoPhong (theo báo cáo Tuần 08)
 -- Đếm số thí sinh đang được phân vào một phòng thi (trạng thái 'Đã phân').
@@ -518,6 +522,7 @@ BEGIN
   RETURN v_count;
 END$$
 DELIMITER ;
+
 
 -- 6.10. fn_DemBaiThiTheoMon (Nguyễn Thị Ngọc Linh): số bài thi theo kỳ thi và môn.
 DROP FUNCTION IF EXISTS fn_DemBaiThiTheoMon;
@@ -656,6 +661,7 @@ proc: BEGIN
 END$$
 DELIMITER ;
 
+
 -- 5.15. sp_PhanPhongThiSinh (Nguyễn Thị Thúy Vy) – UC07.
 -- Phân thí sinh vào phòng thi cụ thể, kiểm tra điều kiện dự thi và sức chứa phòng.
 DROP PROCEDURE IF EXISTS sp_PhanPhongThiSinh;
@@ -732,6 +738,7 @@ proc: BEGIN
 END$$
 DELIMITER ;
 
+
 -- 5.16. sp_ChuyenPhongThiSinh (Nguyễn Thị Thúy Vy) – UC07.
 -- Chuyển thí sinh đã phân sang phòng mới, kiểm tra sức chứa phòng mới.
 DROP PROCEDURE IF EXISTS sp_ChuyenPhongThiSinh;
@@ -799,6 +806,7 @@ proc: BEGIN
 END$$
 DELIMITER ;
 
+
 -- 5.17. sp_LayDanhSachPhanPhong (Nguyễn Thị Thúy Vy) – UC07.
 -- Lấy danh sách thí sinh đã phân phòng theo kỳ thi, điểm thi hoặc phòng thi.
 DROP PROCEDURE IF EXISTS sp_LayDanhSachPhanPhong;
@@ -831,6 +839,7 @@ BEGIN
   ORDER BY d.maDiemThi, p.maPhong, t.soBaoDanh, t.maThiSinh;
 END$$
 DELIMITER ;
+
 
 -- 5.21. sp_PhanCongRaDe (Nguyễn Thị Thúy Vy) – UC08.
 -- Phân công cán bộ ra đề thi theo môn thi và kỳ thi.
@@ -895,6 +904,7 @@ proc: BEGIN
   SET p_thongBao = 'Phân công ra đề thi thành công.';
 END$$
 DELIMITER ;
+
 
 -- 5.25. sp_NhapKetQuaChamThi (Nguyễn Thị Thúy Vy) – UC05.
 -- Nhập điểm lần đầu cho bài thi theo mã phách/mã bài thi. Cập nhật trangThaiCham = 'Đã chấm'.
@@ -971,6 +981,7 @@ proc: BEGIN
   SET p_thongBao = 'Nhập điểm thi thành công.';
 END$$
 DELIMITER ;
+
 
 -- 5.26. sp_CapNhatDiemThi (Nguyễn Thị Ngọc Linh) – UC13.
 -- Sửa điểm và ghi LichSuChinhSuaDiem trong cùng một transaction. Lỗi thì hoàn tác, điểm cũ giữ nguyên.
