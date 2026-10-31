@@ -20,6 +20,10 @@ php -S 127.0.0.1:8080 router.php
 
 Dùng PHP 8.2 với `pdo_mysql`, `mbstring`, `Phar`, `SimpleXML`; thao tác Excel cần các extension này. Không cần Composer hoặc npm để chạy website. CI dùng MariaDB 10.4.
 
+## REST API hướng dịch vụ
+
+API phiên bản 1 nằm tại `api/v1` và dùng lại nghiệp vụ trong `services/`. Các endpoint đọc danh sách trường, kỳ thi, điểm thi và phòng thi trả JSON. Endpoint `POST /api/v1/exams/{examId}/room-preparations` yêu cầu session của Ban Tuyển sinh hoặc Quản trị cùng header `X-CSRF-Token`, rồi thực hiện transaction UC06–UC07 hiện có. Đặc tả đầy đủ nằm trong [`api/openapi.yaml`](api/openapi.yaml); API không cần Node.js hoặc MongoDB.
+
 ## Dữ liệu và tài khoản
 
 Bản SQL demo hiện hành có **1.750 học sinh, 5.250 nguyện vọng, 5.250 bài thi, 4.870 kết quả chấm**, một kỳ thi `KTDEMO26` tên “Kỳ thi tuyển sinh lớp 10 năm 2026”. Có 380 bài chưa chấm; không có lịch sử sửa điểm giả. Snapshot cũng kèm hồ sơ bổ sung giả lập (liên hệ, gia đình, học bạ) cho tất cả học sinh; số liệu có thể thay đổi sau khi người dùng thao tác.

@@ -21,7 +21,14 @@ function csrf_field(): string {
 function csrf_verify(): bool {
     app_session_start();
     $sent = $_POST['csrf_token'] ?? '';
-    return is_string($sent) && !empty($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $sent);
+    return is_string($sent) && csrf_verify_token($sent);
+}
+
+/** Verify a token supplied outside an HTML form, for example X-CSRF-Token in the REST API. */
+function csrf_verify_token(?string $sent): bool {
+    app_session_start();
+    return is_string($sent) && $sent !== '' && !empty($_SESSION['csrf_token'])
+        && hash_equals((string)$_SESSION['csrf_token'], $sent);
 }
 
 /** Thông báo một lần (hiện sau khi chuyển hướng POST → GET). */
