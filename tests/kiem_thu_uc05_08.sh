@@ -54,7 +54,7 @@ get(){ curl -s -c "$J" -b "$J" "$B/$1"; }
 tok(){ get "$1" | grep -o 'name="csrf_token" value="[^"]*"' | head -1 | sed 's/.*value="//;s/"//'; }
 post(){ local url="$1"; shift; curl -s -c "$J" -b "$J" -L "$B/$url" --data-urlencode "csrf_token=$T" "$@"; }
 
-MAT_KHAU_DEMO="${MAT_KHAU_DEMO:-dreamteam2026}"
+MAT_KHAU_DEMO="${MAT_KHAU_DEMO:-1234}"
 dang_nhap(){
   rm -f "$J"
   local t; t=$(tok "auth/login.php")
