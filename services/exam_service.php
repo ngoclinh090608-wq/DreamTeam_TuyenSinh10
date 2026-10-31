@@ -588,7 +588,8 @@ function luuKetQuaPhanPhong(string $maKyThi, string $maDiemThi, array $phanBoMap
 
 /**
  * Alternative 9.1: chuyển một thí sinh sang phòng khác còn chỗ.
- * Phòng mới phải cùng kỳ thi và thuộc trường đăng ký nguyện vọng 1 của thí sinh.
+ * Ưu tiên phòng thuộc trường NV1. Chỉ cho phép điều phối sang trường THPT khác
+ * trong cùng kỳ thi khi toàn bộ phòng tại trường NV1 đã hết chỗ.
  */
 function chuyenPhongThiSinh(string $maPhanPhong, string $maPhongMoi): void {
     $maPhanPhong = trim($maPhanPhong);
@@ -598,7 +599,8 @@ function chuyenPhongThiSinh(string $maPhanPhong, string $maPhongMoi): void {
     try {
         $pdo->beginTransaction();
 
-        $st = $pdo->prepare('SELECT pp.maThiSinh, pp.maPhong AS maPhongCu, p.maDiemThi, d.maKyThi, c.maKhuVuc AS khuVucThiSinh
+        $st = $pdo->prepare('SELECT pp.maThiSinh, pp.maPhong AS maPhongCu, p.maDiemThi, d.maKyThi,
+                                    d.maTruongTHPT AS maTruongHienTai, c.maKhuVuc AS khuVucThiSinh
                              FROM PhanPhongThi pp
                              JOIN PhongThi p ON p.maPhong = pp.maPhong
                              JOIN DiemThi d ON d.maDiemThi = p.maDiemThi
@@ -632,10 +634,31 @@ function chuyenPhongThiSinh(string $maPhanPhong, string $maPhongMoi): void {
             WHERE nv.maThiSinh = ? AND nv.thuTuNguyenVong = 1 FOR UPDATE');
         $stNv->execute([$pp['maKyThi'], $pp['maThiSinh']]);
         $truongDangKy = $stNv->fetchColumn();
-        if ($pm['maKyThi'] !== $pp['maKyThi'] || !$truongDangKy || !$pm['maTruongTHPT'] || $pm['maTruongTHPT'] !== $truongDangKy) {
+        if ($pm['maKyThi'] !== $pp['maKyThi'] || !$truongDangKy || !$pm['maTruongTHPT']) {
             throw new ExamException(EXAM_TB_DIEM_THI_KHONG_PHU_HOP, [
-                "Phòng {$maPhongMoi} không thuộc trường đăng ký nguyện vọng 1 của thí sinh trong kỳ thi này.",
+                "Phòng {$maPhongMoi} phải thuộc một điểm thi THPT trong cùng kỳ thi.",
             ]);
+        }
+
+        if ($pm['maTruongTHPT'] !== $truongDangKy) {
+            $stTrongNv1 = $pdo->prepare('SELECT p.sucChua, COALESCE(x.soLuong, 0) AS soLuong
+                FROM PhongThi p
+                JOIN DiemThi d ON d.maDiemThi = p.maDiemThi
+                LEFT JOIN (
+                    SELECT maPhong, COUNT(*) AS soLuong FROM PhanPhongThi
+                    WHERE trangThai = "Đã phân" GROUP BY maPhong
+                ) x ON x.maPhong = p.maPhong
+                WHERE d.maKyThi = ? AND d.maTruongTHPT = ? ORDER BY p.maPhong FOR UPDATE');
+            $stTrongNv1->execute([$pp['maKyThi'], $truongDangKy]);
+            $choTrongNv1 = 0;
+            foreach ($stTrongNv1->fetchAll() as $phongNv1) {
+                $choTrongNv1 += max(0, (int)$phongNv1['sucChua'] - (int)$phongNv1['soLuong']);
+            }
+            if ($choTrongNv1 > 0) {
+                throw new ExamException(EXAM_TB_DIEM_THI_KHONG_PHU_HOP, [
+                    "Trường nguyện vọng 1 vẫn còn {$choTrongNv1} chỗ. Chỉ được điều phối sang trường khác khi trường NV1 đã hết chỗ.",
+                ]);
+            }
         }
 
         $st = $pdo->prepare('SELECT COUNT(*) FROM PhanPhongThi WHERE maPhong = ? AND trangThai = "Đã phân"');

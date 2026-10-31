@@ -16,6 +16,12 @@
  <?php else: foreach ($studentDashboard['examSites'] as $examSite): ?>
  <section class="student-exam-ticket"><h3><?= e(catalog_display_name($examSite['tenKyThi'])) ?></h3><p class="student-exam-site"><?= e(catalog_display_name($examSite['tenDiemThi'])) ?></p>
  <?php if ($examSite['tenTruong']): ?><p><?= e(school_display_name($examSite['tenTruong'])) ?></p><?php endif; ?>
+ <?php if (!empty($examSite['tenTruongNV1'])): ?>
+ <p><strong>Trường NV1:</strong> <?= e(school_display_name($examSite['tenTruongNV1'])) ?></p>
+ <p class="student-dialog-empty"><?= !empty($examSite['laDiemThiNV1'])
+     ? 'Điểm thi được bố trí tại trường nguyện vọng 1.'
+     : 'Điểm thi được điều phối sang trường khác khi điểm thi nguyện vọng 1 không đủ sức chứa.' ?></p>
+ <?php endif; ?>
  <dl><div><dt>Số báo danh</dt><dd><?= e($profile['soBaoDanh'] ?: 'Chưa được cấp') ?></dd></div><div><dt>Phòng thi</dt><dd><?= e(catalog_display_name($examSite['tenPhong'])) ?><small><?= e($examSite['maPhong']) ?></small></dd></div></dl>
  </section>
  <?php endforeach; endif; ?>
