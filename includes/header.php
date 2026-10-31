@@ -4,6 +4,7 @@ $page_title = $page_title ?? 'Trang chủ';
 $layout = $layout ?? 'public';
 $active = $active ?? '';
 $cfg = app_config();
+$studentShell = $layout === 'dashboard' && function_exists('current_user') && has_role(current_user(), ['HOC_SINH']);
 ?><!doctype html>
 <html lang="vi">
 <head>
@@ -17,9 +18,11 @@ $cfg = app_config();
   <link rel="stylesheet" href="<?= e(url('assets/css/portal.css')) ?>">
   <script defer src="<?= e(url('assets/js/app.js')) ?>"></script>
 </head>
-<body class="<?= $layout === 'dashboard' ? 'dash-body' : 'public-body' ?>">
+<body class="<?= $studentShell ? 'student-body' : ($layout === 'dashboard' ? 'dash-body' : 'public-body') ?>">
 <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
-<?php if ($layout === 'dashboard'): ?>
+<?php if ($studentShell): ?>
+<?php require __DIR__ . '/student_shell_header.php'; ?>
+<?php elseif ($layout === 'dashboard'): ?>
 <div class="dash-shell">
   <?php require __DIR__ . '/sidebar.php'; ?>
   <div class="dash-main">

@@ -1,4 +1,7 @@
-<?php if (($layout ?? 'public') === 'dashboard'): ?>
+<?php if ($studentShell ?? false): ?>
+</main>
+<footer class="student-site-footer"><div><strong>Cổng tuyển sinh lớp 10</strong><p>Thông tin trường học, hồ sơ và nguyện vọng tuyển sinh.</p></div><a href="<?= e(url('admission-info/huong-dan.php')) ?>">Hướng dẫn sử dụng</a><span>© 2026 · Tuyển sinh lớp 10</span></footer>
+<?php elseif (($layout ?? 'public') === 'dashboard'): ?>
     </main>
     <footer class="dash-footer">© 2026 · Cổng tuyển sinh lớp 10 <span>Thông tin tuyển sinh · Hỗ trợ học sinh</span></footer>
   </div>

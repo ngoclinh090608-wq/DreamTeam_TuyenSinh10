@@ -13,7 +13,10 @@ ob_start(); render_module('admin'); $html = ob_get_clean();
 foreach (['Thông tin của tôi', 'Nguyện vọng của tôi', (string)$fileId] as $required) {
     if (!str_contains($html, $required)) throw new RuntimeException('Personal content missing: ' . $required);
 }
-foreach (['metric-grid', 'Hồ sơ dự kiến', 'Nguyện vọng 1 so với chỉ tiêu', 'Số học sinh theo trường THCS', 'Bảng điều khiển'] as $forbidden) {
+foreach (['class="sidebar"', 'Mở menu quản trị', 'metric-grid', 'Hồ sơ dự kiến', 'Nguyện vọng 1 so với chỉ tiêu', 'Số học sinh theo trường THCS', 'Bảng điều khiển'] as $forbidden) {
     if (str_contains($html, $forbidden)) throw new RuntimeException('Management content leaked into student page: ' . $forbidden);
 }
-echo "PASS full student dashboard renders profile and personal wishes after including header/sidebar\n";
+foreach (['student-site-header', 'student-portal-nav', 'Hồ sơ tuyển sinh', 'Thông tin tuyển sinh', 'Hướng dẫn', 'Đổi mật khẩu', 'Đăng xuất', 'csrf_token'] as $required) {
+    if (!str_contains($html, $required)) throw new RuntimeException('Student portal shell missing: ' . $required);
+}
+echo "PASS student portal shell, account actions and personal dashboard without management sidebar\n";
