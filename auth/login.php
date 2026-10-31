@@ -43,7 +43,7 @@ function form_dang_nhap(string $tab, string $nhan, string $goiY, string $nut, st
 <?php }
 ?>
 <main id="main" class="login-main">
- <div class="login-illustration"><div class="login-illustration-content"><span class="login-toplabel">CỔNG TUYỂN SINH LỚP 10</span><h1>Đồng hành trên<br>hành trình vào lớp 10.</h1><p>Đăng nhập để truy cập các chức năng phù hợp với tài khoản của bạn.</p><ol class="login-steps"><li>Thông tin tuyển sinh và nguyện vọng</li><li>Tổ chức thi và quản lý kết quả</li><li>Theo dõi tiến trình tuyển sinh</li></ol><a class="login-help-link" href="<?= e(url('admission-info/huong-dan.php')) ?>">Xem hướng dẫn sử dụng →</a></div><div class="login-ill-bottom">SẢN PHẨM HỌC TẬP <span>2026 – 2027</span></div></div>
+ <div class="login-illustration"><div class="login-illustration-content"><span class="login-toplabel">CỔNG TUYỂN SINH LỚP 10</span><h1>Đồng hành trên<br>hành trình vào lớp 10.</h1><p>Đăng nhập để truy cập các chức năng phù hợp với tài khoản của bạn.</p><ol class="login-steps"><li>Thông tin tuyển sinh và nguyện vọng</li><li>Tổ chức thi và quản lý kết quả</li><li>Theo dõi tiến trình tuyển sinh</li></ol><a class="login-help-link" href="<?= e(url('admission-info/huong-dan.php')) ?>">Xem hướng dẫn sử dụng →</a></div><div class="login-ill-bottom">CỔNG TUYỂN SINH LỚP 10 <span>2026 – 2027</span></div></div>
  <div class="login-workspace"><div class="login-box">
   <div class="eyebrow"><span></span> CHÀO MỪNG BẠN</div><h2>Đăng nhập hệ thống</h2><p>Chọn loại tài khoản để đăng nhập.</p>
   <?php foreach ($thongBao as $tb): ?><div class="ui-notice ui-notice-<?= e($tb['type']) ?>" role="status"><span class="ui-notice-icon" aria-hidden="true">ⓘ</span><div><strong><?= e($tb['message']) ?></strong></div></div><?php endforeach; ?>
@@ -53,33 +53,12 @@ function form_dang_nhap(string $tab, string $nhan, string $goiY, string $nut, st
     <button class="login-tab<?= $tab === 'admin' ? ' active' : '' ?>" role="tab" id="admin-tab" aria-controls="admin-panel" aria-selected="<?= $tab === 'admin' ? 'true' : 'false' ?>" data-login-tab="admin">Quản trị / Cán bộ</button>
   </div>
   <section id="student-panel" class="login-panel" role="tabpanel" aria-labelledby="student-tab"<?= $tab === 'student' ? '' : ' hidden' ?>>
-    <?php form_dang_nhap('student', 'Số báo danh', 'Ví dụ: SBD0001', 'Đăng nhập học sinh', $tab === 'student' ? $tenDangNhap : '', $next); ?>
+    <?php form_dang_nhap('student', 'Số báo danh', 'Nhập số báo danh', 'Đăng nhập học sinh', $tab === 'student' ? $tenDangNhap : '', $next); ?>
   </section>
   <section id="admin-panel" class="login-panel" role="tabpanel" aria-labelledby="admin-tab"<?= $tab === 'admin' ? '' : ' hidden' ?>>
-    <?php form_dang_nhap('admin', 'Tên đăng nhập', 'Ví dụ: hdchamthi', 'Đăng nhập cán bộ', $tab === 'admin' ? $tenDangNhap : '', $next); ?>
+    <?php form_dang_nhap('admin', 'Tên đăng nhập', 'Nhập tên đăng nhập', 'Đăng nhập cán bộ', $tab === 'admin' ? $tenDangNhap : '', $next); ?>
   </section>
-  <details class="login-demo-notice login-demo-accounts">
-    <summary><span>ⓘ</span> Danh sách tài khoản thử nghiệm</summary>
-    <table>
-      <tr><td><code>quantri</code></td><td>Quản trị viên hệ thống (UC06–UC08)</td></tr>
-      <tr><td><code>bantuyensinh</code></td><td>Ban Tuyển sinh Sở (UC06–UC08, UC10, UC15)</td></tr>
-      <tr><td><code>hdtuyensinh</code></td><td>Hội đồng tuyển sinh</td></tr>
-      <tr><td><code>hdcoithi</code></td><td>Hội đồng coi thi (UC11)</td></tr>
-      <tr><td><code>hdchamthi</code></td><td>Hội đồng chấm thi (UC05, UC12–UC14)</td></tr>
-      <tr><td><code>catphach</code></td><td>Bộ phận cắt phách (UC9)</td></tr>
-      <tr><td><code>hdphuckhao</code></td><td>Hội đồng phúc khảo</td></tr>
-      <tr><td><code>hdrade</code></td><td>Hội đồng ra đề thi (UC08)</td></tr>
-      <tr><td><code>gvcn</code></td><td>Giáo viên chủ nhiệm lớp 9</td></tr>
-      <tr><td><code>SBD0001</code>, <code>SBD0002</code></td><td>Học sinh</td></tr>
-    </table>
-    <h3 class="demo-uc-title">Truy cập chức năng UC05–UC08</h3>
-    <ul class="demo-uc-links">
-      <li><a href="<?= e(url('grading/nhap-diem.php')) ?>">UC05 · Nhập điểm thi</a><small>Tài khoản: <code>hdchamthi</code> → Chấm thi & điểm</small></li>
-      <li><a href="<?= e(url('exam/tao-phong.php')) ?>">UC06 · Tạo thông tin phòng thi</a><small>Tài khoản: <code>bantuyensinh</code> → Kỳ thi & phòng thi</small></li>
-      <li><a href="<?= e(url('exam/phan-phong.php')) ?>">UC07 · Phân phòng thi cho thí sinh</a><small>Tài khoản: <code>bantuyensinh</code> → Kỳ thi & phòng thi</small></li>
-      <li><a href="<?= e(url('exam/phan-cong-ra-de.php')) ?>">UC08 · Xem phân công ra đề thi</a><small>Tài khoản: <code>hdrade</code> → Kỳ thi & phòng thi</small></li>
-    </ul>
-  </details>
+  <p class="field-note">Sử dụng tài khoản được cấp. Nếu quên mật khẩu, vui lòng liên hệ cán bộ phụ trách hoặc quản trị hệ thống.</p>
  </div></div>
 </main>
 <?php require dirname(__DIR__) . '/includes/footer.php'; ?>

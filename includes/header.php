@@ -10,7 +10,7 @@ $cfg = app_config();
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#3F7CA5">
-  <meta name="description" content="Cổng thông tin tuyển sinh vào lớp 10 — sản phẩm học tập, không phải cổng thông tin chính thức.">
+  <meta name="description" content="Cổng thông tin tuyển sinh vào lớp 10: thông tin trường học, chỉ tiêu, nguyện vọng và kết quả tuyển sinh.">
   <title><?= e($page_title) ?> | Cổng thông tin tuyển sinh vào lớp 10</title>
   <link rel="icon" type="image/svg+xml" href="<?= e(url('assets/images/logo.svg')) ?>">
   <link rel="stylesheet" href="<?= e(url('assets/css/style.css')) ?>">
@@ -40,7 +40,7 @@ $cfg = app_config();
         <img src="<?= e(url('assets/images/logo.svg')) ?>" alt="" class="brand-mark" width="60" height="60">
         <span class="brand-text"><strong>CỔNG THÔNG TIN TUYỂN SINH VÀO LỚP 10</strong><small>Thông tin rõ ràng · Đồng hành cùng học sinh và phụ huynh</small></span>
       </a>
-      <div class="masthead-note"><span>Năm học</span><strong>2026 – 2027</strong><small>Sản phẩm học tập</small></div>
+      <div class="masthead-note"><span>Năm học</span><strong>2026 – 2027</strong><small>Tuyển sinh lớp 10</small></div>
     </div>
   </div>
   <div class="nav-band">
