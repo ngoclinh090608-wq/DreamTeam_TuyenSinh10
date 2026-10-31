@@ -2,7 +2,7 @@
 /** Read-only distribution from the same connection as the dashboard totals. */
 $schoolTotal = (int)$liveStats['thiSinh'];
 ?>
-<section class="panel" aria-label="Số học sinh theo trường THCS">
+<section class="panel school-distribution" aria-label="Số học sinh theo trường THCS">
  <div class="panel-heading"><div><h2>Số học sinh theo trường THCS</h2><p>Trường THCS của học sinh · Thanh biểu diễn tỷ lệ trên tổng <?= $schoolTotal ?> học sinh.</p></div></div>
  <div class="bars">
  <?php foreach ($liveStats['theoTHCS'] as [$schoolName, $studentCount]):
