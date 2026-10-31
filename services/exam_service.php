@@ -128,7 +128,7 @@ function kiemTraPhongThi(string $maDiemThi, string $maPhong, string $tenPhong, i
         ]);
     }
 
-    if (strlen($maPhong) > 20 || strlen($tenPhong) > 100) {
+    if (mb_strlen($maPhong, 'UTF-8') > 20 || mb_strlen($tenPhong, 'UTF-8') > 100) {
         throw new ExamException(EXAM_TB_PHONG_KHONG_HOP_LE, [
             'Mã phòng không vượt quá 20 ký tự, tên phòng không vượt quá 100 ký tự.',
         ]);

@@ -114,6 +114,25 @@ T=$(tok "exam/tao-phong.php?kyThi=KT2026&diemThi=DT01")
 post "exam/tao-phong.php" -d "action=xoa_phong&kyThi=KT2026&diemThi=DT01&maPhongXoa=P103" | kiem UC06 "Xóa phòng thi P103 thành công" "Xóa phòng thi thành công."
 dung UC06 "CSDL đã xóa phòng P103" "$(gtri "SELECT COUNT(*) FROM PhongThi WHERE maPhong = 'P103'")" 0
 
+# UC06: sức chứa phải là số nguyên dương, không tự cắt phần thập phân.
+for sc in 12.5 1e1 0 -1 abc 999999999999999999999999; do
+  T=$(tok "exam/tao-phong.php?kyThi=KT2026&diemThi=DT01")
+  post "exam/tao-phong.php" -d "action=tao_phong&kyThi=KT2026&maDiemThi=DT01&maPhong=P_UTF_TEST&tenPhong=Kiem+tra+suc+chua&sucChua=$sc" | kiem UC06 "Từ chối sức chứa không hợp lệ: $sc" "Thông tin phòng thi không hợp lệ."
+done
+dung UC06 "Sức chứa không hợp lệ không tạo phòng" "$(gtri "SELECT COUNT(*) FROM PhongThi WHERE maPhong='P_UTF_TEST'")" 0
+
+# UC06: 100 ký tự tiếng Việt hợp lệ dù dài hơn 100 byte; 101 ký tự phải bị chặn.
+printf -v TEN_100 '%*s' 100 ''
+TEN_100=${TEN_100// /Đ}
+T=$(tok "exam/tao-phong.php?kyThi=KT2026&diemThi=DT01")
+post "exam/tao-phong.php" -d "action=tao_phong&kyThi=KT2026&maDiemThi=DT01&maPhong=P_UTF_TEST&sucChua=1" --data-urlencode "tenPhong=$TEN_100" | kiem UC06 "Chấp nhận tên phòng 100 ký tự tiếng Việt" "Tạo thông tin phòng thi thành công."
+dung UC06 "Lưu đủ 100 ký tự, sức chứa nguyên 1" "$(gtri "SELECT CONCAT(CHAR_LENGTH(tenPhong), ':', sucChua) FROM PhongThi WHERE maPhong='P_UTF_TEST'")" "100:1"
+T=$(tok "exam/tao-phong.php?kyThi=KT2026&diemThi=DT01")
+post "exam/tao-phong.php" -d "action=xoa_phong&kyThi=KT2026&diemThi=DT01&maPhongXoa=P_UTF_TEST" > "$NUL"
+T=$(tok "exam/tao-phong.php?kyThi=KT2026&diemThi=DT01")
+post "exam/tao-phong.php" -d "action=tao_phong&kyThi=KT2026&maDiemThi=DT01&maPhong=P_UTF_TEST&sucChua=12" --data-urlencode "tenPhong=${TEN_100}Đ" | kiem UC06 "Từ chối tên phòng 101 ký tự" "Thông tin phòng thi không hợp lệ."
+dung UC06 "Tên vượt giới hạn không tạo phòng" "$(gtri "SELECT COUNT(*) FROM PhongThi WHERE maPhong='P_UTF_TEST'")" 0
+
 # Chặn xóa phòng P101 đang có thí sinh
 T=$(tok "exam/tao-phong.php?kyThi=KT2026&diemThi=DT01")
 post "exam/tao-phong.php" -d "action=xoa_phong&kyThi=KT2026&diemThi=DT01&maPhongXoa=P101" | kiem UC06 "Chặn xóa phòng P101 đã có thí sinh" "Không thể xóa phòng thi đã có thí sinh được phân phòng."

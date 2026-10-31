@@ -32,7 +32,10 @@ $formSucChua = trim((string)($_POST['sucChua'] ?? '12'));
 
 if ($action === 'tao_phong' && !$loiHeThong) {
     $postDiemThi = ui_input('maDiemThi');
-    $sucChua = is_numeric($formSucChua) ? (int)$formSucChua : 0;
+    $sucChua = filter_var($formSucChua, FILTER_VALIDATE_INT, [
+        'options' => ['min_range' => 1, 'max_range' => 2147483647],
+    ]);
+    if ($sucChua === false) $sucChua = 0;
 
     try {
         $moi = luuPhongThi($postDiemThi, $formMaPhong, $formTenPhong, $sucChua);
