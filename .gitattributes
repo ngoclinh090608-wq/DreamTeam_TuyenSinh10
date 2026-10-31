@@ -4,3 +4,6 @@
 
 # GitHub Languages: report website code, excluding test/data-generation tools.
 /tests/** linguist-detectable=false
+
+# PHP templates may be misidentified as Hack by GitHub Linguist.
+*.php linguist-language=PHP
