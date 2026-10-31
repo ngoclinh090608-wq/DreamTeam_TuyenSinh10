@@ -103,7 +103,7 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
 ?>
 <section class="panel">
   <h2>Chuẩn bị điểm thi và phòng thi</h2>
-  <p>Hệ thống tạo điểm thi tại trường THPT đăng ký nguyện vọng 1 và bố trí đủ phòng theo số thí sinh, mỗi phòng mới có sức chứa 30 người. Bấm lại chỉ bổ sung phòng còn thiếu.</p>
+  <p>Hệ thống tạo điểm thi tại trường THPT đăng ký nguyện vọng 1 và bố trí đủ phòng theo số thí sinh, mỗi phòng mới có sức chứa 30 người. Mã phòng theo số trường, ví dụ P501, P502. Bấm lại để bổ sung phòng còn thiếu và đổi các mã phòng tự sinh dài sang mã mới.</p>
   <form method="post">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="tao_diem_nv1">
