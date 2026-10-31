@@ -7,7 +7,7 @@ $wishMode = $directoryModule === 'aspirations';
 $isStudent = has_role($user, ['HOC_SINH']);
 $owner = $isStudent ? (string)($user['maThiSinh'] ?? '') : null;
 $getText = fn(string $key): string => is_string($_GET[$key] ?? null) ? trim($_GET[$key]) : '';
-$query = mb_substr($getText('q'), 0, 120); $school = mb_substr($getText('school'), 0, 20);
+$query = $isStudent ? '' : mb_substr($getText('q'), 0, 120); $school = $isStudent ? '' : mb_substr($getText('school'), 0, 20);
 $page = max(1, (int)filter_var($getText('page'), FILTER_VALIDATE_INT));
 $pageSize = (int)$getText('per_page');
 if (!in_array($pageSize, [25,50,100], true)) $pageSize = 25;
@@ -16,7 +16,7 @@ try {
     $data = candidate_directory_page($query, $school, $page, $pageSize, $owner);
     if ($wishMode) $wishes = candidate_directory_wishes(array_column($data['rows'], 'maThiSinh'));
 } catch (Throwable $exception) { error_log('candidate_directory: ' . $exception->getMessage()); }
-$page_title = $wishMode ? 'Danh sách nguyện vọng' : 'Danh sách thí sinh'; $layout = 'dashboard'; $active = $directoryModule;
+$page_title = $isStudent ? 'Nguyện vọng của tôi' : ($wishMode ? 'Danh sách nguyện vọng' : 'Danh sách thí sinh'); $layout = 'dashboard'; $active = $directoryModule;
 require __DIR__ . '/header.php';
 ?>
 <div class="ui-page">
@@ -24,12 +24,12 @@ require __DIR__ . '/header.php';
  <?php if (!$data): ?>
  <div class="ui-notice ui-notice-error" role="alert"><strong>Chưa tải được dữ liệu. Hãy kiểm tra kết nối database và hướng dẫn cài đặt; trang này không thay dữ liệu bằng danh sách minh họa.</strong></div>
  <?php else: ?>
- <section class="panel" aria-label="Bộ lọc thí sinh"><form method="get" class="ui-search">
+ <?php if (!$isStudent): ?><section class="panel" aria-label="Bộ lọc thí sinh"><form method="get" class="ui-search">
   <div class="field"><label for="directory-query">Tìm kiếm</label><input id="directory-query" name="q" value="<?= e($query) ?>" placeholder="Mã, họ tên, SBD hoặc tên trường" maxlength="120"></div>
   <div class="field"><label for="directory-school">Trường THCS</label><select id="directory-school" name="school"><option value="">Tất cả trường</option><?php foreach ($data['schools'] as $item): ?><option value="<?= e($item['maTruongTHCS']) ?>"<?= $school === $item['maTruongTHCS'] ? ' selected' : '' ?>><?= e(school_display_name($item['tenTruongTHCS'])) ?></option><?php endforeach; ?></select></div>
   <div class="field"><label for="directory-size">Số dòng mỗi trang</label><select id="directory-size" name="per_page"><?php foreach ([25,50,100] as $size): ?><option value="<?= $size ?>"<?= $pageSize === $size ? ' selected' : '' ?>><?= $size ?></option><?php endforeach; ?></select></div>
   <div class="ui-actions"><button class="btn btn-primary" type="submit">Tìm kiếm</button><a class="btn btn-outline" href="<?= e(url($directoryModule . '/')) ?>">Bỏ lọc</a></div>
- </form></section>
+ </form></section><?php endif; ?>
  <section class="panel table-panel ui-mt" aria-label="Kết quả tra cứu">
   <div class="table-toolbar"><div class="table-title"><h2><?= e($page_title) ?></h2><p><strong data-directory-total><?= (int)$data['filtered'] ?></strong> kết quả phù hợp · Trang <?= $data['page'] ?>/<?= $data['pages'] ?></p></div></div>
   <div class="table-scroll" role="region" aria-label="Bảng dữ liệu" tabindex="0"><table class="data-table"><thead><tr><th scope="col">STT</th><th scope="col">Mã thí sinh</th><th scope="col">Họ và tên</th><th scope="col">Số báo danh</th><th scope="col">Trường THCS</th><?php if ($wishMode): ?><th scope="col">Nguyện vọng 1</th><th scope="col">Nguyện vọng 2</th><th scope="col">Nguyện vọng 3</th><?php else: ?><th scope="col">Ngày sinh</th><th scope="col">Trạng thái</th><?php endif; ?></tr></thead><tbody>
