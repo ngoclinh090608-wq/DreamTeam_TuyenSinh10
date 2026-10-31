@@ -32,3 +32,9 @@ Chạy `php database/demo/verify.php` với cấu hình host/port/user/pass cụ
 ## Các file cũ
 
 Các script nhập nhiều bước, dọn seed và đổi tên, cùng báo cáo trung gian đã được bỏ khỏi phiên bản hiện hành; có thể xem lại trong lịch sử Git. Hai bản xuất `dreamteam_tuyensinh10.sql` và `dreamteam_tuyensinh10_test.sql` người dùng gửi là bộ nhỏ cũ, không đưa thêm vào repo để tránh nhầm. `database/install.sql`, `tables/`, `seed/`, `views/`, `functions/`, `procedures/` và các bài test vẫn giữ cho môi trường kiểm thử riêng; không nhập chúng chồng lên demo lớn.
+
+## Nguồn và dọn file
+
+Bản xuất phpMyAdmin do người dùng cung cấp ngày 31/10/2026, SHA-256 gốc: `675a3c2c42bdcaca16f6070cb1b47db5f0e845b26043fc6f8f716a7b63868a9d`. Bản SQL hiện hành chỉ thêm chọn database, chuẩn hóa tên bảng/view và bỏ DEFINER cục bộ, giữ nguyên dữ liệu.
+
+Excel nguồn giai đoạn đầu, báo cáo trung gian và các script nhập nhiều bước đã bỏ khỏi nhánh hiện hành để tránh nhầm. Có thể khôi phục từ lịch sử Git. Thư mục demo chỉ giữ SQL đầy đủ, hướng dẫn này, mẫu cấu hình và công cụ kiểm tra chỉ đọc.
