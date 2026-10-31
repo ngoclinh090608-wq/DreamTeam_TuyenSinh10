@@ -133,6 +133,37 @@ quyen hdtuyensinh    publication/ 200 publication/diem-thi.php 403 publication/t
 quyen quantri        admin/ 200 papers/ 403 councils/ 403 grading/ 403 publication/ 403
 quyen SBD0001        admin/ 200 aspirations/ 200 grading/ 403 councils/ 403
 
+# Dashboard học sinh không dùng thống kê hoặc lối tắt quản trị.
+dang_nhap SBD0001
+HTML=$(get "admin/")
+kiem HS "Dashboard học sinh có nội dung riêng" "Trang tuyển sinh của bạn" <<<"$HTML"
+kiem HS "Hiển thị đúng học sinh đang đăng nhập" "Xin chào, Trần Thị Hà" <<<"$HTML"
+for label in "Hồ sơ thí sinh" "Trường THPT tham gia" "Nguyện vọng đã lập" "Nguyện vọng 1 so với chỉ tiêu" "Thêm mới"; do
+  khong HS "Học sinh không thấy $label" "$label" <<<"$HTML"
+done
+for module in exam assignments admission councils grading; do
+  khong HS "Dashboard học sinh không có liên kết $module" "/$module/\"" <<<"$HTML"
+done
+for module in admission-info aspirations appeals enrollment; do
+  kiem HS "Dashboard học sinh có liên kết $module" "/$module/\"" <<<"$HTML"
+done
+quyen SBD0001 exam/ 403 assignments/ 403 admission/ 403
+
+dang_nhap SBD0002
+HTML=$(get "admin/")
+kiem HS "Dashboard hiển thị học sinh thứ hai" "Xin chào, Trần Minh Chi" <<<"$HTML"
+khong HS "Dashboard không hiển thị tên học sinh khác" "Trần Thị Hà" <<<"$HTML"
+
+dang_nhap hdchamthi
+HTML=$(get "admin/")
+kiem HS "Cán bộ chấm thi có lối tắt chấm thi" "/grading/\"" <<<"$HTML"
+for module in aspirations exam assignments admission; do
+  khong HS "Cán bộ chấm thi không có lối tắt $module" "/$module/\"" <<<"$HTML"
+done
+
+dang_nhap hdrade
+get "admin/" | khong HS "Hội đồng ra đề không có lối tắt phân công coi thi" "Phân công coi thi"
+
 # ================= UC09 Tra cứu thông tin lô bài thi =================
 dang_nhap catphach
 get "papers/?traCuu=1" | kiem UC09 "Không nhập điều kiện" "Điều kiện tra cứu không hợp lệ."
@@ -284,7 +315,7 @@ echo
 echo "KẾT QUẢ KIỂM THỬ: đăng nhập / phân quyền + UC09–UC15 ($B)"
 awk -F'\t' '{ printf "%-6s %-4s %s\n", $1, (index($4,"ĐẠT")==1 ? "ĐẠT" : "LỖI"), $2 }' "$OUT"
 echo
-for uc in DN DMK DX QUYEN UC09 UC10 UC11 UC12 UC13 UC14 UC15 CHUNG; do
+for uc in DN DMK DX QUYEN HS UC09 UC10 UC11 UC12 UC13 UC14 UC15 CHUNG; do
   printf '  %-6s %3s ca, %s lỗi\n' "$uc" "$(grep -c "^$uc"$'\t' "$OUT")" "$(grep "^$uc"$'\t' "$OUT" | grep -c $'\tLỖI')"
 done
 echo "TỔNG: $TONG ca — ĐẠT $((TONG-LOI)), LỖI $LOI"

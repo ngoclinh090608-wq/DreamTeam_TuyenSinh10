@@ -363,3 +363,14 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--secondary);
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+/* Student dashboard has personal navigation instead of administration metrics. */
+.student-dashboard-panels { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: start; }
+.student-dashboard .panel { min-width: 0; }
+.student-dashboard .quick-links a:last-child { margin-bottom: 0; }
+.student-welcome .ui-kv { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.student-welcome dd { overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  .student-dashboard-panels { grid-template-columns: minmax(0, 1fr); }
+  .student-welcome .ui-kv { grid-template-columns: minmax(0, 1fr); }
+}

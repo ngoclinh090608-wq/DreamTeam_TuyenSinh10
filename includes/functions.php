@@ -42,11 +42,16 @@ function render_module(string $key): void {
     require_once dirname(__DIR__) . '/services/live_data.php';
     $liveStats = $liveAssign = null; $live = false;
     $kindNow = $module['kind'] ?? 'table';
+    $isStudentDashboard = $kindNow === 'dashboard' && has_role(current_user(), ['HOC_SINH']);
+    if ($isStudentDashboard) {
+        $module['title'] = 'Trang tuyển sinh của bạn';
+        $module['desc'] = 'Thông tin và chức năng dành cho học sinh.';
+    }
     if ($kindNow === 'table') { $rows = live_rows($key); if ($rows !== null) { $module['rows'] = $rows; $live = true; } }
-    elseif ($kindNow === 'dashboard' || $kindNow === 'stats') { $liveStats = live_stats(); $live = $liveStats !== null; }
+    elseif (($kindNow === 'dashboard' && !$isStudentDashboard) || $kindNow === 'stats') { $liveStats = live_stats(); $live = $liveStats !== null; }
     elseif ($kindNow === 'assignments') { $liveAssign = live_assignments(); $live = $liveAssign !== null; }
     $page_title = $module['title']; $layout = 'dashboard'; $active = $key;
     require __DIR__ . '/header.php';
-    require __DIR__ . '/module_page.php';
+    require __DIR__ . ($isStudentDashboard ? '/student_dashboard.php' : '/module_page.php');
     require __DIR__ . '/footer.php';
 }

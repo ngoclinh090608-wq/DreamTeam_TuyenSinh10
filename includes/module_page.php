@@ -18,7 +18,7 @@ $dashMetrics = $liveStats
 <?php if($liveStats): ?><div class="dash-panels"><div class="panel"><div class="panel-heading"><div><h2>Nguyện vọng 1 so với chỉ tiêu</h2><p>Số thí sinh đăng ký NV1 / chỉ tiêu từng trường THPT</p></div></div>
  <div class="bars"><?php foreach($liveStats['theoTruong'] as [$tn,$nv1,$ct]): $pc = $ct ? min(100,(int)round($nv1/$ct*100)) : 0; ?><div><span><?= e($tn) ?></span><div><i style="width:<?= $pc ?>%"></i></div><strong><?= (int)$nv1 ?>/<?= (int)$ct ?></strong></div><?php endforeach; ?></div>
  </div><?php else: ?><div class="dash-panels"><?php endif; ?><div class="panel"><div class="panel-heading"><div><h2>Truy cập nhanh</h2><p>Các chức năng chính của hệ thống</p></div></div>
- <div class="quick-links"><a href="<?= e(url('aspirations/')) ?>"><span class="quick-icon">✧</span><span>Đăng ký nguyện vọng<small>UC02 · Quốc Thiên</small></span>→</a><a href="<?= e(url('exam/')) ?>"><span class="quick-icon">▣</span><span>Phân phòng thi<small>UC07 · Thúy Vy</small></span>→</a><a href="<?= e(url('assignments/')) ?>"><span class="quick-icon">⇆</span><span>Phân công coi thi<small>UC11 · Trần Cẩm Vân</small></span>→</a><a href="<?= e(url('admission/')) ?>"><span class="quick-icon">◇</span><span>Xét tuyển nguyện vọng<small>UC17 · Khánh Duy</small></span>→</a></div>
+ <?php require __DIR__ . '/dashboard_quick_links.php'; ?>
  </div></div>
 <?php elseif($kind === 'assignments'): ?>
 <div class="dash-panels assign-panels"><section class="panel assignment-form"><div class="panel-heading"><div><h2>Tạo phân công coi thi</h2><p>Chức năng UC11</p></div></div>
