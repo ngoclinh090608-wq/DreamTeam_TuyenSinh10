@@ -21,3 +21,7 @@ Kỳ thi KTDEMO26 được đổi tên thành **Kỳ thi tuyển sinh lớp 10 n
 Kỳ vọng trên bộ nguyên gốc: 1.750 học sinh, 5.250 nguyện vọng, 5.250 bài, 4.870 kết quả. Nếu đã nhập thêm điểm cho bài mới thì số kết quả được giữ lại có thể cao hơn. Không sinh lịch sử sửa điểm giả; muốn xem lịch sử mới, sửa điểm qua UC13. Sau dọn, không nhập lại các file 00/01 hoặc file BoSung vì chúng phục vụ trạng thái trước dọn. Bộ test seed cũ cần chạy ở database kiểm thử riêng.
 
 Đã thử trên bản sao MariaDB 10.11: nhập và nhập lại đều thành công, dữ liệu mới/điểm mới/chỉ tiêu và thông tin xác thực giữ nguyên. Chưa chạy trên localhost Windows của người dùng. Pull code không tự xóa hay đổi database; chỉ nhập file 03 mới áp dụng.
+
+## Đổi tên 5 trường THPT và biểu đồ THCS
+
+Sau khi pull code, nhập `04_rename_thpt.sql` vào `dreamteam_tuyensinh10_demo`: THPT_1 → Sao Mai, THPT_2 → Bình Minh, THPT_3 → Hòa An, THPT_4 → Ánh Dương, THPT_5 → Trần Quốc Khải theo tên người dùng chọn. File chỉ đổi tên; giữ mã trường, chỉ tiêu, nguyện vọng và điểm. Có thể nhập lại. Sao lưu database trước khi nhập. Không đổi tên các THCS; THCS_DEMO5 vẫn là Tương Lai. Dashboard/thống kê có thêm biểu đồ số học sinh theo THCS từ database đang kết nối; biểu đồ nguyện vọng/chỉ tiêu vẫn dùng các trường THPT. Pull code không tự chạy SQL.

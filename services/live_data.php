@@ -73,6 +73,7 @@ function live_stats(): ?array {
              'baiThi' => live_val('SELECT COUNT(*) FROM BaiThi'),
             'ketQuaChamThi' => live_val('SELECT COUNT(*) FROM KetQuaChamThi'),
             'database' => (string)db()->query('SELECT DATABASE()')->fetchColumn(),
+            'theoTHCS' => live_all("SELECT c.tenTruongTHCS, COUNT(t.maThiSinh) FROM TruongTHCS c JOIN ThiSinh t ON t.maTruongTHCS=c.maTruongTHCS GROUP BY c.maTruongTHCS,c.tenTruongTHCS ORDER BY c.maTruongTHCS"),
             'theoTruong' => live_all("SELECT p.tenTruongTHPT,
                 (SELECT COUNT(*) FROM NguyenVong n WHERE n.maTruongTHPT=p.maTruongTHPT AND n.thuTuNguyenVong=1),
                 COALESCE((SELECT SUM(i.chiTieuTuyenSinh) FROM ThongTinTuyenSinh i WHERE i.maTruongTHPT=p.maTruongTHPT
