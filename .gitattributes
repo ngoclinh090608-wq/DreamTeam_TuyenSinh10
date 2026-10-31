@@ -4,4 +4,3 @@
 
 # GitHub Languages: report website code, excluding test/data-generation tools.
 /tests/** linguist-detectable=false
-/database/demo/source/** linguist-detectable=false
