@@ -132,8 +132,10 @@ function live_student_dashboard(string $studentId): ?array {
         $results = $st->fetchAll();
         $st = db()->prepare('SELECT COUNT(*) FROM BaiThi WHERE maThiSinh=?'); $st->execute([$studentId]);
         $paperCount = (int)$st->fetchColumn();
+        $st = db()->prepare("SELECT k.tenKyThi,d.tenDiemThi,r.maPhong,r.tenPhong,COALESCE(c.tenTruongTHCS,h.tenTruongTHPT,'') AS tenTruong FROM PhanPhongThi a JOIN PhongThi r ON r.maPhong=a.maPhong JOIN DiemThi d ON d.maDiemThi=r.maDiemThi JOIN KyThi k ON k.maKyThi=d.maKyThi LEFT JOIN TruongTHCS c ON c.maTruongTHCS=d.maTruongTHCS LEFT JOIN TruongTHPT h ON h.maTruongTHPT=d.maTruongTHPT WHERE a.maThiSinh=? AND a.trangThai='Đã phân' ORDER BY k.maKyThi,r.maPhong");
+        $st->execute([$studentId]); $examSites=$st->fetchAll();
         require_once __DIR__.'/student_profile.php';
-        return ['profile'=>$profile, 'wishes'=>$wishes, 'scores'=>$scores, 'results'=>$results, 'paperCount'=>$paperCount, 'supplement'=>student_profile_read($studentId)];
+        return ['profile'=>$profile, 'wishes'=>$wishes, 'scores'=>$scores, 'results'=>$results, 'paperCount'=>$paperCount, 'examSites'=>$examSites, 'supplement'=>student_profile_read($studentId)];
     } catch (Throwable $e) { error_log('student_dashboard: '.$e->getMessage()); return null; }
 }
 

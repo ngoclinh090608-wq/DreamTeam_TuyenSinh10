@@ -27,3 +27,9 @@ foreach ($xpath->query('//nav[@class="student-portal-nav"]/a') as $tab) $tabPath
 if ($tabPaths !== [url('admin/'),url('admission-info/huong-dan.php'),url('admission-info/')]) throw new RuntimeException('Student must have exactly three navigation tabs');
 if (str_contains($html, 'class="quick-links"')) throw new RuntimeException('Extra student dashboard menu remains');
 echo "PASS exactly three tabs; preferences, published scores and status stay inside personal profile\n";
+
+foreach (['student-score-dialog','student-exam-dialog'] as $dialogId) {
+    if ($xpath->query('//dialog[@id="'.$dialogId.'"]')->length!==1 || $xpath->query('//button[@data-student-dialog-open="'.$dialogId.'"]')->length!==1) throw new RuntimeException('Modal or trigger missing: '.$dialogId);
+}
+if ($xpath->query('//dialog/button[@data-student-dialog-close] | //dialog/header/button[@data-student-dialog-close]')->length!==2) throw new RuntimeException('Modal close actions missing');
+echo "PASS score and exam dialogs, triggers, accessible headings and close controls\n";

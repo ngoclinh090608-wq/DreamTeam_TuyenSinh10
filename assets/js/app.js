@@ -85,5 +85,13 @@
  }));
  $('[data-school-search]')?.addEventListener('input',filterSchools);
  $$('[data-student-print]').forEach(button=>button.addEventListener('click',()=>window.print()));
- $$('[data-student-scores]').forEach(button=>button.addEventListener('click',()=>{const panel=$('#student-scores');if(panel){panel.open=true;panel.scrollIntoView({block:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}}));
+ $$('[data-student-dialog-open]').forEach(button=>button.addEventListener('click',()=>{
+   const dialog=document.getElementById(button.dataset.studentDialogOpen);
+   if(dialog instanceof HTMLDialogElement && !dialog.open){dialog.showModal();document.body.classList.add('student-dialog-open');}
+ }));
+ $$('.student-dialog').forEach(dialog=>{
+   dialog.querySelector('[data-student-dialog-close]')?.addEventListener('click',()=>dialog.close());
+   dialog.addEventListener('click',ev=>{const rect=dialog.getBoundingClientRect();if(ev.target===dialog && (ev.clientX<rect.left || ev.clientX>rect.right || ev.clientY<rect.top || ev.clientY>rect.bottom))dialog.close();});
+   dialog.addEventListener('close',()=>{if(!document.querySelector('.student-dialog[open]'))document.body.classList.remove('student-dialog-open');});
+ });
 })();
