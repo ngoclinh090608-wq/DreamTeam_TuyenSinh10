@@ -39,7 +39,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: pdo_mysql, mbstring
+          extensions: pdo_mysql, mbstring, phar, simplexml
           coverage: none
 
       - name: 1. Kiểm tra cú pháp tất cả file PHP
@@ -71,6 +71,9 @@ jobs:
           php -S 127.0.0.1:8080 router.php > /tmp/php-server.log 2>&1 &
           for i in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:8080/ && break; sleep 1; done
           curl -s -o /dev/null -w "Trang chủ: HTTP %{http_code}\n" http://127.0.0.1:8080/
+
+      - name: Kiểm thử đọc Excel và giao dịch UC05
+        run: php tests/kiem_thu_uc05_excel.php
 
       - name: 5. Kiểm thử chức năng UC09 – UC15
         env:

@@ -428,8 +428,9 @@ function nhapDiemThi(string $maBaiThi, string $diemRaw, string $nguoiNhap = GRAD
     }
 
     $pdo = db();
+    $quanLyGiaoDich = !$pdo->inTransaction();
     try {
-        $pdo->beginTransaction();
+        if ($quanLyGiaoDich) $pdo->beginTransaction();
 
         $sql = 'SELECT b.maBaiThi, b.soPhach, b.trangThaiCham, m.thangDiem, m.tenMonThi,
                        kq.maKetQuaChamThi, kq.trangThaiCongBo, kq.diemThi
@@ -463,7 +464,7 @@ function nhapDiemThi(string $maBaiThi, string $diemRaw, string $nguoiNhap = GRAD
         $stUpd = $pdo->prepare('UPDATE BaiThi SET trangThaiCham = ? WHERE maBaiThi = ?');
         $stUpd->execute([GRADING_DA_CHAM, $thucTeMaBai]);
 
-        $pdo->commit();
+        if ($quanLyGiaoDich) $pdo->commit();
 
         return [
             'maKetQuaChamThi' => $maKQ,
@@ -474,7 +475,7 @@ function nhapDiemThi(string $maBaiThi, string $diemRaw, string $nguoiNhap = GRAD
             'tenMonThi' => (string)$bt['tenMonThi'],
         ];
     } catch (Throwable $e) {
-        if ($pdo->inTransaction()) $pdo->rollBack();
+        if ($quanLyGiaoDich && $pdo->inTransaction()) $pdo->rollBack();
         if ($e instanceof BusinessException) throw $e;
         error_log('nhapDiemThi: ' . $e->getMessage());
         // 10.1: không lưu được -> dữ liệu điểm trước đó không đổi (đã rollback)
