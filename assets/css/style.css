@@ -109,3 +109,16 @@
 .login-demo-accounts td{padding:4px 6px;border-top:1px solid #e1ecf8}
 .ui-narrow{max-width:560px}
 @media(max-width:720px){.topbar-user{display:none}}
+
+/* Summary cards shared by the exam room and allocation pages. */
+.ui-page .ui-kpi-grid{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(2,minmax(0,1fr));gap:16px;margin:0 0 24px}
+.ui-page .ui-kpi{min-width:0;background:#fff;border:1px solid #d6e2ef;border-top:3px solid #447fa5;border-radius:8px;padding:20px}
+.ui-page .ui-kpi-label{font-size:14px;font-weight:600;color:#60788e;margin-bottom:8px}
+.ui-page .ui-kpi-val{font-weight:700;color:#233e54;line-height:1.4;overflow-wrap:anywhere;margin-bottom:8px}
+.ui-page .ui-kpi-hint{font-size:14px;line-height:1.6;color:#60788e}
+.ui-page .exam-allocation-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:start}
+.ui-page .exam-room-actions{display:flex;flex-direction:column;gap:12px;min-width:240px}
+.ui-page .exam-room-actions form{margin:0}
+.ui-page .exam-room-actions .btn{display:flex;justify-content:center;align-items:center;width:100%;min-height:44px;box-sizing:border-box}
+@media(max-width:900px){.ui-page .ui-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ui-page .ui-kpi-grid .ui-kpi:first-child{grid-column:1/-1}.ui-page .exam-allocation-heading{grid-template-columns:1fr}.ui-page .exam-room-actions{flex-direction:row;flex-wrap:wrap;min-width:0;align-items:center}.ui-page .exam-room-actions .btn{width:auto}}
+@media(max-width:560px){.ui-page .ui-kpi-grid{grid-template-columns:1fr}.ui-page .ui-kpi{padding:16px}.ui-page .exam-room-actions{flex-direction:column;align-items:stretch}.ui-page .exam-room-actions .btn{width:100%}}

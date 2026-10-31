@@ -148,7 +148,7 @@ get "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01" | kiem UC07 "Mở trang phâ
 
 # Xem trước phân phòng tự động
 T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
-post "exam/phan-phong.php" -d "action=xem_truoc&kyThi=KT2026&diemThi=DT01" | kiem UC07 "Xem trước phân phòng tự động" "Kết quả phân phòng dự kiến (Xem trước)"
+post "exam/phan-phong.php" -d "action=xem_truoc&kyThi=KT2026&diemThi=DT01" | kiem UC07 "Xem trước phân phòng tự động" "Kết quả phân phòng dự kiến"
 
 # Chuyển phòng thí sinh TS001 từ P101 sang P102
 T=$(tok "exam/phan-phong.php?kyThi=KT2026&diemThi=DT01")
