@@ -6,6 +6,7 @@ declare(strict_types=1);
  * Bảo mật: Giữ kín thông tin nhận diện thí sinh, chỉ hiển thị số phách / mã bài thi.
  */
 require_once dirname(__DIR__) . '/includes/grading_ui.php';
+require_once dirname(__DIR__) . '/services/grading_import_service.php';
 $nguoiDung = require_role(['HD_CHAM_THI']); // UC05 - Hội đồng chấm thi
 
 $maKyThi = ui_input('kyThi');
@@ -30,6 +31,41 @@ $loiHeThong = ui_csrf_error();
 $baiChon = null;
 $diemChoXacNhan = null;   // bước 9: điểm đã kiểm tra hợp lệ, chờ Hội đồng chấm thi xác nhận
 $diemDaNhap = $action === 'nhap_lai' ? trim((string)($_POST['diemThi'] ?? '')) : '';
+
+$importPreview = null;
+$importToken = '';
+if (in_array($action, ['kiem_tra_excel', 'luu_excel'], true) && !$loiHeThong) {
+    try {
+        if ($action === 'kiem_tra_excel') {
+            unset($_SESSION['uc05_import']);
+            $file = $_FILES['excel'] ?? [];
+            if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || ($file['size'] ?? 0) > 2 * 1024 * 1024
+                || strtolower(pathinfo((string)($file['name'] ?? ''), PATHINFO_EXTENSION)) !== 'xlsx') {
+                throw new GradingException('Vui lòng chọn file Excel .xlsx, dung lượng tối đa 2 MB.');
+            }
+            $importPreview = grading_kiem_tra_import(grading_doc_excel($file['tmp_name']), $maKyThi, $maMonThi);
+            if (!array_filter($importPreview, static fn($r) => $r['loi'] !== '')) {
+                $importToken = bin2hex(random_bytes(24));
+                $_SESSION['uc05_import'] = ['token' => $importToken, 'rows' => $importPreview, 'ky' => $maKyThi, 'mon' => $maMonThi, 'expires' => time() + 900];
+            }
+        } else {
+            $pending = $_SESSION['uc05_import'] ?? null;
+            unset($_SESSION['uc05_import']);
+            if (!$pending || !hash_equals($pending['token'], (string)($_POST['importToken'] ?? '')) || $pending['expires'] < time()
+                || $pending['ky'] !== $maKyThi || $pending['mon'] !== $maMonThi) {
+                throw new GradingException('Phiên nhập Excel đã hết hạn. Vui lòng tải file và kiểm tra lại.');
+            }
+            $n = grading_luu_import($pending['rows'], $maKyThi, $maMonThi, (string)($nguoiDung['hoTen'] ?? $nguoiDung['tenDangNhap']));
+            flash_set('success', "Đã nhập điểm thành công cho {$n} bài thi từ Excel.");
+            ui_redirect('grading/nhap-diem.php', ['kyThi' => $maKyThi, 'monThi' => $maMonThi]);
+        }
+    } catch (BusinessException $e) {
+        $loi = $e->getMessage(); $chiTietLoi = $e->details();
+    } catch (Throwable $e) {
+        error_log('UC05 Excel: ' . $e->getMessage());
+        $loi = 'Không thể nhập Excel. Không có điểm nào được lưu. Vui lòng thử lại.';
+    }
+}
 
 if (($action === 'kiem_tra' || $action === 'nhap_diem') && !$loiHeThong) {
     $maBaiThi = ui_input('maBaiThi');
@@ -120,11 +156,51 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
   </form>
 </section>
 
+<section class="panel" aria-labelledby="uc05-methods">
+  <div class="panel-heading"><div>
+    <h2 id="uc05-methods">Hai cách nhập điểm thi</h2>
+    <p>Chọn kỳ thi và môn thi ở trên. Chỉ nhập bài chưa có điểm; điều chỉnh điểm đã lưu tại UC13.</p>
+  </div></div>
+  <div class="ui-actions">
+    <a class="btn btn-primary" href="#nhap-tay">1. Nhập tay</a>
+    <a class="btn btn-outline" href="#nhap-excel">2. Import Excel</a>
+  </div>
+</section>
+
+<?php if (!$baiChon): ?>
+<section class="panel" id="nhap-tay">
+  <div class="panel-heading"><div><h2>1. Nhập điểm bằng tay</h2>
+    <p>Nhập mã phách hoặc mã bài thi và điểm, sau đó kiểm tra trước khi xác nhận lưu.</p>
+  </div></div>
+  <form method="post">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="kiem_tra">
+    <input type="hidden" name="kyThi" value="<?= e($maKyThi) ?>">
+    <input type="hidden" name="monThi" value="<?= e($maMonThi) ?>">
+    <div class="ui-form-grid">
+      <div class="field"><label for="maBaiNhapTay">Mã phách / mã bài thi <span>*</span></label>
+        <input id="maBaiNhapTay" name="maBaiThi" list="baiChuaCham" placeholder="Ví dụ: P0030 hoặc BT046" maxlength="20" required>
+        <datalist id="baiChuaCham"><?php foreach ($dsBaiThi as $b): if (baiThiCanNhapDiem($b)): ?>
+          <option value="<?= e($b['maBaiThi']) ?>"><?= e($b['soPhach']) ?></option>
+        <?php endif; endforeach; ?></datalist>
+      </div>
+      <div class="field"><label for="diemNhapTay">Điểm thi <span>*</span></label>
+        <input id="diemNhapTay" name="diemThi" type="number" min="0" step="0.25" placeholder="Ví dụ: 7.75" required>
+      </div>
+    </div>
+    <div class="ui-actions"><button class="btn btn-primary" type="submit">Kiểm tra điểm</button></div>
+  </form>
+  <?php if ($soBaiChuaCham === 0 && $timKiem === ''): ?>
+    <p role="status">Không còn bài chưa chấm trong phạm vi này. Hãy chọn kỳ thi / môn thi khác để nhập điểm mới.</p>
+  <?php endif; ?>
+</section>
+<?php endif; ?>
+
 <?php if ($baiChon): ?>
-<section class="panel">
+<section class="panel" id="nhap-tay">
   <div class="panel-heading">
     <div>
-      <h2>Biểu mẫu nhập điểm</h2>
+      <h2>1. Nhập điểm bằng tay</h2>
       <p>Nhập điểm số cho bài thi mang mã phách <strong><?= e($baiChon['soPhach']) ?></strong>.</p>
     </div>
   </div>
@@ -186,6 +262,41 @@ if ($loi) ui_notice('error', $loi, $chiTietLoi);
   <?php endif; ?>
 </section>
 <?php endif; ?>
+
+<section class="panel" id="nhap-excel">
+  <div class="panel-heading"><div><h2>2. Import điểm từ Excel</h2>
+    <p>Dùng trang tính đầu tiên, cột A: MaPhach, cột B: DiemThi. Tối đa 500 bài, 2 MB; không dùng công thức. Điểm từ 0 đến thang điểm môn, bước 0.25.</p>
+  </div></div>
+  <p><a class="btn btn-outline" href="<?= e(url('assets/templates/mau-nhap-diem.xlsx')) ?>" download>Tải file Excel mẫu</a></p>
+  <form method="post" enctype="multipart/form-data">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="kiem_tra_excel">
+    <input type="hidden" name="kyThi" value="<?= e($maKyThi) ?>">
+    <input type="hidden" name="monThi" value="<?= e($maMonThi) ?>">
+    <div class="field"><label for="excel">File điểm Excel (.xlsx)</label><input id="excel" name="excel" type="file" accept=".xlsx" required></div>
+    <div class="ui-actions"><button class="btn btn-primary" type="submit">Kiểm tra file Excel</button></div>
+  </form>
+  <?php if ($importPreview !== null): ?>
+    <h3>Kết quả kiểm tra — chưa lưu điểm</h3>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Dòng Excel</th><th>Mã phách / bài thi</th><th>Điểm</th><th>Kết quả</th></tr></thead><tbody>
+      <?php foreach ($importPreview as $row): ?>
+        <tr><td><?= (int)$row['dong'] ?></td><td><?= e($row['phach'] ?? $row['ma']) ?></td><td><?= e($row['diem']) ?></td><td><?= e($row['loi'] ?: 'Hợp lệ') ?></td></tr>
+      <?php endforeach; ?>
+    </tbody></table></div>
+    <?php if ($importToken !== ''): ?>
+      <form method="post">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="luu_excel">
+        <input type="hidden" name="kyThi" value="<?= e($maKyThi) ?>">
+        <input type="hidden" name="monThi" value="<?= e($maMonThi) ?>">
+        <input type="hidden" name="importToken" value="<?= e($importToken) ?>">
+        <div class="ui-actions"><button class="btn btn-primary" type="submit">Xác nhận nhập <?= count($importPreview) ?> điểm từ Excel</button>
+        <a class="btn btn-outline" href="<?= e(url('grading/nhap-diem.php', ['kyThi' => $maKyThi, 'monThi' => $maMonThi])) ?>">Hủy</a></div>
+      </form>
+    <?php else: ?><p role="alert">File có lỗi. Chưa lưu điểm nào; hãy sửa các dòng lỗi và tải lại file.</p><?php endif; ?>
+  <?php endif; ?>
+</section>
 
 <section class="panel">
   <div class="panel-heading">
