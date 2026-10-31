@@ -133,6 +133,20 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--secondary);
 .school-table th, .school-table td { padding: 14px 18px; }
 .school-table tbody th { font-size: 14px; background: transparent; color: var(--ink); font-weight: 600; border-bottom: 1px solid #f0f3f7; }
 .school-table td small { color: var(--muted); font-size: 12px; }
+.api-docs { padding-bottom: 70px; }
+.api-doc-section { margin-top: 34px; }
+.api-endpoint-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.api-endpoint { padding: 22px; }
+.api-endpoint header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.api-endpoint header code { color: var(--deep); font-weight: 700; overflow-wrap: anywhere; }
+.api-method { display: inline-flex; min-width: 58px; justify-content: center; border-radius: 5px; padding: 5px 9px; color: #fff; font-size: 12px; font-weight: 800; }
+.api-method-get { background: #287db5; }
+.api-method-post { background: #25805b; }
+.api-endpoint .field { display: block; margin: 14px 0; }
+.api-endpoint .field span { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; }
+.api-endpoint .field input { width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 9px 11px; }
+.api-response { max-height: 310px; overflow: auto; margin: 16px 0 0; padding: 15px; border-radius: 6px; background: #13293b; color: #dbeeff; font: 13px/1.6 Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+@media(max-width:760px){.api-endpoint-list{grid-template-columns:1fr}}
 .code-tag { background: #eaf2f8; color: var(--primary-dark); border-radius: 4px; font-size: 12px; }
 .directory-note { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-top: 15px; font-size: 12px; color: var(--muted); }
 .directory-note > span:first-child { color: var(--primary-dark); font-weight: 600; flex-shrink: 0; }

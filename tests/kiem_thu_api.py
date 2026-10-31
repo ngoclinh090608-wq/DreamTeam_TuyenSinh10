@@ -36,6 +36,14 @@ def call(opener, path, method='GET', body=None, headers=None):
 
 
 anonymous = client()
+school_page = anonymous.open(urllib.parse.urljoin(base, 'schools/danh-sach.php')).read().decode()
+assert 'data-school-directory' in school_page and 'data-schools-api="/api/v1/schools"' in school_page
+assert 'data-school-body' in school_page and 'Dữ liệu PHP dự phòng' in school_page
+
+docs_page = anonymous.open(urllib.parse.urljoin(base, 'api/docs.php')).read().decode()
+assert 'Tài liệu REST API' in docs_page and 'data-api-explorer' in docs_page
+assert '/api/v1/exams/{examId}/room-preparations' in docs_page and 'api/openapi.yaml' in docs_page
+
 status, schools, _ = call(anonymous, 'api/v1/schools')
 assert status == 200 and schools['success'] is True and schools['data']
 assert {'id', 'name', 'region', 'quota'} <= schools['data'][0].keys()
@@ -88,4 +96,4 @@ assert status == 422 and validation['error']['code'] == 'VALIDATION_FAILED'
 status, missing, _ = call(anonymous, 'api/v1/not-found')
 assert status == 404 and missing['error']['code'] == 'NOT_FOUND'
 
-print('PASS REST API catalogues, routing, JSON errors, session roles and CSRF; no rows changed')
+print('PASS REST API docs, school consumer, catalogues, routing, roles and CSRF; no rows changed')
