@@ -60,33 +60,55 @@ function exam_ds_diem_thi(string $maKyThi = '', bool $chiTruongNV1 = false): arr
     return $st->fetchAll();
 }
 
-/** Create missing NV1 high-school sites only; preserve all existing rooms, papers and scores. */
-function exam_tao_diem_thi_theo_nv1(string $maKyThi): int {
+/** Prepare NV1 high-school sites and enough new 30-seat rooms; preserve existing data. */
+function exam_tao_diem_thi_theo_nv1(string $maKyThi): array {
     $pdo = db();
     try {
         $pdo->beginTransaction();
         $lock = $pdo->prepare('SELECT maKyThi FROM KyThi WHERE maKyThi = ? FOR UPDATE');
         $lock->execute([$maKyThi]);
         if (!$lock->fetchColumn()) throw new ExamException(EXAM_TB_CHUA_DU_DIEU_KIEN_PHAN_PHONG, ['Vui lòng chọn kỳ thi hợp lệ.']);
-        $st = $pdo->prepare('SELECT DISTINCT p.maTruongTHPT, p.tenTruongTHPT
+        $st = $pdo->prepare('SELECT p.maTruongTHPT, p.tenTruongTHPT, COUNT(*) AS soThiSinh
             FROM KyThi k JOIN DotTuyenSinh dot ON dot.maDot = k.maDot
             JOIN QuyDinhNguyenVong q ON q.namTuyenSinh = dot.namTuyenSinh
             JOIN NguyenVong nv ON nv.maQuyDinh = q.maQuyDinh AND nv.thuTuNguyenVong = 1
             JOIN ThiSinh t ON t.maThiSinh = nv.maThiSinh AND t.dieuKienDuThi = 1 AND t.trangThaiDangKyDuThi = "Đã duyệt"
-            JOIN TruongTHPT p ON p.maTruongTHPT = nv.maTruongTHPT WHERE k.maKyThi = ? ORDER BY p.maTruongTHPT');
+            JOIN TruongTHPT p ON p.maTruongTHPT = nv.maTruongTHPT WHERE k.maKyThi = ? GROUP BY p.maTruongTHPT, p.tenTruongTHPT ORDER BY p.maTruongTHPT');
         $st->execute([$maKyThi]); $schools = $st->fetchAll();
         if (!$schools) throw new ExamException(EXAM_TB_CHUA_DU_DIEU_KIEN_PHAN_PHONG, ['Kỳ thi chưa có thí sinh đủ điều kiện đăng ký nguyện vọng 1.']);
-        $find = $pdo->prepare('SELECT maDiemThi FROM DiemThi WHERE maKyThi = ? AND maTruongTHPT = ? LIMIT 1');
+        $find = $pdo->prepare('SELECT maDiemThi FROM DiemThi WHERE maKyThi = ? AND maTruongTHPT = ? ORDER BY maDiemThi');
         $insert = $pdo->prepare('INSERT INTO DiemThi (maDiemThi, tenDiemThi, maTruongTHCS, maTruongTHPT, maKyThi) VALUES (?, ?, NULL, ?, ?)');
-        $n = 0;
+        $n = 0; $soPhongMoi = 0;
+        $insertRoom = $pdo->prepare('INSERT INTO PhongThi (maPhong, tenPhong, sucChua, maDiemThi) VALUES (?, ?, 30, ?)');
+        $roomExists = $pdo->prepare('SELECT 1 FROM PhongThi WHERE maPhong = ? OR (maDiemThi = ? AND tenPhong = ?) LIMIT 1');
         foreach ($schools as $school) {
             $find->execute([$maKyThi, $school['maTruongTHPT']]);
-            if ($find->fetchColumn()) continue;
-            $id = 'NV1_' . substr(hash('sha256', $maKyThi . ':' . $school['maTruongTHPT']), 0, 16);
-            $insert->execute([$id, 'Điểm thi ' . $school['tenTruongTHPT'], $school['maTruongTHPT'], $maKyThi]);
-            $n++;
+            $siteIds = $find->fetchAll(PDO::FETCH_COLUMN);
+            if (!$siteIds) {
+                $id = 'NV1_' . substr(hash('sha256', $maKyThi . ':' . $school['maTruongTHPT']), 0, 16);
+                $insert->execute([$id, 'Điểm thi ' . $school['tenTruongTHPT'], $school['maTruongTHPT'], $maKyThi]);
+                $siteIds = [$id]; $n++;
+            }
+            $freeCapacity = 0;
+            foreach ($siteIds as $siteId) {
+                $lockRooms = $pdo->prepare('SELECT maPhong, sucChua FROM PhongThi WHERE maDiemThi = ? ORDER BY maPhong FOR UPDATE');
+                $lockRooms->execute([$siteId]);
+                $existingRooms = $lockRooms->fetchAll();
+                $reserved = array_count_values(array_column(layThiSinhKhongPhuHopDiemThi($siteId), 'maPhong'));
+                foreach ($existingRooms as $room) $freeCapacity += max(0, (int)$room['sucChua'] - ($reserved[$room['maPhong']] ?? 0));
+            }
+            $needed = (int)ceil(max(0, (int)$school['soThiSinh'] - $freeCapacity) / 30);
+            $index = 1;
+            for ($i = 0; $i < $needed; $i++) {
+                do {
+                    $roomId = 'R' . substr(hash('sha256', $siteIds[0]), 0, 10) . '_' . sprintf('%04d', $index);
+                    $roomName = 'Phòng thi ' . sprintf('%03d', $index++);
+                    $roomExists->execute([$roomId, $siteIds[0], $roomName]);
+                } while ($roomExists->fetchColumn());
+                $insertRoom->execute([$roomId, $roomName, $siteIds[0]]); $soPhongMoi++;
+            }
         }
-        $pdo->commit(); return $n;
+        $pdo->commit(); return ['diemThi' => $n, 'phongThi' => $soPhongMoi];
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
         throw $e;

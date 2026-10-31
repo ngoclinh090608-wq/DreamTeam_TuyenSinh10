@@ -29,8 +29,8 @@ $chiTietLoi = [];
 $loiHeThong = ui_csrf_error();
 if ($action === 'tao_diem_nv1' && !$loiHeThong) {
     try {
-        $soDiemMoi = exam_tao_diem_thi_theo_nv1($maKyThi);
-        flash_set('success', "Đã tạo {$soDiemMoi} điểm thi còn thiếu theo trường THPT đăng ký NV1. Chọn trường để tạo phòng và phân phòng.");
+        $chuanBi = exam_tao_diem_thi_theo_nv1($maKyThi);
+        flash_set('success', "Đã tạo {$chuanBi['diemThi']} điểm thi và {$chuanBi['phongThi']} phòng mới, mỗi phòng 30 thí sinh. Có thể xem danh sách phòng và phân phòng tự động.");
         ui_redirect('exam/phan-phong.php', ['kyThi' => $maKyThi]);
     } catch (BusinessException $e) { $loi = $e->getMessage(); $chiTietLoi = $e->details(); }
     catch (Throwable $e) { error_log('UC06/07 NV1 sites: ' . $e->getMessage()); $loi = 'Không tạo được điểm thi theo NV1. Vui lòng thử lại.'; }
@@ -150,13 +150,13 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
 if ($loi) ui_notice('error', $loi, $chiTietLoi);
 ?>
 <section class="panel">
-  <h2>Tổ chức thi theo trường nguyện vọng 1</h2>
-  <p>Thí sinh thi tại trường THPT đăng ký NV1. Nếu chưa có trường trong danh sách, tạo các điểm thi theo NV1 của kỳ thi này, sau đó tạo phòng tại UC06 và phân tự động tại UC07.</p>
+  <h2>Chuẩn bị điểm thi và phòng thi</h2>
+  <p>Hệ thống tạo điểm thi tại trường THPT đăng ký nguyện vọng 1 và bố trí đủ phòng theo số thí sinh, mỗi phòng mới có sức chứa 30 người. Bấm lại chỉ bổ sung phòng còn thiếu.</p>
   <form method="post">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="tao_diem_nv1">
     <input type="hidden" name="kyThi" value="<?= e($maKyThi) ?>">
-    <button class="btn btn-outline" type="submit">Tạo điểm thi còn thiếu theo trường NV1</button>
+    <button class="btn btn-outline" type="submit">Tạo điểm thi và phòng thi</button>
   </form>
 </section>
 
