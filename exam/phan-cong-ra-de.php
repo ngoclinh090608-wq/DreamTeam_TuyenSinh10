@@ -84,7 +84,7 @@ if ($loiTai) ui_notice('error', $loiTai, ['Dữ liệu phân công không bị t
 <section class="panel">
   <div class="panel-heading">
     <div>
-      <h2>2. Môn thi được phân công ra đề – <?= e($kyThiHienTai['tenKyThi']) ?></h2>
+      <h2>2. Môn thi được phân công ra đề – <?= e(catalog_display_name((string)$kyThiHienTai['tenKyThi'])) ?></h2>
       <p><?= count($dsMon) ?> môn thi · <?= (int)$kyThiHienTai['soPhanCong'] ?> nhiệm vụ ra đề. Chọn môn thi để xem chi tiết.</p>
     </div>
   </div>
@@ -128,7 +128,7 @@ if ($loiTai) ui_notice('error', $loiTai, ['Dữ liệu phân công không bị t
         <?php foreach ($dsChiTiet as $pc): $cuaMinh = $maCanBoDangNhap !== '' && $pc['maCanBo'] === $maCanBoDangNhap; ?>
           <tr<?= $cuaMinh ? ' style="background:#fefce8"' : '' ?>>
             <td><code><?= e($pc['maPhanCong']) ?></code></td>
-            <td><?= e($pc['tenKyThi']) ?></td>
+            <td><?= e(catalog_display_name((string)$pc['tenKyThi'])) ?></td>
             <td><strong><?= e($pc['tenMonThi']) ?></strong></td>
             <td>
               <strong><?= e($pc['tenCanBo']) ?></strong>

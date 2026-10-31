@@ -109,7 +109,7 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
     <tbody>
     <?php if (!$tongQuan): ?><tr><td colspan="6" class="muted center">Chưa có bài thi nào.</td></tr><?php endif; ?>
     <?php foreach ($tongQuan as $t): $chon = $t['maKyThi'] === $maKyThi && $t['maMonThi'] === $maMonThi && $daChon; ?>
-      <tr<?= $chon ? ' class="ui-row-on"' : '' ?>><td><?= e($t['tenKyThi']) ?></td><td><strong><?= e($t['tenMonThi']) ?></strong></td>
+      <tr<?= $chon ? ' class="ui-row-on"' : '' ?>><td><?= e(catalog_display_name((string)$t['tenKyThi'])) ?></td><td><strong><?= e($t['tenMonThi']) ?></strong></td>
         <td><?= $t['daCham'] ?>/<?= $t['tong'] ?><?= $t['chuaCham'] ? ' <span class="status status-pending">còn ' . $t['chuaCham'] . ' chưa chấm</span>' : '' ?></td>
         <td><?= $t['daCongBo'] ?>/<?= $t['daCongBo'] + $t['chuaCongBo'] ?></td>
         <td><?= ui_status_badge($t['trangThai']) ?></td>
