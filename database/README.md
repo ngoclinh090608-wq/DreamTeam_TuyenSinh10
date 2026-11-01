@@ -5,7 +5,7 @@
 | Mục đích | File nhập | Database |
 |---|---|---|
 | Chạy/demo website | `demo/dreamteam_tuyensinh10_demo.sql` | `dreamteam_tuyensinh10_demo` |
-| Kiểm thử trên bộ seed nhỏ | `install.sql` | `dreamteam_tuyensinh10` |
+| Kiểm thử trên bộ seed nhỏ | `install.sql` (tạo bằng `php database/build.php`) | `dreamteam_tuyensinh10` |
 
 Bản demo có 1.750 học sinh; bộ kiểm thử có 20 học sinh. Không nhập hai bộ chồng lên nhau. Máy đã có dữ liệu không cần import lại khi pull code. Xem [hướng dẫn demo](demo/README.md) cho cài đặt mới và kiểm chứng chỉ đọc.
 
@@ -21,7 +21,7 @@ Bản demo có 1.750 học sinh; bộ kiểm thử có 20 học sinh. Không nh�
 - `build.php`: gộp các phần trên thành `install.sql`.
 - `demo/`: snapshot đầy đủ dùng để chạy website, mẫu cấu hình và công cụ kiểm tra chỉ đọc. Xem hướng dẫn trong `demo/README.md`; CI dùng `install.sql` và không phụ thuộc snapshot demo.
 
-Những file trong tables/views/functions/procedures là mã nguồn schema để nhóm phát triển, không phải nhiều bộ dữ liệu cần nhập lần lượt. File `install.sql` được sinh từ chúng; không sửa tay. Snapshot demo là bản xuất dữ liệu riêng, không được build từ seed nhỏ.
+Những file trong tables/views/functions/procedures là mã nguồn schema để nhóm phát triển, không phải nhiều bộ dữ liệu cần nhập lần lượt. File `install.sql` được sinh từ chúng, được Git bỏ qua; không sửa tay hoặc commit. Snapshot demo là bản xuất dữ liệu riêng, không được build từ seed nhỏ.
 
 ## Khi sửa schema hoặc seed kiểm thử
 
@@ -30,7 +30,7 @@ Những file trong tables/views/functions/procedures là mã nguồn schema đ�
    ```bash
    php database/build.php
    ```
-3. Kiểm tra diff và commit cả file nguồn lẫn `database/install.sql`. CI sẽ build lại và so sánh.
+3. Kiểm tra diff và chỉ commit các file nguồn. CI tự tạo `database/install.sql` trước khi nhập và chạy kiểm thử.
 4. Thử import trên database kiểm thử trống, có sao lưu. Không tự reset hoặc cập nhật schema của database đang làm việc bằng cách nhập lại file đầy đủ.
 
 Function/procedure dùng DELIMITER và DROP IF EXISTS theo các file hiện hành. Khi cần cập nhật một database đã có, chuẩn bị thay đổi có phạm vi rõ ràng và kiểm tra tương thích dữ liệu; không coi việc import full dump là migration.
@@ -45,4 +45,6 @@ SQL demo hiện hành được kiểm tra trên MariaDB cloud. File xuất gốc
 
 ## Cập nhật database đang dùng
 
-Snapshot demo mới đã bao gồm hồ sơ bổ sung, lớp chuyên và bảng lưu vết UC17. Bốn migration lịch sử đã tích hợp vào snapshot được loại khỏi Git. Chỉ giữ migration `20261101_add_lopchuyen_nguyenvong.sql` và `20261102_uc17_admission.sql` để cập nhật máy chưa có hai cấu trúc mới; xem [hướng dẫn demo](demo/README.md). Không import lại full SQL lên dữ liệu đang làm việc.
+Snapshot demo hiện hành đã có hồ sơ bổ sung, cột lớp chuyên và bảng lưu vết UC17. Các migration đã tích hợp vào snapshot được bỏ khỏi Git. Máy cài mới chỉ nhập `demo/dreamteam_tuyensinh10_demo.sql` vào database trống.
+
+Máy đang dùng dữ liệu cũ: sao lưu và đối chiếu cấu trúc trước khi bổ sung phần thiếu; có thể lấy lại migration từ lịch sử Git. Không import chồng toàn bộ snapshot lên dữ liệu đang làm việc.
