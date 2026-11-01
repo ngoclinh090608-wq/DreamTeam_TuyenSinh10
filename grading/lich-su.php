@@ -42,7 +42,7 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
     <input type="hidden" name="traCuu" value="1">
     <?php ui_select('kyThi', 'Kỳ thi', $dsKyThi, 'maKyThi', 'tenKyThi', $maKyThi, '-- Chọn kỳ thi --'); ?>
     <?php ui_select('monThi', 'Môn thi', $dsMonThi, 'maMonThi', 'tenMonThi', $maMonThi, '-- Chọn môn thi --'); ?>
-    <div class="field"><label for="soPhach">Mã phách <span>*</span></label><input id="soPhach" name="soPhach" value="<?= e($soPhach) ?>" placeholder="Ví dụ: P0052" maxlength="20" autocomplete="off"></div>
+    <div class="field"><label for="soPhach">Mã phách <span>*</span></label><input id="soPhach" name="soPhach" value="<?= e($soPhach) ?>" placeholder="Ví dụ: XD0000001" maxlength="20" autocomplete="off"></div>
     <div class="field ui-search-btn"><button class="btn btn-primary" type="submit">⌕ Tra cứu</button></div>
   </form>
 </section>
