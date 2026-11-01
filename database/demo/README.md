@@ -32,8 +32,8 @@ Máy nhập snapshot demo mới đã có các nội dung trên, không cần ch�
 
 `php database/demo/verify.php` kiểm tra chỉ đọc database demo theo host/user/password cấu hình, báo số liệu và liên kết dữ liệu. Không chạy test ghi dữ liệu trên demo đang dùng.
 
-SHA-256 của ba file tải lên gốc:
+SHA-256 của ba file xuất từ phpMyAdmin ngày 01/11/2026, trước bước chuẩn hóa để tương thích repository:
 
-- Demo: `937914ec18b56077ab80e1a42b9f0d7393cdd4c92d7fead690cc6e63174d01de`
-- Bản nhỏ: `01d12c6d0754795e57ada1a7e2ae4beefd2c3e6c15ceec94ddf96e67af63e356`
-- Test: `5d87a9fc98240a8301f008a51f74cc25d70fc15693475d00d2d7f88aea5e54e8`
+- Demo: `9b07b69f0bfbedccba2ae78aee7eedbbf8714f6a6f796a101a40e697a66c42a1`
+- Bản chính: `46fcfed842e94951bd5563ba46b4e89990aae871b423726943aad399bd65be55`
+- Test: `04fa8b9fc90bb9e185c5108bd485fc34a255d5084949e8a0f0fb195aafcec188`
