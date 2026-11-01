@@ -99,6 +99,8 @@ post "auth/login.php" -d "tenDangNhap=hdrade&matKhau=dreamteam2026" | kiem DN "T
 sql "UPDATE TaiKhoan SET trangThai = 'Hoạt động' WHERE tenDangNhap = 'hdrade';"
 dung DN "Đăng nhập đúng → quay lại trang đang mở (next)" "$(curl -s -o "$NUL" -c "$J" -b "$J" -w '%{redirect_url}' "$B/auth/login.php" --data-urlencode "csrf_token=$T" -d "tenDangNhap=hdchamthi&matKhau=dreamteam2026" --data-urlencode "next=$(printf '%s' "$B" | sed -E 's#https?://[^/]+##')/grading/thong-ke.php" | grep -c 'grading/thong-ke.php')" 1
 get "admin/" | kiem DN "Thanh trên hiện tên người đăng nhập" "Phan Thùy Dương"
+get "admin/" | kiem DN "Dashboard Hội đồng chấm thi dùng số liệu nghiệp vụ" "Tiến độ chấm theo môn"
+get "admin/" | khong DN "Dashboard Hội đồng chấm thi không hiện thống kê tuyển sinh" "Số học sinh theo trường THCS"
 get "admin/" | khong DN "Sidebar ẩn mục không có quyền (papers)" "/papers/\""
 dung DN "Không có quyền → HTTP 403" "$(ma_http papers/)" 403
 get "papers/" | kiem DN "Không có quyền → câu thông báo" "Bạn không có quyền thực hiện chức năng này."

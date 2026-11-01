@@ -90,6 +90,40 @@ function live_stats(): ?array {
     } catch (Throwable $e) { error_log('live_stats: ' . $e->getMessage()); return null; }
 }
 
+/** Dashboard riêng cho Hội đồng chấm thi; không tải số liệu hồ sơ/nguyện vọng. */
+function live_grading_dashboard(): ?array {
+    if (!live_available()) return null;
+    try {
+        $summary = db()->query("SELECT COUNT(b.maBaiThi) AS tongBai,
+            SUM(k.maKetQuaChamThi IS NOT NULL AND b.trangThaiCham='Đã chấm') AS daCham,
+            SUM(k.maKetQuaChamThi IS NULL OR b.trangThaiCham<>'Đã chấm') AS chuaCham,
+            SUM(k.trangThaiCongBo='Đã công bố') AS daCongBo
+            FROM BaiThi b LEFT JOIN KetQuaChamThi k ON k.maBaiThi=b.maBaiThi")->fetch() ?: [];
+        $bySubject = db()->query("SELECT kt.tenKyThi,m.tenMonThi,COUNT(b.maBaiThi) AS tongBai,
+            SUM(k.maKetQuaChamThi IS NOT NULL AND b.trangThaiCham='Đã chấm') AS daCham,
+            SUM(k.maKetQuaChamThi IS NULL OR b.trangThaiCham<>'Đã chấm') AS chuaCham,
+            SUM(k.trangThaiCongBo='Đã công bố') AS daCongBo,
+            AVG(k.diemThi) AS diemTrungBinh
+            FROM BaiThi b JOIN KyThi kt ON kt.maKyThi=b.maKyThi JOIN MonThi m ON m.maMonThi=b.maMonThi
+            LEFT JOIN KetQuaChamThi k ON k.maBaiThi=b.maBaiThi
+            GROUP BY kt.maKyThi,kt.tenKyThi,m.maMonThi,m.tenMonThi ORDER BY kt.maKyThi,m.maMonThi")->fetchAll();
+        $recent = db()->query("SELECT b.soPhach,m.tenMonThi,l.diemTruocChinhSua,l.diemSauChinhSua,
+            l.nguoiThucHien,l.thoiGianChinhSua
+            FROM LichSuChinhSuaDiem l JOIN KetQuaChamThi k ON k.maKetQuaChamThi=l.maKetQuaChamThi
+            JOIN BaiThi b ON b.maBaiThi=k.maBaiThi JOIN MonThi m ON m.maMonThi=b.maMonThi
+            ORDER BY l.thoiGianChinhSua DESC,l.maLichSu DESC LIMIT 6")->fetchAll();
+        return [
+            'tongBai'=>(int)($summary['tongBai'] ?? 0),
+            'daCham'=>(int)($summary['daCham'] ?? 0),
+            'chuaCham'=>(int)($summary['chuaCham'] ?? 0),
+            'daCongBo'=>(int)($summary['daCongBo'] ?? 0),
+            'lichSu'=>live_val('SELECT COUNT(*) FROM LichSuChinhSuaDiem'),
+            'theoMon'=>$bySubject,
+            'ganDay'=>$recent,
+        ];
+    } catch (Throwable $e) { error_log('live_grading_dashboard: '.$e->getMessage()); return null; }
+}
+
 /** Danh sách phân công coi thi + lựa chọn cho biểu mẫu UC11. */
 function live_assignments(): ?array {
     if (!live_available()) return null;
