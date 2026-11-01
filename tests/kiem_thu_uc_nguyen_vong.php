@@ -15,25 +15,25 @@ echo "=== BẮT ĐẦU KIỂM THỬ USE CASE: QUẢN LÝ NGUYỆN VỌNG XÉT TU
 $pdo = db();
 $testStudentId = 'TS019';
 $linkedStudentId = 'TS002';
-$studentStmt = $pdo->prepare('SELECT dieuKienDuThi, trangThaiDangKyDuThi FROM thisinh WHERE maThiSinh = ?');
+$studentStmt = $pdo->prepare('SELECT dieuKienDuThi, trangThaiDangKyDuThi FROM ThiSinh WHERE maThiSinh = ?');
 $studentStmt->execute([$testStudentId]);
 $originalStudent = $studentStmt->fetch();
 uc_nv_assert($originalStudent !== false, 'Test student fixture must exist');
 
-$wishesStmt = $pdo->prepare('SELECT maNguyenVong FROM nguyenvong WHERE maThiSinh = ?');
+$wishesStmt = $pdo->prepare('SELECT maNguyenVong FROM NguyenVong WHERE maThiSinh = ?');
 $wishesStmt->execute([$testStudentId]);
 uc_nv_assert($wishesStmt->fetch() === false, 'Test student fixture must not have existing wishes');
 
-$gradeStmt = $pdo->prepare('SELECT diemTrungBinh, hocLuc, hanhKiem FROM hoctapthcs WHERE maThiSinh = ? AND lop = 9');
+$gradeStmt = $pdo->prepare('SELECT diemTrungBinh, hocLuc, hanhKiem FROM HocTapTHCS WHERE maThiSinh = ? AND lop = 9');
 $gradeStmt->execute([$testStudentId]);
 $originalGrade = $gradeStmt->fetch();
 
 try {
     echo "[1] Kiểm tra tiền điều kiện và thời gian đăng ký:\n";
-    $pdo->prepare("UPDATE thisinh SET dieuKienDuThi = 1, trangThaiDangKyDuThi = 'Đã duyệt' WHERE maThiSinh = ?")
+    $pdo->prepare("UPDATE ThiSinh SET dieuKienDuThi = 1, trangThaiDangKyDuThi = 'Đã duyệt' WHERE maThiSinh = ?")
         ->execute([$testStudentId]);
     $gradeUpsert = $pdo->prepare('
-        INSERT INTO hoctapthcs (maThiSinh, lop, diemTrungBinh, hocLuc, hanhKiem)
+        INSERT INTO HocTapTHCS (maThiSinh, lop, diemTrungBinh, hocLuc, hanhKiem)
         VALUES (?, 9, 8.50, "Tốt", "Khá")
         ON DUPLICATE KEY UPDATE diemTrungBinh = VALUES(diemTrungBinh), hocLuc = VALUES(hocLuc), hanhKiem = VALUES(hanhKiem)
     ');
@@ -160,11 +160,11 @@ try {
         echo "  [OK] Từ chối xóa nguyện vọng có kết quả xét tuyển liên kết.\n";
     }
 } finally {
-    $pdo->prepare('DELETE FROM nguyenvong WHERE maThiSinh = ?')->execute([$testStudentId]);
+    $pdo->prepare('DELETE FROM NguyenVong WHERE maThiSinh = ?')->execute([$testStudentId]);
     if ($originalGrade === false) {
-        $pdo->prepare('DELETE FROM hoctapthcs WHERE maThiSinh = ? AND lop = 9')->execute([$testStudentId]);
+        $pdo->prepare('DELETE FROM HocTapTHCS WHERE maThiSinh = ? AND lop = 9')->execute([$testStudentId]);
     } else {
-        $pdo->prepare('UPDATE hoctapthcs SET diemTrungBinh = ?, hocLuc = ?, hanhKiem = ? WHERE maThiSinh = ? AND lop = 9')
+        $pdo->prepare('UPDATE HocTapTHCS SET diemTrungBinh = ?, hocLuc = ?, hanhKiem = ? WHERE maThiSinh = ? AND lop = 9')
             ->execute([
                 $originalGrade['diemTrungBinh'],
                 $originalGrade['hocLuc'],
@@ -172,7 +172,7 @@ try {
                 $testStudentId,
             ]);
     }
-    $pdo->prepare('UPDATE thisinh SET dieuKienDuThi = ?, trangThaiDangKyDuThi = ? WHERE maThiSinh = ?')
+    $pdo->prepare('UPDATE ThiSinh SET dieuKienDuThi = ?, trangThaiDangKyDuThi = ? WHERE maThiSinh = ?')
         ->execute([
             $originalStudent['dieuKienDuThi'],
             $originalStudent['trangThaiDangKyDuThi'],

@@ -61,8 +61,8 @@ function aspiration_school_tracks(): array {
  */
 function aspiration_get_schools(): array {
     $st = db()->query('SELECT t.maTruongTHPT, t.tenTruongTHPT, t.maKhuVuc, k.tenKhuVuc
-                       FROM truongthpt t
-                       LEFT JOIN khuvuc k ON k.maKhuVuc = t.maKhuVuc
+                       FROM TruongTHPT t
+                       LEFT JOIN KhuVuc k ON k.maKhuVuc = t.maKhuVuc
                        ORDER BY t.maTruongTHPT');
     $rows = $st->fetchAll();
     $tracksInfo = aspiration_school_tracks();
@@ -80,10 +80,10 @@ function aspiration_get_schools(): array {
 function aspiration_get_regulation(?int $nam = null): ?array {
     $pdo = db();
     if ($nam !== null) {
-        $st = $pdo->prepare('SELECT * FROM quydinhnguyenvong WHERE namTuyenSinh = ? LIMIT 1');
+        $st = $pdo->prepare('SELECT * FROM QuyDinhNguyenVong WHERE namTuyenSinh = ? LIMIT 1');
         $st->execute([$nam]);
     } else {
-        $st = $pdo->query('SELECT * FROM quydinhnguyenvong ORDER BY namTuyenSinh DESC, maQuyDinh DESC LIMIT 1');
+        $st = $pdo->query('SELECT * FROM QuyDinhNguyenVong ORDER BY namTuyenSinh DESC, maQuyDinh DESC LIMIT 1');
     }
     $reg = $st->fetch();
     if (!$reg) return null;
@@ -105,8 +105,8 @@ function aspiration_get_candidate(string $maThiSinh): ?array {
         SELECT t.maThiSinh, t.maHoSo, t.hoTen, t.ngaySinh, t.soBaoDanh,
                t.dieuKienDuThi, t.trangThaiDangKyDuThi, t.maTruongTHCS,
                c.tenTruongTHCS
-        FROM thisinh t
-        LEFT JOIN truongthcs c ON c.maTruongTHCS = t.maTruongTHCS
+        FROM ThiSinh t
+        LEFT JOIN TruongTHCS c ON c.maTruongTHCS = t.maTruongTHCS
         WHERE t.maThiSinh = ?
     ');
     $st->execute([$maThiSinh]);
@@ -114,7 +114,7 @@ function aspiration_get_candidate(string $maThiSinh): ?array {
     if (!$student) return null;
 
     // Lấy thông tin kết quả học tập lớp 9
-    $stGrade9 = db()->prepare('SELECT diemTrungBinh, hocLuc, hanhKiem FROM hoctapthcs WHERE maThiSinh = ? AND lop = 9');
+    $stGrade9 = db()->prepare('SELECT diemTrungBinh, hocLuc, hanhKiem FROM HocTapTHCS WHERE maThiSinh = ? AND lop = 9');
     $stGrade9->execute([$maThiSinh]);
     $g9 = $stGrade9->fetch() ?: ['diemTrungBinh' => null, 'hocLuc' => '', 'hanhKiem' => ''];
     $student['grade9'] = $g9;
@@ -144,9 +144,9 @@ function aspiration_get_wishes(string $maThiSinh): array {
                nv.thuTuNguyenVong, nv.ngayDangKy, nv.trangThaiNguyenVong,
                COALESCE(nv.lopChuyen, "Thường") as lopChuyen,
                t.tenTruongTHPT, t.maKhuVuc, k.tenKhuVuc
-        FROM nguyenvong nv
-        JOIN truongthpt t ON t.maTruongTHPT = nv.maTruongTHPT
-        LEFT JOIN khuvuc k ON k.maKhuVuc = t.maKhuVuc
+        FROM NguyenVong nv
+        JOIN TruongTHPT t ON t.maTruongTHPT = nv.maTruongTHPT
+        LEFT JOIN KhuVuc k ON k.maKhuVuc = t.maKhuVuc
         WHERE nv.maThiSinh = ?
         ORDER BY nv.thuTuNguyenVong ASC
     ');
@@ -257,24 +257,24 @@ function aspiration_save(string $maThiSinh, array $validatedWishes, string $maQu
     $pdo->beginTransaction();
     try {
         // Lấy danh sách nguyện vọng hiện có
-        $stCurrent = $pdo->prepare('SELECT maNguyenVong, thuTuNguyenVong FROM nguyenvong WHERE maThiSinh = ? ORDER BY thuTuNguyenVong ASC FOR UPDATE');
+        $stCurrent = $pdo->prepare('SELECT maNguyenVong, thuTuNguyenVong FROM NguyenVong WHERE maThiSinh = ? ORDER BY thuTuNguyenVong ASC FOR UPDATE');
         $stCurrent->execute([$maThiSinh]);
         $currentRows = $stCurrent->fetchAll();
         $currentCount = count($currentRows);
 
         // Lấy mã số numeric lớn nhất của NVD để cấp mã mới khi cần
-        $stMax = $pdo->query('SELECT MAX(CAST(SUBSTRING(maNguyenVong, 4) AS UNSIGNED)) FROM nguyenvong WHERE maNguyenVong LIKE "NVD%"');
+        $stMax = $pdo->query('SELECT MAX(CAST(SUBSTRING(maNguyenVong, 4) AS UNSIGNED)) FROM NguyenVong WHERE maNguyenVong LIKE "NVD%"');
         $maxNum = (int)$stMax->fetchColumn();
 
         $updateStmt = $pdo->prepare('
-            UPDATE nguyenvong
+            UPDATE NguyenVong
             SET maTruongTHPT = ?, maQuyDinh = ?, thuTuNguyenVong = ?, lopChuyen = ?,
                 ngayDangKy = NOW(), trangThaiNguyenVong = "Chờ xử lý"
             WHERE maNguyenVong = ? AND maThiSinh = ?
         ');
 
         $insertStmt = $pdo->prepare('
-            INSERT INTO nguyenvong (maNguyenVong, maThiSinh, maTruongTHPT, maQuyDinh, thuTuNguyenVong, lopChuyen, ngayDangKy, trangThaiNguyenVong)
+            INSERT INTO NguyenVong (maNguyenVong, maThiSinh, maTruongTHPT, maQuyDinh, thuTuNguyenVong, lopChuyen, ngayDangKy, trangThaiNguyenVong)
             VALUES (?, ?, ?, ?, ?, ?, NOW(), "Chờ xử lý")
         ');
 
@@ -313,8 +313,8 @@ function aspiration_save(string $maThiSinh, array $validatedWishes, string $maQu
         // Nếu số nguyện vọng mới ít hơn số nguyện vọng cũ (Alternative flow 5.1 Xóa NV)
         if ($currentCount > count($validatedWishes)) {
             $toDelete = array_slice($currentRows, count($validatedWishes));
-            $resultStmt = $pdo->prepare('SELECT maKetQua FROM ketquaxettuyen WHERE maNguyenVong = ? LIMIT 1 FOR UPDATE');
-            $delStmt = $pdo->prepare('DELETE FROM nguyenvong WHERE maNguyenVong = ? AND maThiSinh = ?');
+            $resultStmt = $pdo->prepare('SELECT maKetQua FROM KetQuaXetTuyen WHERE maNguyenVong = ? LIMIT 1 FOR UPDATE');
+            $delStmt = $pdo->prepare('DELETE FROM NguyenVong WHERE maNguyenVong = ? AND maThiSinh = ?');
             foreach ($toDelete as $delItem) {
                 $resultStmt->execute([$delItem['maNguyenVong']]);
                 if ($resultStmt->fetchColumn() !== false) {
