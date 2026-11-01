@@ -62,6 +62,7 @@
 .ui-score{font-size:34px!important;font-weight:800!important;color:#1265b0!important}
 .ui-score small{font-size:18px;color:#8aa0b6}
 .ui-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.ui-actions-end{justify-content:flex-end}
 .ui-btn-cancel{color:#a33a3a;border-color:#f0cccc}
 .ui-confirm{font-size:18px;color:#2d4a68}
 .ui-change{font-size:30px;font-weight:800;color:#1265b0}
