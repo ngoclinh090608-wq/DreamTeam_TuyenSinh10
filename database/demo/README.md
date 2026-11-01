@@ -1,18 +1,16 @@
-# Ba bản dữ liệu hiện hành
+# Dữ liệu demo hiện hành
 
-Ba file SQL dưới đây là các bản xuất mới nhất do người dùng cung cấp. Bản demo cũ đã được thay thế tại cùng đường dẫn; không giữ thêm bản sao cũ trong repository.
+Repository chỉ giữ bản xuất đầy đủ mới nhất dùng để chạy website. Schema và dữ liệu kiểm thử CI nằm ở `../install.sql`; không lưu thêm các snapshot nhỏ trùng mục đích.
 
 | File | Database | Học sinh | Nguyện vọng | Bài thi | Kết quả |
 |---|---|---:|---:|---:|---:|
 | `dreamteam_tuyensinh10_demo.sql` | `dreamteam_tuyensinh10_demo` | 1.750 | 5.250 | 5.250 | 4.870 |
-| `dreamteam_tuyensinh10.sql` | `dreamteam_tuyensinh10` | 20 | 54 | 54 | 51 |
-| `dreamteam_tuyensinh10_test.sql` | `dreamteam_tuyensinh10_test` | 20 | 54 | 54 | 51 |
 
 ## Chọn và nhập dữ liệu
 
 - Chạy website: dùng bản **demo**, có đầy đủ hồ sơ bổ sung, gia đình và học bạ. Mặc định ứng dụng kết nối database này.
-- Hai bản nhỏ là snapshot riêng người dùng gửi, chưa có ba bảng hồ sơ bổ sung. Không dùng thay cho bộ kiểm thử CI: CI vẫn dùng `../install.sql`, được build từ schema hiện hành.
-- Mỗi file tự chọn database riêng. Chỉ nhập vào database trống; không nhập ba file chồng lên nhau. Máy đã có dữ liệu đang làm việc không cần nhập lại sau khi pull code.
+- CI dùng `../install.sql`, được build từ schema hiện hành và bộ seed kiểm thử nhỏ.
+- File demo tự chọn database `dreamteam_tuyensinh10_demo`. Chỉ nhập vào database trống. Máy đã có dữ liệu đang làm việc không cần nhập lại sau khi pull code.
 - Sao chép `database.local.example.php` sang `config/database.local.php` nếu cần thay host/user/password/name. Biến môi trường DB_* được ưu tiên; cấu hình local không đưa lên Git.
 
 Bản demo có 11 tài khoản, 380 bài chưa chấm, 1.750 hồ sơ bổ sung, 5.250 dòng gia đình và 7.000 dòng học bạ. Tên người nhập, thời gian, điểm và mật khẩu được giữ nguyên. Điểm thi và phòng thi được chuẩn hóa theo trường THPT nguyện vọng 1; trường THPT Sao Mai được bổ sung phòng thứ 12 để đủ 359 thí sinh.
@@ -32,8 +30,6 @@ Máy nhập snapshot demo mới đã có các nội dung trên, không cần ch�
 
 `php database/demo/verify.php` kiểm tra chỉ đọc database demo theo host/user/password cấu hình, báo số liệu và liên kết dữ liệu. Không chạy test ghi dữ liệu trên demo đang dùng.
 
-SHA-256 của ba file xuất từ phpMyAdmin ngày 01/11/2026, trước bước chuẩn hóa để tương thích repository:
+SHA-256 của file xuất từ phpMyAdmin ngày 01/11/2026, trước bước chuẩn hóa để tương thích repository:
 
 - Demo: `9b07b69f0bfbedccba2ae78aee7eedbbf8714f6a6f796a101a40e697a66c42a1`
-- Bản chính: `46fcfed842e94951bd5563ba46b4e89990aae871b423726943aad399bd65be55`
-- Test: `04fa8b9fc90bb9e185c5108bd485fc34a255d5084949e8a0f0fb195aafcec188`
