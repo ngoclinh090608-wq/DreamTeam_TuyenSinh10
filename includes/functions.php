@@ -54,7 +54,7 @@ function render_module(string $key): void {
     $module = $modules[$key];
     $isStudent = has_role($user, ['HOC_SINH']);
     $studentId = $isStudent ? (string)($user['maThiSinh'] ?? '') : null;
-    $studentDashboard = null; $admissionNotices = null;
+    $studentDashboard = null; $gradingDashboard = null; $admissionNotices = null;
     $admissionSearch = is_string($_GET['q'] ?? null) ? mb_substr(trim($_GET['q']), 0, 120) : '';
     require_once dirname(__DIR__) . '/services/live_data.php';
     $module['rows'] = []; // Never retain illustrative rows after a database failure.
@@ -65,6 +65,13 @@ function render_module(string $key): void {
         $live = $studentDashboard !== null;
         $module['title'] = 'Trang cá nhân'; $module['eyebrow'] = 'Hồ sơ tuyển sinh';
         $module['desc'] = 'Theo dõi hồ sơ và nguyện vọng của bạn.';
+    }
+    elseif ($key === 'admin' && has_role($user, ['HD_CHAM_THI'])) {
+        $gradingDashboard = live_grading_dashboard();
+        $live = $gradingDashboard !== null;
+        $module['title'] = 'Bảng điều khiển chấm thi';
+        $module['eyebrow'] = 'Tổng quan Hội đồng chấm thi';
+        $module['desc'] = 'Theo dõi tiến độ chấm, trạng thái công bố và các lần điều chỉnh điểm.';
     }
     elseif ($isStudent && $key === 'admission-info') {
         $admissionNotices = live_student_admission_info($admissionSearch);
@@ -78,7 +85,8 @@ function render_module(string $key): void {
     if ($isStudent && $key === 'enrollment') { $module['title'] = 'Tình trạng nhập học'; $module['desc'] = 'Xem tình trạng nhập học gắn với hồ sơ của bạn.'; }
     $page_title = $module['title']; $layout = 'dashboard'; $active = $key;
     $moduleTemplate = $isStudent && $key === 'admin' ? 'student_dashboard.php'
-        : ($isStudent && $key === 'admission-info' ? 'student_admission_info.php' : 'module_page.php');
+        : ($key === 'admin' && has_role($user, ['HD_CHAM_THI']) ? 'grading_dashboard.php'
+        : ($isStudent && $key === 'admission-info' ? 'student_admission_info.php' : 'module_page.php'));
     require __DIR__ . '/header.php';
     require __DIR__ . '/' . $moduleTemplate;
     require __DIR__ . '/footer.php';

@@ -386,9 +386,16 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--secondary);
   grid-template-columns: minmax(120px, 220px) minmax(0, 1fr) max-content;
 }
 .school-distribution .bars strong { white-space: nowrap; }
+.grading-dashboard-panels { align-items:start; }
+.grading-dashboard-panels .bars > div { grid-template-columns:minmax(150px,220px) minmax(0,1fr) max-content; }
+.grading-dashboard-panels .bars span strong,.grading-dashboard-panels .bars span small { display:block; }
+.grading-dashboard-panels .bars span small { margin-top:3px; color:var(--muted); font-size:11px; }
+.grading-history-panel { margin-top:20px; }
 @media (max-width: 720px) {
   .school-distribution .bars > div { grid-template-columns: minmax(0, 1fr) max-content; gap: 8px 12px; }
   .school-distribution .bars > div > span { grid-column: 1 / -1; }
+  .grading-dashboard-panels .bars > div { grid-template-columns:minmax(0,1fr) max-content; gap:8px 12px; }
+  .grading-dashboard-panels .bars > div > span { grid-column:1 / -1; }
 }
 
 /* Student pages distinguish the current THCS from THPT preferences. */
