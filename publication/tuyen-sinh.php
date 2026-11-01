@@ -85,7 +85,7 @@ ui_page_start('publication', 'Công bố kết quả tuyển sinh', 'HỘI ĐỒ
 
     <section class="uc22-card">
         <h2>Danh sách kết quả tuyển sinh</h2>
-        <p>Tổng số: <strong><?= count($danhSach) ?></strong> danh sách.</p>
+        <p>Tổng số: <strong><?= e((string)count($danhSach)) ?></strong> danh sách.</p>
         <div class="uc22-table-scroll">
             <table class="uc22-table">
                 <thead><tr><th>STT</th><th>Mã danh sách</th><th>Năm</th><th>Đợt tuyển sinh</th><th>Số kết quả</th><th>Phê duyệt</th><th>Công bố</th><th>Thao tác</th></tr></thead>
@@ -95,11 +95,11 @@ ui_page_start('publication', 'Công bố kết quả tuyển sinh', 'HỘI ĐỒ
                 <?php else: ?>
                     <?php foreach ($danhSach as $i => $row): ?>
                         <tr>
-                            <td><?= $i + 1 ?></td>
+                            <td><?= e((string)($i + 1)) ?></td>
                             <td><strong><?= e($row['maDanhSach']) ?></strong></td>
                             <td><?= e((string)$row['namTuyenSinh']) ?></td>
                             <td><?= e($row['tenDot']) ?></td>
-                            <td><?= number_format((int)$row['tongKetQua'], 0, ',', '.') ?></td>
+                            <td><?= e(number_format((int)$row['tongKetQua'], 0, ',', '.')) ?></td>
                             <td><span class="uc22-badge <?= $row['trangThaiPheDuyet'] === 'Đã phê duyệt' ? 'uc22-good' : 'uc22-wait' ?>"><?= e($row['trangThaiPheDuyet']) ?></span></td>
                             <td><span class="uc22-badge <?= $row['trangThaiCongBo'] === 'Đã công bố' ? 'uc22-good' : 'uc22-wait' ?>"><?= e($row['trangThaiCongBo']) ?></span></td>
                             <td><a class="uc22-btn uc22-btn-small" href="<?= e(url('publication/tuyen-sinh.php', ['nam' => $namInput, 'maDanhSach' => $row['maDanhSach']])) ?>#uc22-detail">Xem chi tiết</a></td>
@@ -162,7 +162,10 @@ ui_page_start('publication', 'Công bố kết quả tuyển sinh', 'HỘI ĐỒ
                                 <td><?= e($row['hoTen']) ?></td>
                                 <td><?= e($row['soBaoDanh'] ?? '—') ?></td>
                                 <td><?= e($row['tenTruongTHPT'] ?? '—') ?></td>
-                                <td><?= $row['diemXetTuyen'] === null ? '—' : number_format((float)$row['diemXetTuyen'], 2) ?></td>
+                                <td><?= e(
+    $row['diemXetTuyen'] === null
+        ? '—'
+        : number_format((float)$row['diemXetTuyen'], 2)) ?></td>
                                 <td><?= e($row['trangThaiXetTuyen']) ?></td>
                             </tr>
                         <?php endforeach; ?>

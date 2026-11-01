@@ -201,7 +201,7 @@ ui_page_start(
                 <h2>Danh sách tình trạng nhập học</h2>
                 <p>
                     Tổng số:
-                    <strong><?= count($danhSach) ?></strong>
+                    <strong><?= e((string)count($danhSach)) ?></strong>
                     kết quả
                 </p>
             </div>
@@ -271,13 +271,22 @@ ui_page_start(
                         ]);
                         ?>
                         <tr>
-                            <td><?= $i + 1 ?></td>
+                            <td><?= e((string)($i + 1)) ?></td>
                             <td><?= e($row['maThiSinh']) ?></td>
                             <td><?= e($row['hoTen']) ?></td>
                             <td><?= e($row['soBaoDanh'] ?? '—') ?></td>
                             <td><?= e($row['tenTruongTHPT'] ?? '—') ?></td>
                             <td>
-                                <?= $row['diemXetTuyen'] === null
+                                
+                                <?= e(
+                                    $row['diemXetTuyen'] === null
+                                        ? '—'
+                                        : number_format(
+                                            (float)$row['diemXetTuyen'],
+                                            2
+                                        )
+                                ) ?>
+
                                     ? '—'
                                     : number_format(
                                         (float)$row['diemXetTuyen'], 2
@@ -336,7 +345,16 @@ ui_page_start(
                     <?= e($chiTiet['tenTruongTHPT'] ?? '—') ?></p>
 
                 <p><strong>Điểm xét tuyển</strong>
-                    <?= $chiTiet['diemXetTuyen'] === null
+                    
+                <?= e(
+                    $chiTiet['diemXetTuyen'] === null
+                        ? '—'
+                        : number_format(
+                            (float)$chiTiet['diemXetTuyen'],
+                            2
+                        )
+                ) ?>
+
                         ? '—'
                         : number_format(
                             (float)$chiTiet['diemXetTuyen'], 2
