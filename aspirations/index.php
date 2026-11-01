@@ -1,4 +1,16 @@
 <?php
 declare(strict_types=1);
-$directoryModule = 'aspirations';
-require dirname(__DIR__) . '/includes/candidate_directory.php';
+
+require_once dirname(__DIR__) . '/includes/auth.php';
+
+// Kiểm tra quyền truy cập module aspirations theo QUYEN_MODULE (HOC_SINH, HD_TUYEN_SINH)
+$user = require_module('aspirations');
+
+if (has_role($user, ['HOC_SINH'])) {
+    // Giao diện học sinh: Đăng ký tuyển sinh lớp 10 và Quản lý nguyện vọng NV1, NV2, NV3
+    require __DIR__ . '/hoc_sinh_dang_ky.php';
+} else {
+    // Giao diện Hội đồng tuyển sinh: Tra cứu danh sách nguyện vọng toàn hệ thống
+    $directoryModule = 'aspirations';
+    require dirname(__DIR__) . '/includes/candidate_directory.php';
+}
