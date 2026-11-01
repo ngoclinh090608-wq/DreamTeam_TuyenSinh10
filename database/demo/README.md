@@ -33,3 +33,7 @@ Máy nhập snapshot demo mới đã có các nội dung trên, không cần ch�
 SHA-256 của file xuất từ phpMyAdmin ngày 01/11/2026, trước bước chuẩn hóa để tương thích repository:
 
 - Demo: `9b07b69f0bfbedccba2ae78aee7eedbbf8714f6a6f796a101a40e697a66c42a1`
+
+## Cập nhật quản lý nguyện vọng lớp chuyên
+
+Sau khi cập nhật mã nguồn, chạy `database/migrations/20261101_add_lopchuyen_nguyenvong.sql` trên database demo hiện có. Migration chỉ bổ sung cột `lopChuyen`, có thể chạy lại và không xóa dữ liệu. Database kiểm thử cài mới từ `database/install.sql` đã có cột này. Học sinh vào **Quản lý nguyện vọng** từ dashboard; chức năng đăng ký tuyển sinh hiện có vẫn được giữ.
