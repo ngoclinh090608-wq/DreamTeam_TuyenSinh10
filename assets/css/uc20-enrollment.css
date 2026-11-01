@@ -1,0 +1,284 @@
+
+/* UC20 - Cập nhật tình trạng nhập học */
+
+.uc20-page {
+    --uc20-primary: #3F7CA5;
+    --uc20-secondary: #7FA6C9;
+    --uc20-light: #CCE1F3;
+
+    width: 100%;
+    padding: 20px 0 35px;
+    color: #28394A;
+}
+
+.uc20-page .uc20-card {
+    background: #FFFFFF;
+    border: 1px solid #DFE9F1;
+    border-radius: 14px;
+    padding: 26px 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 16px rgba(63,124,165,.06);
+}
+
+.uc20-page h2 {
+    margin: 0 0 10px;
+    color: #315F80;
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.uc20-card-head {
+    margin-bottom: 22px;
+}
+
+.uc20-card-head p {
+    margin: 0;
+    font-size: 14px;
+    color: #718295;
+    line-height: 1.6;
+}
+
+.uc20-card-head strong {
+    color: #3F7CA5;
+}
+
+.uc20-form-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.uc20-field {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.uc20-field label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #354F66;
+}
+
+.uc20-field select {
+    width: 100%;
+    height: 46px;
+    padding: 10px 14px;
+    border: 1px solid #CBD9E5;
+    border-radius: 9px;
+    background: #FFFFFF;
+    color: #28394A;
+    font-size: 14px;
+}
+
+.uc20-field select:focus {
+    outline: none;
+    border-color: #3F7CA5;
+    box-shadow: 0 0 0 3px rgba(127,166,201,.22);
+}
+
+.uc20-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.uc20-btn-primary,
+.uc20-btn-secondary,
+.uc20-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 11px 20px;
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.uc20-btn-primary {
+    background: #3F7CA5;
+    border: 1px solid #3F7CA5;
+    color: #FFFFFF;
+}
+
+.uc20-btn-primary:hover {
+    background: #326787;
+}
+
+.uc20-btn-primary:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.uc20-btn-secondary {
+    background: #CCE1F3;
+    border: 1px solid #B7D3E8;
+    color: #315F80;
+}
+
+.uc20-btn-outline {
+    background: #FFFFFF;
+    border: 1px solid #7FA6C9;
+    color: #315F80;
+}
+
+.uc20-btn-secondary:hover,
+.uc20-btn-outline:hover {
+    background: #E8F3FB;
+}
+
+.uc20-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #E1E8EF;
+    border-radius: 10px;
+}
+
+.uc20-table {
+    width: 100%;
+    min-width: 1000px;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.uc20-table th {
+    background: #CCE1F3;
+    color: #315F80;
+    padding: 15px 13px;
+    text-align: left;
+    font-weight: 700;
+    border-bottom: 2px solid #7FA6C9;
+    white-space: nowrap;
+}
+
+.uc20-table td {
+    padding: 14px 13px;
+    border-bottom: 1px solid #E9EEF3;
+    color: #344563;
+}
+
+.uc20-table tbody tr:hover {
+    background: #F2F8FD;
+}
+
+.uc20-empty {
+    text-align: center !important;
+    padding: 45px 20px !important;
+    color: #718295 !important;
+    background: #F5F9FC;
+}
+
+.uc20-status {
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.uc20-success {
+    color: #177449;
+    background: #DDF5E8;
+}
+
+.uc20-pending {
+    color: #986400;
+    background: #FFF1CD;
+}
+
+.uc20-danger {
+    color: #B53E47;
+    background: #FCE3E5;
+}
+
+.uc20-action-link {
+    color: #3F7CA5;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.uc20-action-link:hover {
+    text-decoration: underline;
+}
+
+.uc20-alert {
+    padding: 15px 18px;
+    margin-bottom: 22px;
+    background: #FCE8E9;
+    border: 1px solid #F3BFC3;
+    border-left: 4px solid #D65B65;
+    border-radius: 9px;
+    color: #A3313A;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .uc20-page .uc20-card {
+        padding: 20px 16px;
+    }
+
+    .uc20-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .uc20-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .uc20-btn-primary,
+    .uc20-btn-secondary,
+    .uc20-btn-outline {
+        width: 100%;
+    }
+}
+
+/* UC20 - Bộ lọc tra cứu đồng bộ UC19 */
+
+.uc20-page .uc20-search-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.uc20-page .uc20-field {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-width: 0;
+}
+
+.uc20-page .uc20-field input,
+.uc20-page .uc20-field select {
+    display: block;
+    width: 100%;
+    height: 46px;
+    padding: 10px 14px;
+    border: 1px solid #CBD9E5;
+    border-radius: 9px;
+    background: #FFFFFF;
+    color: #28394A;
+    font-size: 14px;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.uc20-page .uc20-field input:focus,
+.uc20-page .uc20-field select:focus {
+    outline: none;
+    border-color: #3F7CA5;
+    box-shadow: 0 0 0 3px rgba(127,166,201,.22);
+}
+
+@media (max-width: 768px) {
+    .uc20-page .uc20-search-grid {
+        grid-template-columns: 1fr;
+    }
+}
