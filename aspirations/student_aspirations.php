@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!csrf_verify()) {
         flash_set('error', 'Mã xác thực phiên làm việc (CSRF) không hợp lệ hoặc đã hết hạn. Vui lòng tải lại trang.');
-        header('Location: ' . url('aspirations/'), true, 303);
+        header('Location: ' . url('aspirations/', ['view' => 'student']), true, 303);
         exit;
     }
 
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash_set('error', 'Đã có lỗi hệ thống xảy ra khi lưu nguyện vọng: ' . $e->getMessage());
     }
 
-    header('Location: ' . url('aspirations/'), true, 303);
+    header('Location: ' . url('aspirations/', ['view' => 'student']), true, 303);
     exit;
 }
 
@@ -585,7 +585,7 @@ require dirname(__DIR__) . '/includes/header.php';
   </div>
 
   <!-- Form Quản lý nguyện vọng (Interactive Table) -->
-  <form id="wishes-form" method="post" action="<?= e(url('aspirations/')) ?>">
+  <form id="wishes-form" method="post" action="<?= e(url('aspirations/', ['view' => 'student'])) ?>">
     <?= csrf_field() ?>
 
     <div class="wishes-table-wrapper">
