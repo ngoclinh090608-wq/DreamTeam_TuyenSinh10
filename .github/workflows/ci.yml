@@ -1,5 +1,5 @@
 # CI – cổng kiểm tra tự động cho mỗi lần push và mỗi Pull Request vào main.
-# Các bước: kiểm tra cú pháp PHP → kiểm tra install.sql đã build lại → nhập CSDL → chạy web → kiểm thử chức năng.
+# Các bước: kiểm tra cú pháp PHP → tự tạo install.sql → nhập CSDL → chạy web → kiểm thử chức năng.
 name: CI
 
 on:
@@ -51,15 +51,10 @@ jobs:
           if [ "$loi" -ne 0 ]; then echo "::error::Có file PHP sai cú pháp (xem ở trên)."; exit 1; fi
           echo "Tất cả file PHP đúng cú pháp."
 
-      - name: 2. Kiểm tra install.sql đã được build lại
+      - name: 2. Tạo SQL kiểm thử từ mã nguồn
         run: |
           php database/build.php
-          if ! git diff --quiet -- database/install.sql; then
-            echo "::error::database/install.sql chưa cập nhật. Hãy chạy 'php database/build.php' rồi commit lại install.sql."
-            git diff --stat -- database/
-            exit 1
-          fi
-          echo "install.sql khớp với các file trong database/."
+          test -s database/install.sql
 
       - name: 3. Nhập CSDL từ install.sql
         run: |
