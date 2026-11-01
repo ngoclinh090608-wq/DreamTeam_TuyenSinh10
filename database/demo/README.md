@@ -15,21 +15,25 @@ Repository chỉ giữ bản xuất đầy đủ mới nhất dùng để chạy
 
 Bản demo có 11 tài khoản, 380 bài chưa chấm, 1.750 hồ sơ bổ sung, 5.250 dòng gia đình và 7.000 dòng học bạ. Tên người nhập, thời gian, điểm và mật khẩu được giữ nguyên. Điểm thi và phòng thi được chuẩn hóa theo trường THPT nguyện vọng 1; trường THPT Sao Mai được bổ sung phòng thứ 12 để đủ 359 thí sinh.
 
-## Máy đã dùng bản demo cũ
+## Cập nhật và các file còn giữ
 
-Không nhập lại full dump để cập nhật máy đang có dữ liệu. Các migration trong `../migrations/` vẫn giữ để hỗ trợ máy cũ:
+Snapshot hiện tại lấy từ file `tuyensinh10.sql` người dùng cung cấp ngày 02/11/2026. Đã có đủ bảng hồ sơ, dữ liệu hồ sơ bổ sung, người nhập điểm demo, điểm thi/phòng thi theo NV1, cột `lopChuyen` và bảng `XetTuyenLanChay`. Máy cài mới chỉ nhập snapshot này, không cần chạy thêm migration.
 
-1. `20261031_student_profile.sql`: thêm ba bảng hồ sơ còn thiếu.
-2. `20261031_fill_student_profiles.sql`: tùy chọn điền hồ sơ giả lập vào ô trống, không ghi đè nội dung đã nhập.
-3. `20261101_demo_grading_author.sql`: chỉ thay nhãn người nhập tự động cũ bằng Phan Thùy Dương, người nhập giả lập của buổi demo; giữ nguyên thời gian và điểm.
-4. `20261101_reassign_demo_exam_sites_by_nv1.sql`: đổi 5 điểm thi demo sang trường THPT và phân lại phòng theo NV1. Chạy file này trên máy đang hiện điểm thi THCS; migration có thể chạy lại an toàn.
+Bốn migration lịch sử cho hồ sơ, điền hồ sơ giả lập, đổi nhãn người nhập điểm và phân lại điểm thi đã được loại khỏi Git vì nội dung đã nằm trong snapshot. Không nhập lại snapshot trên database đang có dữ liệu để cập nhật các phần này; máy cũ cần sao lưu và kiểm tra cấu trúc/dữ liệu trước khi cập nhật có phạm vi.
 
-Máy nhập snapshot demo mới đã có các nội dung trên, không cần chạy migration riêng. Ảnh học sinh nằm trong `storage/student-photos/` trên máy, không nằm trong SQL; sao lưu thư mục ảnh cùng database.
+Chỉ giữ hai migration gần đây cho máy đang dùng phiên bản trước UC17:
+
+- `../migrations/20261101_add_lopchuyen_nguyenvong.sql`: bổ sung cột `lopChuyen` nếu còn thiếu.
+- `../migrations/20261102_uc17_admission.sql`: bổ sung bảng lưu vết UC17 nếu còn thiếu.
+
+Không cần chạy lại trên máy đã có các cấu trúc này. Ảnh học sinh vẫn ở `storage/student-photos/`, không nằm trong SQL; sao lưu ảnh cùng database.
 
 ## Kiểm tra
 
 `php database/demo/verify.php` kiểm tra chỉ đọc database demo theo host/user/password cấu hình, báo số liệu và liên kết dữ liệu. Không chạy test ghi dữ liệu trên demo đang dùng.
 
-SHA-256 của file xuất từ phpMyAdmin ngày 01/11/2026, trước bước chuẩn hóa để tương thích repository:
+SHA-256 của file người dùng cung cấp, trước khi chuẩn hóa tên bảng cho Linux và bỏ `DEFINER` phụ thuộc tài khoản máy xuất:
 
-- Demo: `9b07b69f0bfbedccba2ae78aee7eedbbf8714f6a6f796a101a40e697a66c42a1`
+`f27426a63fb1c3c4dc066a461a974d9de7c9f6d30b9da0f4dede8afbbd5037b5`
+
+Các giá trị dữ liệu trong bản xuất được giữ nguyên. `../install.sql` và `../seed/seed.sql` vẫn cần cho CI và kiểm thử nghiệp vụ; không nhập chúng vào database demo.
