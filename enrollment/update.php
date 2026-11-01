@@ -247,7 +247,7 @@ ui_page_start(
 
             <p>
                 Tổng số:
-                <strong><?= count($danhSach) ?></strong>
+                <strong><?= e((string)count($danhSach)) ?></strong>
                 thí sinh phù hợp.
             </p>
 
@@ -328,7 +328,7 @@ ui_page_start(
 
                             <tr>
 
-                                <td><?= $index + 1 ?></td>
+                                <td><?= e((string)($index + 1)) ?></td>
 
                                 <td><?= e($row['maThiSinh']) ?></td>
 
