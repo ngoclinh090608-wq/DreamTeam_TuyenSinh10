@@ -1,0 +1,375 @@
+
+/* ============================================
+   UC21 - THỐNG KÊ KẾT QUẢ TUYỂN SINH
+   Nguyễn Thị Cẩm Vân
+============================================ */
+
+.uc21-page {
+    --uc21-primary: #3F7CA5;
+    --uc21-secondary: #7FA6C9;
+    --uc21-light: #CCE1F3;
+
+    width: 100%;
+    padding: 20px 0 35px;
+    color: #28394A;
+}
+
+.uc21-page .uc21-card {
+    background: #FFFFFF;
+    border: 1px solid #DFE9F1;
+    border-radius: 14px;
+    padding: 26px 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 16px rgba(63,124,165,.06);
+}
+
+.uc21-section-head {
+    margin-bottom: 24px;
+}
+
+.uc21-page h2 {
+    margin: 0 0 10px;
+    font-size: 21px;
+    font-weight: 700;
+    color: #315F80;
+}
+
+.uc21-section-head p,
+.uc21-table-heading p {
+    color: #718295;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* BỘ LỌC */
+
+.uc21-filter {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr auto;
+    gap: 20px;
+    align-items: end;
+}
+
+.uc21-field {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-width: 0;
+}
+
+.uc21-field label {
+    color: #354F66;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.uc21-field select {
+    width: 100%;
+    height: 46px;
+    padding: 10px 14px;
+    border: 1px solid #CBD9E5;
+    border-radius: 9px;
+    background: #FFFFFF;
+    color: #28394A;
+    font-size: 14px;
+}
+
+.uc21-field select:focus {
+    outline: none;
+    border-color: #3F7CA5;
+    box-shadow: 0 0 0 3px rgba(127,166,201,.22);
+}
+
+/* NÚT */
+
+.uc21-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.uc21-btn-primary,
+.uc21-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 11px 20px;
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.uc21-btn-primary {
+    color: #FFFFFF;
+    background: #3F7CA5;
+    border: 1px solid #3F7CA5;
+}
+
+.uc21-btn-primary:hover {
+    background: #326787;
+}
+
+.uc21-btn-secondary {
+    color: #315F80;
+    background: #CCE1F3;
+    border: 1px solid #B7D3E8;
+}
+
+.uc21-btn-secondary:hover {
+    background: #B8D5EA;
+}
+
+/* THẺ TỔNG QUAN */
+
+.uc21-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.uc21-summary-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 150px;
+    padding: 24px;
+    background: #FFFFFF;
+    border: 1px solid #DFE9F1;
+    border-top: 4px solid #7FA6C9;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(63,124,165,.05);
+}
+
+.uc21-summary-label {
+    color: #61788C;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.uc21-summary-card strong {
+    color: #315F80;
+    font-size: 30px;
+    line-height: 1.2;
+    font-weight: 700;
+}
+
+.uc21-summary-card small {
+    color: #718295;
+    font-size: 12px;
+}
+
+/* BẢNG THỐNG KÊ */
+
+.uc21-table-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.uc21-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #E1E8EF;
+    border-radius: 10px;
+}
+
+.uc21-table {
+    width: 100%;
+    min-width: 950px;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.uc21-table th {
+    background: #CCE1F3;
+    color: #315F80;
+    padding: 15px 13px;
+    text-align: left;
+    font-weight: 700;
+    border-bottom: 2px solid #7FA6C9;
+    white-space: nowrap;
+}
+
+.uc21-table td {
+    padding: 15px 13px;
+    color: #344563;
+    border-bottom: 1px solid #E9EEF3;
+    line-height: 1.5;
+}
+
+.uc21-table tbody tr:hover {
+    background: #F2F8FD;
+}
+
+.uc21-group-name {
+    font-weight: 600;
+    color: #315F80 !important;
+}
+
+.uc21-rate {
+    display: inline-block;
+    padding: 6px 11px;
+    background: #E8F3FB;
+    border-radius: 20px;
+    color: #315F80;
+    font-weight: 600;
+}
+
+.uc21-empty {
+    padding: 45px 20px !important;
+    text-align: center !important;
+    background: #F5F9FC;
+    color: #718295 !important;
+}
+
+.uc21-alert {
+    padding: 15px 18px;
+    margin-bottom: 22px;
+    background: #FCE8E9;
+    border: 1px solid #F3BFC3;
+    border-left: 4px solid #D65B65;
+    border-radius: 9px;
+    color: #A3313A;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1200px) {
+    .uc21-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .uc21-filter {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .uc21-actions {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .uc21-page .uc21-card {
+        padding: 20px 16px;
+    }
+
+    .uc21-summary,
+    .uc21-filter {
+        grid-template-columns: 1fr;
+    }
+
+    .uc21-actions {
+        grid-column: auto;
+    }
+
+    .uc21-table-heading {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* In báo cáo */
+
+@media print {
+    .sidebar,
+    .topbar,
+    .uc21-filter,
+    .uc21-actions,
+    .uc21-table-heading button {
+        display: none !important;
+    }
+
+    .uc21-page {
+        padding: 0;
+    }
+
+    .uc21-card,
+    .uc21-summary-card {
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+}
+
+/* UC21 - Bộ lọc chi tiết */
+
+.uc21-page .uc21-filter {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    align-items: end;
+}
+
+.uc21-page .uc21-filter .uc21-actions {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 900px) {
+    .uc21-page .uc21-filter {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .uc21-page .uc21-filter {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* UC21 - Bảng thống kê linh hoạt */
+
+.uc21-page .uc21-table {
+    width: 100%;
+    min-width: 780px;
+    border-collapse: collapse;
+}
+
+.uc21-page .uc21-table th {
+    background: #CCE1F3;
+    color: #315F80;
+    padding: 15px 14px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.uc21-page .uc21-table td {
+    padding: 15px 14px;
+    vertical-align: middle;
+}
+
+.uc21-page .uc21-table td:not(:nth-child(2)) {
+    font-variant-numeric: tabular-nums;
+}
+
+/* UC21 - thêm số liệu dự thi và nút xuất báo cáo */
+.uc21-page .uc21-summary {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.uc21-page .uc21-summary-card { padding: 20px; }
+.uc21-page .uc21-summary-card strong { font-size: clamp(24px, 2vw, 30px); }
+.uc21-page .uc21-table-heading { flex-wrap: wrap; }
+.uc21-page .uc21-table-heading > .uc21-btn-primary,
+.uc21-page .uc21-table-heading > .uc21-btn-secondary { margin-left: auto; }
+@media (max-width: 1250px) {
+    .uc21-page .uc21-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 850px) {
+    .uc21-page .uc21-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+    .uc21-page .uc21-summary { grid-template-columns: 1fr; }
+}
+@media print {
+    .uc21-page .uc21-table-heading > a,
+    .uc21-page .uc21-table-heading > button { display: none !important; }
+    .uc21-page .uc21-summary { grid-template-columns: repeat(5, 1fr); }
+    .uc21-page .uc21-table { min-width: 0; font-size: 10px; }
+    .uc21-page .uc21-table th,
+    .uc21-page .uc21-table td { padding: 7px 5px; white-space: normal; }
+}
