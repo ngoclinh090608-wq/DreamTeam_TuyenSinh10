@@ -13,7 +13,7 @@ $diemMoi = ui_input('diemMoi');
 $lyDo = ui_input('lyDo');
 $action = $_SERVER['REQUEST_METHOD'] === 'POST' ? (string)($_POST['action'] ?? '') : '';
 
-$ketQua = null; $loiTraCuu = null; $loiNhap = []; $loiHeThong = ui_csrf_error(); $buocXacNhan = false;
+$ketQua = null; $lanChinhSuaGanNhat = null; $loiTraCuu = null; $loiNhap = []; $loiHeThong = ui_csrf_error(); $buocXacNhan = false;
 if ($loiHeThong) $action = '';
 
 if ($action === 'luu') {
@@ -31,6 +31,7 @@ if ($action === 'luu') {
 if ($soPhach !== '' || isset($_GET['traCuu'])) {
     try {
         $ketQua = timBaiThiTheoMaPhach($soPhach);
+        $lanChinhSuaGanNhat = layLichSuChinhSua($ketQua['maKetQuaChamThi'])[0] ?? null;
         if ($action === 'kiem_tra') {
             [, $loiNhap] = kiemTraKetQuaCapNhat($ketQua, $diemMoi, $lyDo);
             $buocXacNhan = !$loiNhap;
@@ -50,10 +51,10 @@ if (isset($_GET['huy'])) ui_notice('info', 'Đã hủy cập nhật. Điểm thi
 if ($loiHeThong) ui_notice('error', $loiHeThong);
 ?>
 <section class="panel">
-  <div class="panel-heading"><div><h2>Tìm bài thi theo mã phách</h2><p>Mã phách in trên bài thi đã rọc phách, ví dụ P0052.</p></div></div>
+  <div class="panel-heading"><div><h2>Tìm bài thi theo mã phách</h2><p>Mã phách in trên bài thi đã rọc phách, ví dụ XD0000001.</p></div></div>
   <form method="get" class="ui-search ui-search-one" novalidate>
     <input type="hidden" name="traCuu" value="1">
-    <div class="field"><label for="soPhach">Mã phách <span>*</span></label><input id="soPhach" name="soPhach" value="<?= e($soPhach) ?>" placeholder="Ví dụ: P0052" maxlength="20" autocomplete="off"></div>
+    <div class="field"><label for="soPhach">Mã phách <span>*</span></label><input id="soPhach" name="soPhach" value="<?= e($soPhach) ?>" placeholder="Ví dụ: XD0000001" maxlength="20" autocomplete="off"></div>
     <div class="field ui-search-btn"><button class="btn btn-primary" type="submit">⌕ Tìm bài thi</button></div>
   </form>
 </section>
@@ -68,9 +69,13 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
     <div><dt>Mã phách</dt><dd><span class="code-tag"><?= e($ketQua['soPhach']) ?></span></dd></div>
     <div><dt>Môn thi</dt><dd><?= e($ketQua['tenMonThi']) ?></dd></div>
     <div><dt>Điểm thi hiện tại</dt><dd class="ui-score"><?= e(grading_fmt_diem($ketQua['diemThi'])) ?> <small>/ <?= e(grading_fmt_diem($ketQua['thangDiem'])) ?></small></dd></div>
-    <div><dt>Người nhập · thời điểm</dt><dd><?= e($ketQua['nguoiNhap']) ?> · <?= e(ui_fmt_time($ketQua['thoiDiemNhap'])) ?></dd></div>
+    <div><dt>Người nhập ban đầu</dt><dd><?= e($ketQua['nguoiNhap']) ?></dd></div>
+    <div><dt>Thời điểm nhập ban đầu</dt><dd><?= e(ui_fmt_time($ketQua['thoiDiemNhap'])) ?></dd></div>
+    <div><dt>Lần chỉnh sửa gần nhất</dt><dd><?php if ($lanChinhSuaGanNhat): ?><?= e(ui_fmt_time($lanChinhSuaGanNhat['thoiGianChinhSua'])) ?> · <?= e($lanChinhSuaGanNhat['nguoiThucHien']) ?><?php else: ?>Chưa có chỉnh sửa<?php endif; ?></dd></div>
   </dl>
+  <div class="ui-actions ui-actions-end">
   <a class="btn btn-outline btn-sm" href="<?= e(url('grading/lich-su.php') . '?' . http_build_query(['traCuu' => 1, 'kyThi' => $ketQua['maKyThi'], 'monThi' => $ketQua['maMonThi'], 'soPhach' => $ketQua['soPhach'], 'xemLichSu' => 1])) ?>#lich-su">Xem lịch sử chỉnh sửa →</a>
+  </div>
 </section>
 
 <section class="panel">
@@ -82,7 +87,7 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
     <p><strong>Lý do:</strong> <?= e($lyDo) ?></p>
     <p class="muted">Người chỉnh sửa: <?= e($nguoiDung['hoTen']) ?></p>
   </div>
-  <form method="post" class="ui-actions">
+  <form method="post" class="ui-actions ui-actions-end">
     <?= csrf_field() ?>
     <input type="hidden" name="soPhach" value="<?= e($ketQua['soPhach']) ?>">
     <input type="hidden" name="diemMoi" value="<?= e($diemMoi) ?>">
@@ -99,7 +104,7 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
     <input type="hidden" name="soPhach" value="<?= e($ketQua['soPhach']) ?>">
     <div class="field"><label for="diemMoi">Điểm mới <span>*</span></label><input id="diemMoi" name="diemMoi" value="<?= e($diemMoi) ?>" inputmode="decimal" placeholder="Ví dụ: 7.25" maxlength="6" autocomplete="off"></div>
     <div class="field"><label for="lyDo">Lý do chỉnh sửa <span>*</span></label><textarea id="lyDo" name="lyDo" rows="3" maxlength="255" placeholder="Ví dụ: Cộng sót điểm câu 3"><?= e($lyDo) ?></textarea></div>
-    <div class="ui-actions">
+    <div class="ui-actions ui-actions-end">
       <button class="btn btn-primary" type="submit" name="action" value="kiem_tra">Tiếp tục →</button>
       <a class="btn btn-outline ui-btn-cancel" href="<?= e(url('grading/cap-nhat.php') . '?huy=1') ?>">Hủy bỏ</a>
     </div>
