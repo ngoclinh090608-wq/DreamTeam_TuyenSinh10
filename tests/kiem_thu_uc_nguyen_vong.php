@@ -12,6 +12,13 @@ function uc_nv_assert(bool $condition, string $message): void {
 
 echo "=== BẮT ĐẦU KIỂM THỬ USE CASE: QUẢN LÝ NGUYỆN VỌNG XÉT TUYỂN LỚP 10 ===\n\n";
 
+$studentAccount = ['vaiTro' => 'HOC_SINH', 'maThiSinh' => 'TS019'];
+$staffAccount = ['vaiTro' => 'HD_TUYEN_SINH', 'maThiSinh' => null];
+uc_nv_assert(aspiration_can_update($studentAccount, 'TS019'), 'Student must be able to update their own wishes');
+uc_nv_assert(!aspiration_can_update($studentAccount, 'TS002'), 'Student must not update another student’s wishes');
+uc_nv_assert(!aspiration_can_update($staffAccount, 'TS019'), 'Staff preview must not update student wishes');
+echo "[0] [OK] Chỉ học sinh được cập nhật nguyện vọng của chính mình.\n\n";
+
 $pdo = db();
 $testStudentId = 'TS019';
 $linkedStudentId = 'TS002';
