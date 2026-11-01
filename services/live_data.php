@@ -155,7 +155,7 @@ function live_student_dashboard(string $studentId): ?array {
         $st->execute([$studentId]);
         $profile = $st->fetch();
         if (!$profile) return null;
-        $st = db()->prepare("SELECT n.maNguyenVong,n.thuTuNguyenVong,p.tenTruongTHPT FROM NguyenVong n JOIN TruongTHPT p ON p.maTruongTHPT=n.maTruongTHPT WHERE n.maThiSinh=? ORDER BY n.thuTuNguyenVong");
+        $st = db()->prepare("SELECT n.maNguyenVong,n.thuTuNguyenVong,p.tenTruongTHPT,COALESCE(n.lopChuyen, 'Thường') AS lopChuyen FROM NguyenVong n JOIN TruongTHPT p ON p.maTruongTHPT=n.maTruongTHPT WHERE n.maThiSinh=? ORDER BY n.thuTuNguyenVong");
         $st->execute([$studentId]);
         $wishes = $st->fetchAll();
         $st = db()->prepare("SELECT kt.tenKyThi,m.tenMonThi,k.diemThi FROM BaiThi b JOIN KetQuaChamThi k ON k.maBaiThi=b.maBaiThi JOIN MonThi m ON m.maMonThi=b.maMonThi JOIN KyThi kt ON kt.maKyThi=b.maKyThi WHERE b.maThiSinh=? AND k.trangThaiCongBo='Đã công bố' ORDER BY kt.maKyThi,m.maMonThi");

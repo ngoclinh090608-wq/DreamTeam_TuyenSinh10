@@ -266,6 +266,7 @@ CREATE TABLE NguyenVong (
   thuTuNguyenVong TINYINT NOT NULL,
   ngayDangKy DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   trangThaiNguyenVong VARCHAR(30) NOT NULL DEFAULT 'Chờ xử lý',
+  lopChuyen VARCHAR(50) NOT NULL DEFAULT 'Thường',
   PRIMARY KEY (maNguyenVong),
   UNIQUE KEY uq_nv_thutu (maThiSinh, thuTuNguyenVong),
   CONSTRAINT ck_nv_thutu CHECK (thuTuNguyenVong BETWEEN 1 AND 3),
