@@ -457,6 +457,19 @@ CREATE TABLE IF NOT EXISTS HocTapTHCS (
  CONSTRAINT fk_hoctap_thisinh FOREIGN KEY (maThiSinh) REFERENCES ThiSinh(maThiSinh)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- UC17: lưu vết cấu hình, xử lý bằng điểm và người xác nhận từng lần xét.
+CREATE TABLE XetTuyenLanChay (
+  maLan VARCHAR(20) NOT NULL PRIMARY KEY,
+  maKyThi VARCHAR(20) NOT NULL,
+  maDanhSach VARCHAR(20) NOT NULL,
+  nguoiThucHien VARCHAR(100) NOT NULL,
+  thoiGian DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  thongSo LONGTEXT NOT NULL,
+  tongTrungTuyen INT NOT NULL,
+  CONSTRAINT fk_xtlc_ky FOREIGN KEY (maKyThi) REFERENCES KyThi(maKyThi),
+  CONSTRAINT fk_xtlc_ds FOREIGN KEY (maDanhSach) REFERENCES DanhSachKetQuaTuyenSinh(maDanhSach)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- 4.5. vw_PhanPhongThiSinh (theo báo cáo Tuần 08)
 -- Tra cứu phòng thi được phân cho từng thí sinh.
 CREATE OR REPLACE VIEW vw_PhanPhongThiSinh AS
