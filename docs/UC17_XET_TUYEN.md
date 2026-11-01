@@ -13,7 +13,7 @@ git pull --ff-only origin duy
 /c/xampp/mysql/bin/mysql.exe -h 127.0.0.1 -u root dreamteam_tuyensinh10_demo < database/migrations/20261102_uc17_admission.sql
 ```
 
-Nếu XAMPP ở ổ khác, đổi `/c/xampp`; nếu MySQL có mật khẩu, thêm `-p` để nhập tại lời nhắc. Nếu database có tên khác, dùng tên đang cấu hình trong `config/database.local.php`. Migration chỉ thêm bảng lưu vết `XetTuyenLanChay`, không xóa dữ liệu và có thể chạy lại. Không import lại snapshot demo hoặc `install.sql` vào database đang làm việc. Máy cài mới cần import snapshot demo theo README rồi chạy migration UC17 (snapshot demo chưa chứa bảng này).
+Nếu XAMPP ở ổ khác, đổi `/c/xampp`; nếu MySQL có mật khẩu, thêm `-p` để nhập tại lời nhắc. Nếu database có tên khác, dùng tên đang cấu hình trong `config/database.local.php`. Migration chỉ thêm bảng lưu vết `XetTuyenLanChay`, không xóa dữ liệu và có thể chạy lại. Không import lại snapshot demo hoặc `install.sql` vào database đang làm việc. Máy cài mới chỉ cần import snapshot demo hiện hành theo README; snapshot đã chứa bảng UC17 và cột lớp chuyên. Migration dành cho máy đang dùng bản trước đó.
 
 Mở `http://localhost/DreamTeam_TuyenSinh10/admission/`. Đăng nhập `hdtuyensinh` với mật khẩu hiện tại; mật khẩu khởi tạo của bộ demo là `dreamteam2026`.
 

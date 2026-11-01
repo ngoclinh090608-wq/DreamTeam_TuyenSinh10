@@ -6,7 +6,7 @@
 
 1. Đặt dự án tại `C:\xampp\htdocs\DreamTeam_TuyenSinh10`, bật Apache và MySQL.
 2. Máy mới: nhập **`database/demo/dreamteam_tuyensinh10_demo.sql`** bằng phpMyAdmin vào database demo trống. Xem [hướng dẫn dữ liệu demo](database/demo/README.md).
-3. Máy đã có dữ liệu: không nhập lại bản SQL đầy đủ hoặc reset database chỉ vì vừa pull code. Với biểu mẫu hồ sơ học sinh mới, xem migration bổ sung trong hướng dẫn demo.
+3. Máy đã có dữ liệu: không nhập lại bản SQL đầy đủ hoặc reset database chỉ vì vừa pull code. Với các cấu trúc mới còn thiếu, xem hướng dẫn cập nhật trong tài liệu demo.
 4. Nếu cần cấu hình riêng, sao chép `database/demo/database.local.example.php` thành `config/database.local.php`; giữ thông tin kết nối cá nhân. File local được Git bỏ qua.
 5. Mở `http://localhost/DreamTeam_TuyenSinh10/`, đăng nhập rồi vào bảng điều khiển.
 
