@@ -13,7 +13,7 @@ Bản demo có 1.750 học sinh; bộ kiểm thử có 20 học sinh. Không nh�
 
 ## Mã nguồn cấu trúc
 
-- `tables/`: 34 bảng gồm tài khoản và ba bảng hồ sơ học sinh bổ sung; thứ tự file theo khóa ngoại.
+- `tables/`: 35 bảng gồm tài khoản và ba bảng hồ sơ học sinh bổ sung; thứ tự file theo khóa ngoại.
 - `views/`: các view tra cứu/thống kê và phân phòng đã triển khai.
 - `functions/`: các hàm đếm phòng, sức chứa, bài thi và tính điểm trung bình.
 - `procedures/`: nghiệp vụ quản lý/phân phòng, phân công ra đề, nhập/sửa/công bố điểm và lịch sử điểm.
@@ -43,8 +43,6 @@ CI dùng PHP 8.2 và MariaDB 10.4, nhập bộ nhỏ vào database riêng và ch
 
 SQL demo hiện hành được kiểm tra trên MariaDB cloud. File xuất gốc từ XAMPP đã được chuẩn hóa tên bảng/view để tương thích hệ thống phân biệt chữ hoa/thường. Không thay đổi mã học sinh, điểm, mật khẩu hay dữ liệu localhost khi chỉ pull repository.
 
-## Migration cho hồ sơ học sinh
+## Cập nhật database đang dùng
 
-`migrations/20261031_student_profile.sql` bổ sung ba bảng mà không sửa dữ liệu cũ. Chỉ chạy trên database demo sau khi sao lưu; máy cài mới từ snapshot không cần chạy riêng. Nếu PHP báo các trường bổ sung chưa sẵn sàng lưu, kiểm tra migration này; không reset database.
-
-Migration `20261031_fill_student_profiles.sql` là bước tùy chọn tạo hồ sơ bổ sung giả lập cho toàn bộ thí sinh của database demo; chỉ điền ô trống và không ghi đè dữ liệu đã có. Xem demo/README.md trước khi áp dụng.
+Snapshot demo mới đã bao gồm hồ sơ bổ sung, lớp chuyên và bảng lưu vết UC17. Bốn migration lịch sử đã tích hợp vào snapshot được loại khỏi Git. Chỉ giữ migration `20261101_add_lopchuyen_nguyenvong.sql` và `20261102_uc17_admission.sql` để cập nhật máy chưa có hai cấu trúc mới; xem [hướng dẫn demo](demo/README.md). Không import lại full SQL lên dữ liệu đang làm việc.
