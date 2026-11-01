@@ -8,14 +8,15 @@ require_once dirname(__DIR__) . '/services/csrf.php';
 $account = require_module('aspirations');
 $isStudent = has_role($account, ['HOC_SINH']);
 $owner = (string)($account['maThiSinh'] ?? '');
+$isPreview = false;
 
 // Dành cho trường hợp cán bộ/admin muốn thử nghiệm giao diện học sinh
 if (!$isStudent && isset($_GET['preview_student'])) {
     $owner = trim((string)$_GET['preview_student']);
-    $isStudent = true;
+    $isPreview = true;
 }
 
-if (!$isStudent || $owner === '') {
+if ((!$isStudent && !$isPreview) || $owner === '') {
     header('Location: ' . url('admin/'), true, 303);
     exit;
 }
@@ -33,6 +34,10 @@ if (!$candidate) {
 
 // 2. Xử lý lưu / cập nhật nguyện vọng (Basic Flow 5 & 6)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!aspiration_can_update($account, $owner)) {
+        tu_choi_truy_cap('aspirations');
+    }
+
     if (!csrf_verify()) {
         flash_set('error', 'Mã xác thực phiên làm việc (CSRF) không hợp lệ hoặc đã hết hạn. Vui lòng tải lại trang.');
         header('Location: ' . url('aspirations/'), true, 303);
@@ -85,7 +90,7 @@ $currentWishes = aspiration_get_wishes($owner);
 $maxWishes = (int)($regulation['soLuongNguyenVongToiDa'] ?? 3);
 $isRegistrationOpen = !empty($regulation['is_open']);
 $isEligibleExam = !empty($candidate['registered_exam_ok']);
-$canEdit = $isRegistrationOpen && $isEligibleExam;
+$canEdit = $isStudent && $isRegistrationOpen && $isEligibleExam;
 
 $page_title = 'Quản lý nguyện vọng lớp 10';
 $layout = 'dashboard';

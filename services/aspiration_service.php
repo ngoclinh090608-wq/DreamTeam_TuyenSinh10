@@ -56,6 +56,14 @@ function aspiration_school_tracks(): array {
     ];
 }
 
+function aspiration_can_update(array $account, string $owner): bool {
+    $studentId = $account['maThiSinh'] ?? null;
+    return ($account['vaiTro'] ?? null) === 'HOC_SINH'
+        && is_string($studentId)
+        && $studentId !== ''
+        && hash_equals($studentId, $owner);
+}
+
 /**
  * Lấy danh sách trường THPT kèm thông tin khu vực và hệ đào tạo
  */
