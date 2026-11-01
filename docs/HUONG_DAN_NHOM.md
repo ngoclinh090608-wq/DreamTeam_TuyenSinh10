@@ -61,7 +61,7 @@ Commit nhỏ, thường xuyên; message ghi **mã UC + việc đã làm**.
 Mỗi lần `git push` và mỗi Pull Request vào `main`, GitHub Actions tự chạy (tab **Actions**, file `.github/workflows/ci.yml`):
 
 1. Kiểm tra cú pháp tất cả file PHP.
-2. Kiểm tra `database/install.sql` đã được build lại (`php database/build.php`) sau khi sửa file trong `database/`.
+2. Tự tạo `database/install.sql` bằng `php database/build.php` sau khi sửa file trong `database/`.
 3. Nhập `install.sql` vào MariaDB sạch — SQL hỏng sẽ báo lỗi ở đây.
 4. Chạy web và các bài kiểm thử hiện có: URL, điều hướng/tải lô bài UC05, đọc/import Excel, phân phòng ABC UC07, UC05–UC08 và UC09–UC15. Danh sách lệnh chính xác nằm trong `.github/workflows/ci.yml`.
 
@@ -93,10 +93,10 @@ Xem code UC9–UC15 làm mẫu (`papers/`, `councils/`, `assignments/`, `grading
 
 ### Sửa database
 - Sửa/thêm file trong `database/tables/`, `views/`, `functions/`, `procedures/` hoặc `seed/` (đặt tên theo số mục trong báo cáo, vd `procedures/35_sp_XetTuyenNguyenVong.sql`).
-- Chạy `php database/build.php` (hoặc `C:\xampp\php\php database\build.php`) để tạo lại `install.sql`, commit cả file đó.
+- Chạy `php database/build.php` (hoặc `C:\xampp\php\php database\build.php`) để tạo lại `install.sql` khi cần kiểm thử; chỉ commit file nguồn, không commit SQL sinh tự động.
 
 ### File dùng chung — báo nhóm trước khi sửa
-`includes/` (header, footer, sidebar, ui.php), `assets/css/style.css`, `README.md`, `database/install.sql`, `database/seed/seed.sql`.
+`includes/` (header, footer, sidebar, ui.php), `assets/css/style.css`, `README.md`, `database/seed/seed.sql`.
 Hai người cùng sửa một chỗ sẽ bị **conflict** khi gộp.
 
 ---
