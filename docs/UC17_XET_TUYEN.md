@@ -10,10 +10,9 @@ Bật Apache và MySQL. Chạy tại thư mục repository trong Git Bash:
 git fetch origin
 git switch duy
 git pull --ff-only origin duy
-/c/xampp/mysql/bin/mysql.exe -h 127.0.0.1 -u root dreamteam_tuyensinh10_demo < database/migrations/20261102_uc17_admission.sql
 ```
 
-Nếu XAMPP ở ổ khác, đổi `/c/xampp`; nếu MySQL có mật khẩu, thêm `-p` để nhập tại lời nhắc. Nếu database có tên khác, dùng tên đang cấu hình trong `config/database.local.php`. Migration chỉ thêm bảng lưu vết `XetTuyenLanChay`, không xóa dữ liệu và có thể chạy lại. Không import lại snapshot demo hoặc `install.sql` vào database đang làm việc. Máy cài mới chỉ cần import snapshot demo hiện hành theo README; snapshot đã chứa bảng UC17 và cột lớp chuyên. Migration dành cho máy đang dùng bản trước đó.
+Snapshot demo hiện hành đã có bảng UC17 và cột lớp chuyên, nên không cần nhập migration khi đã dùng snapshot này. Các migration đã gộp vào snapshot được bỏ khỏi Git. Máy còn thiếu cấu trúc: sao lưu, đối chiếu schema và lấy migration phù hợp từ lịch sử Git nếu cần; không import lại full SQL vào dữ liệu đang dùng.
 
 Mở `http://localhost/DreamTeam_TuyenSinh10/admission/`. Đăng nhập `hdtuyensinh` với mật khẩu hiện tại; mật khẩu khởi tạo của bộ demo là `dreamteam2026`.
 
@@ -35,7 +34,7 @@ Demo có 380 bài chưa chấm và kết quả nhập học/danh sách cũ, nên
 
 ## Kiểm thử
 
-Không chạy bộ test ghi trên demo. Trên database **kiểm thử** `dreamteam_tuyensinh10` đã import `database/install.sql`, chạy server riêng và test (Git Bash):
+Không chạy bộ test ghi trên demo. Trên database **kiểm thử** `dreamteam_tuyensinh10` đã tạo SQL bằng `php database/build.php` rồi import `database/install.sql`, chạy server riêng và test (Git Bash):
 
 ```bash
 DB_NAME=dreamteam_tuyensinh10 php -S 127.0.0.1:8081 router.php

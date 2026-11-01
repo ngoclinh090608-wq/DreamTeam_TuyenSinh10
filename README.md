@@ -66,4 +66,4 @@ UC07 lấy thí sinh đăng ký NV1 đúng trường, xếp ABC theo tên gọi,
 
 ### UC17: xét tuyển NV1–NV3
 
-Hội đồng tuyển sinh vào `admission/`, phân bổ chỉ tiêu từng NV, cấu hình hệ số/điểm cộng và lựa chọn xử lý bằng điểm, xem trước rồi xác nhận lưu. Máy có database cũ cần chạy migration bổ sung; không import lại full SQL. Xem [hướng dẫn UC17 và chạy thử](docs/UC17_XET_TUYEN.md).
+Hội đồng tuyển sinh vào `admission/`, phân bổ chỉ tiêu từng NV, cấu hình hệ số/điểm cộng và lựa chọn xử lý bằng điểm, xem trước rồi xác nhận lưu. Snapshot demo mới đã có cấu trúc UC17; máy dùng dữ liệu cũ cần kiểm tra phần còn thiếu; không import lại full SQL. Xem [hướng dẫn UC17 và chạy thử](docs/UC17_XET_TUYEN.md).
