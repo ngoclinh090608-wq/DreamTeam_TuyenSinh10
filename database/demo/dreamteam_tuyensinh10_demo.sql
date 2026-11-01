@@ -19684,7 +19684,7 @@ INSERT INTO `HoSoBoSung` (`maThiSinh`, `gioiTinh`, `soDinhDanh`, `noiSinh`, `dan
 
 CREATE TABLE `KetQuaChamThi` (
   `maKetQuaChamThi` varchar(20) NOT NULL,
-  `diemThi` decimal(5,2) NOT NULL,
+  `DiemThi` decimal(5,2) NOT NULL,
   `nguoiNhap` varchar(100) NOT NULL,
   `thoiDiemNhap` datetime NOT NULL DEFAULT current_timestamp(),
   `trangThaiCongBo` varchar(50) NOT NULL DEFAULT 'Chưa công bố',
@@ -19695,7 +19695,7 @@ CREATE TABLE `KetQuaChamThi` (
 -- Đang đổ dữ liệu cho bảng `KetQuaChamThi`
 --
 
-INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
+INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `DiemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
 ('KQD000001', 7.00, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD000001'),
 ('KQD000002', 9.75, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD000002'),
 ('KQD000003', 8.00, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD000003'),
@@ -20250,7 +20250,7 @@ INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDie
 ('KQD000552', 1.00, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD000552'),
 ('KQD000553', 10.00, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD000553'),
 ('KQD000554', 2.50, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD000554');
-INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
+INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `DiemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
 ('KQD000555', 5.25, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD000555'),
 ('KQD000556', 4.00, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD000556'),
 ('KQD000557', 6.75, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD000557'),
@@ -20805,7 +20805,7 @@ INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDie
 ('KQD001106', 5.50, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD001106'),
 ('KQD001107', 8.25, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD001107'),
 ('KQD001108', 7.00, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD001108');
-INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
+INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `DiemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
 ('KQD001109', 9.75, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD001109'),
 ('KQD001110', 2.25, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD001110'),
 ('KQD001111', 1.00, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD001111'),
@@ -21360,7 +21360,7 @@ INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDie
 ('KQD001660', 10.00, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD001660'),
 ('KQD001661', 2.50, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD001661'),
 ('KQD001662', 5.25, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD001662');
-INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
+INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `DiemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
 ('KQD001663', 4.00, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD001663'),
 ('KQD001664', 6.75, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD001664'),
 ('KQD001665', 9.50, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD001665'),
@@ -21915,7 +21915,7 @@ INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDie
 ('KQD002214', 8.25, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD002214'),
 ('KQD002215', 7.00, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD002215'),
 ('KQD002216', 9.75, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD002216');
-INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
+INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `DiemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
 ('KQD002217', 2.25, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD002217'),
 ('KQD002218', 1.00, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD002218'),
 ('KQD002219', 3.75, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD002219'),
@@ -22470,7 +22470,7 @@ INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDie
 ('KQD002768', 2.50, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD002768'),
 ('KQD002769', 5.25, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD002769'),
 ('KQD002770', 4.00, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD002770');
-INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
+INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `DiemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
 ('KQD002771', 6.75, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD002771'),
 ('KQD002772', 9.50, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD002772'),
 ('KQD002773', 8.25, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD002773'),
@@ -23025,7 +23025,7 @@ INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDie
 ('KQD003322', 7.00, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD003322'),
 ('KQD003323', 9.75, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD003323'),
 ('KQD003324', 2.25, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD003324');
-INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
+INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `DiemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
 ('KQD003325', 1.00, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD003325'),
 ('KQD003326', 3.75, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD003326'),
 ('KQD003327', 6.50, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD003327'),
@@ -23580,7 +23580,7 @@ INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDie
 ('KQD003876', 5.25, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD003876'),
 ('KQD003877', 4.00, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD003877'),
 ('KQD003878', 6.75, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD003878');
-INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
+INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `DiemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
 ('KQD003879', 9.50, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD003879'),
 ('KQD003880', 8.25, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD003880'),
 ('KQD003881', 0.75, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD003881'),
@@ -24135,7 +24135,7 @@ INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDie
 ('KQD004430', 9.75, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD004430'),
 ('KQD004431', 2.25, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD004431'),
 ('KQD004432', 1.00, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD004432');
-INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `diemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
+INSERT INTO `KetQuaChamThi` (`maKetQuaChamThi`, `DiemThi`, `nguoiNhap`, `thoiDiemNhap`, `trangThaiCongBo`, `maBaiThi`) VALUES
 ('KQD004433', 3.75, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD004433'),
 ('KQD004434', 6.50, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD004434'),
 ('KQD004435', 5.25, 'Phan Thùy Dương', '2026-06-13 10:00:00', 'Chưa công bố', 'BTD004435'),
@@ -34050,7 +34050,7 @@ CREATE TABLE `vw_KetQuaThiTheoMon` (
 ,`maKyThi` varchar(20)
 ,`tenMonThi` varchar(100)
 ,`maBaiThi` varchar(20)
-,`diemThi` decimal(5,2)
+,`DiemThi` decimal(5,2)
 ,`trangThaiCham` varchar(50)
 ,`trangThaiCongBo` varchar(50)
 );
