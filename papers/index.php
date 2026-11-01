@@ -50,7 +50,7 @@ if ($loiHeThong) ui_notice('error', $loiHeThong);
   <div class="panel-heading"><div><h2>Thông tin tra cứu</h2><p>Nhập hoặc chọn ít nhất một thông tin.</p></div></div>
   <form method="get" class="ui-search ui-search-four" novalidate>
     <input type="hidden" name="traCuu" value="1">
-    <div class="field"><label for="maLo">Mã lô bài thi</label><input id="maLo" name="maLo" value="<?= e($dk['maLo']) ?>" placeholder="Ví dụ: LO_P101_TOAN" maxlength="20" autocomplete="off"></div>
+    <div class="field"><label for="maLo">Mã lô bài thi</label><input id="maLo" name="maLo" value="<?= e($dk['maLo']) ?>" placeholder="Ví dụ: LD1P01NN" maxlength="20" autocomplete="off"></div>
     <?php ui_select('diemThi', 'Điểm thi', $dsDiemThi, 'maDiemThi', 'tenDiemThi', $dk['diemThi'], '-- Tất cả --', false); ?>
     <?php ui_select('phong', 'Phòng thi', $dsPhong, 'maPhong', 'tenHienThi', $dk['phong'], '-- Tất cả --', false); ?>
     <?php ui_select('monThi', 'Môn thi', $dsMon, 'maMonThi', 'tenMonThi', $dk['monThi'], '-- Tất cả --', false); ?>
