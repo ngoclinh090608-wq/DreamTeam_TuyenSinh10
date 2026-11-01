@@ -1,0 +1,42 @@
+/* UC22 - Nguyen Thi Cam Van | #3F7CA5 #7FA6C9 #CCE1F3 #F7F4F4 */
+.uc22-page { --uc22-primary:#3F7CA5; --uc22-soft:#CCE1F3; padding:20px 0 40px; color:#28465b; }
+.uc22-page .uc22-card { background:#fff; border:1px solid #dce8f1; box-shadow:0 4px 18px rgba(63,124,165,.065); border-radius:16px; padding:28px 30px; margin-bottom:26px; }
+.uc22-page h2 { font-size:24px; color:#315f80; margin:0 0 12px; }
+.uc22-page h3 { font-size:18px; margin:26px 0 16px; color:#315f80; }
+.uc22-page p { color:#657f95; margin:0 0 22px; line-height:1.6; }
+.uc22-filter { display:flex; flex-wrap:wrap; align-items:end; gap:14px; }
+.uc22-field { display:flex; flex-direction:column; gap:9px; flex:1 1 260px; max-width:550px; }
+.uc22-field label { font-weight:650; color:#254b67; }
+.uc22-field select { height:48px; border:1px solid #c4d8ea; border-radius:10px; background:#fff; color:#25425c; padding:0 14px; font:inherit; }
+.uc22-field select:focus { outline:2px solid #7FA6C9; outline-offset:1px; }
+.uc22-btn { display:inline-flex; align-items:center; justify-content:center; min-height:46px; padding:11px 18px; border:1px solid #7FA6C9; border-radius:10px; color:#315f80; background:#fff; font-size:14px; font-weight:650; text-decoration:none; cursor:pointer; }
+.uc22-btn:hover { filter:brightness(.96); }
+.uc22-btn-primary { background:#3F7CA5; border-color:#3F7CA5; color:white; }
+.uc22-btn-muted { background:#e8f2f9; border-color:#c8deed; }
+.uc22-btn-small { padding:7px 12px; min-height:34px; background:#edf6fc; }
+.uc22-table-scroll { overflow-x:auto; border-radius:11px; border:1px solid #dbe8f2; }
+.uc22-table { min-width:900px; width:100%; border-collapse:collapse; font-size:14px; }
+.uc22-table th { white-space:nowrap; color:#245f82; background:#CCE1F3; text-align:left; border-bottom:2px solid #7FA6C9; padding:16px 13px; }
+.uc22-table td { padding:15px 13px; border-bottom:1px solid #e6eef5; }
+.uc22-table tbody tr:hover { background:#f4f9fd; }
+.uc22-table tbody tr:last-child td { border-bottom:0; }
+.uc22-empty { padding:40px!important; text-align:center; color:#7290a7; background:#f5f9fc; }
+.uc22-badge { display:inline-block; border-radius:100px; padding:6px 10px; font-weight:650; white-space:nowrap; }
+.uc22-good { background:#e4f6ed; color:#137449; }
+.uc22-wait { background:#fff2d9; color:#98630c; }
+.uc22-head { display:flex; align-items:start; justify-content:space-between; flex-wrap:wrap; gap:16px; }
+.uc22-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:15px; margin:10px 0 24px; }
+.uc22-stats > div { background:#f4f9fd; border:1px solid #dceaf4; border-top:4px solid #7FA6C9; border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:10px; }
+.uc22-stats span { color:#607f98; }
+.uc22-stats strong { font-size:30px; color:#315f80; }
+.uc22-stats .uc22-stat-text { font-size:17px; }
+.uc22-alert { border-radius:10px; border:1px solid; padding:15px 20px; margin:16px 0 23px; line-height:1.7; }
+.uc22-alert ul { margin:8px 0 0; padding-left:22px; }
+.uc22-alert-error { color:#ad263a; background:#ffeaec; border-color:#f4bac2; }
+.uc22-alert-warning { color:#815809; background:#fff8e7; border-color:#ead3a0; }
+.uc22-confirm { background:#f3f9fe; border:1px solid #bed7e9; border-left:5px solid #3F7CA5; padding:22px; border-radius:12px; margin:20px 0; }
+.uc22-confirm h3 { margin:0 0 10px; }
+.uc22-confirm p { margin-bottom:15px; }
+.uc22-actions { display:flex; flex-wrap:wrap; gap:12px; }
+@media(max-width:1000px) { .uc22-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:640px) { .uc22-page .uc22-card { padding:20px 16px; } .uc22-stats { grid-template-columns:1fr; } .uc22-field { max-width:none; } }
