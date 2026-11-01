@@ -18,7 +18,7 @@ $scoresComplete = $studentDashboard['paperCount'] > 0 && count($studentDashboard
     ];
 ?>
 <details class="student-preference"<?= (int)$wish['thuTuNguyenVong'] === 1 ? ' open' : '' ?>>
- <summary><strong>Nguyện vọng <?= (int)$wish['thuTuNguyenVong'] ?></strong><span><?= e(school_display_name($wish['tenTruongTHPT'])) ?></span></summary>
+ <summary><strong>Nguyện vọng <?= (int)$wish['thuTuNguyenVong'] ?></strong><span><?= e(school_display_name($wish['tenTruongTHPT'])) ?><?= !empty($wish['lopChuyen']) && $wish['lopChuyen'] !== 'Thường' ? ' (' . e($wish['lopChuyen']) . ')' : '' ?></span></summary>
  <ol class="student-progress" aria-label="Trạng thái nguyện vọng <?= (int)$wish['thuTuNguyenVong'] ?>">
  <?php foreach ($milestones as $stepIndex => [$stepLabel, $complete, $stepStatus]): $stepClass = $stepIndex === 5 && $isRejected ? 'is-rejected' : ($complete ? 'is-complete' : 'is-pending'); ?>
   <li class="<?= $stepClass ?>"><span class="student-progress-marker" aria-hidden="true"><?= $stepIndex === 5 && $isRejected ? '×' : ($complete ? '✓' : $stepIndex + 1) ?></span><strong><?= e($stepLabel) ?></strong><small><?= e($stepStatus) ?></small></li>
