@@ -7,6 +7,14 @@ function check17(bool $condition, string $label): void { global $checks; if (!$c
 function rejects17(callable $fn, string $label): void { try { $fn(); } catch (BusinessException $e) { check17(true, $label); return; } throw new RuntimeException('Expected rejection: ' . $label); }
 $pdo = db();
 $actor = ['vaiTro'=>'HD_TUYEN_SINH','maTaiKhoan'=>'TEST_UC17'];
+// Emulate the column spelling exported by Windows without changing the real table.
+$pdo->exec("CREATE TEMPORARY TABLE KetQuaChamThi (maKetQuaChamThi VARCHAR(20), DiemThi DECIMAL(5,2), nguoiNhap VARCHAR(100), thoiDiemNhap DATETIME, trangThaiCongBo VARCHAR(50), maBaiThi VARCHAR(20))");
+try {
+    $pdo->exec("INSERT INTO KetQuaChamThi VALUES ('CASE17',7.25,'test',NOW(),'Đã công bố','CASE_PAPER')");
+    $caseRows = uc17_snapshot($pdo)['KetQuaChamThi'];
+    check17(isset($caseRows[0]['diemThi']) && (float)$caseRows[0]['diemThi'] === 7.25, 'Windows DiemThi column normalized to diemThi PDO key');
+} finally { $pdo->exec('DROP TEMPORARY TABLE KetQuaChamThi'); }
+
 $options = ['closed'=>true,'appealsEnded'=>true,'weights'=>['TOAN'=>1,'VAN'=>1,'NN'=>1], 'bonuses'=>[], 'allocation'=>['U17_A'=>[1=>1,2=>0,3=>0],'U17_B'=>[1=>0,2=>1,3=>0],'U17_C'=>[1=>0,2=>0,3=>1]],'ties'=>[]];
 $insert = static function(string $table, array $values) use ($pdo): void { $columns=array_keys($values); $stmt=$pdo->prepare('INSERT INTO '.$table.' ('.implode(',',$columns).') VALUES ('.implode(',',array_fill(0,count($columns),'?')).')');$stmt->execute(array_values($values)); };
 if ((int)$pdo->query("SELECT COUNT(*) FROM DotTuyenSinh WHERE maDot='U17_DOT'")->fetchColumn() > 0

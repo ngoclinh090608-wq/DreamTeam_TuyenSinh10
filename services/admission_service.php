@@ -148,7 +148,13 @@ function uc17_snapshot(PDO $pdo, bool $lock = false): array {
         'DanhSachKetQuaTuyenSinh'=>'maDanhSach','KetQuaXetTuyen'=>'maKetQua','KetQuaTuyenSinh'=>'maKetQua',
         'TinhTrangNhapHoc'=>'maTinhTrang'];
     $data = [];
-    foreach ($keys as $table => $key) $data[$table] = $pdo->query("SELECT * FROM $table ORDER BY $key" . ($lock ? ' FOR UPDATE' : ''))->fetchAll();
+    foreach ($keys as $table => $key) {
+        // XAMPP exports may spell this column DiemThi. Alias the PDO key explicitly.
+        $columns = $table === 'KetQuaChamThi'
+            ? 'maKetQuaChamThi, diemThi AS diemThi, nguoiNhap, thoiDiemNhap, trangThaiCongBo, maBaiThi'
+            : '*';
+        $data[$table] = $pdo->query("SELECT $columns FROM $table ORDER BY $key" . ($lock ? ' FOR UPDATE' : ''))->fetchAll();
+    }
     return $data;
 }
 
