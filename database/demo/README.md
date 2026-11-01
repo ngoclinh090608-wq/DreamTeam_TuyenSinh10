@@ -1,6 +1,6 @@
 # Dữ liệu demo hiện hành
 
-Repository chỉ giữ bản xuất đầy đủ mới nhất dùng để chạy website. Schema và dữ liệu kiểm thử CI nằm ở `../install.sql`; không lưu thêm các snapshot nhỏ trùng mục đích.
+Repository chỉ giữ bản xuất đầy đủ mới nhất dùng để chạy website. Schema và seed kiểm thử được CI ghép thành `../install.sql` bằng `php database/build.php`; file sinh không lưu trên Git; không lưu thêm các snapshot nhỏ trùng mục đích.
 
 | File | Database | Học sinh | Nguyện vọng | Bài thi | Kết quả |
 |---|---|---:|---:|---:|---:|
@@ -21,12 +21,9 @@ Snapshot hiện tại lấy từ file `tuyensinh10.sql` người dùng cung cấ
 
 Bốn migration lịch sử cho hồ sơ, điền hồ sơ giả lập, đổi nhãn người nhập điểm và phân lại điểm thi đã được loại khỏi Git vì nội dung đã nằm trong snapshot. Không nhập lại snapshot trên database đang có dữ liệu để cập nhật các phần này; máy cũ cần sao lưu và kiểm tra cấu trúc/dữ liệu trước khi cập nhật có phạm vi.
 
-Chỉ giữ hai migration gần đây cho máy đang dùng phiên bản trước UC17:
+Hai migration bổ sung lớp chuyên và UC17 cũng đã được gộp trong snapshot, nên không còn lưu ở thư mục migrations. Nếu máy cũ còn thiếu cấu trúc, sao lưu rồi đối chiếu schema; migration cũ vẫn lấy được từ lịch sử Git, không nhập chồng snapshot để cập nhật.
 
-- `../migrations/20261101_add_lopchuyen_nguyenvong.sql`: bổ sung cột `lopChuyen` nếu còn thiếu.
-- `../migrations/20261102_uc17_admission.sql`: bổ sung bảng lưu vết UC17 nếu còn thiếu.
-
-Không cần chạy lại trên máy đã có các cấu trúc này. Ảnh học sinh vẫn ở `storage/student-photos/`, không nằm trong SQL; sao lưu ảnh cùng database.
+Ảnh học sinh ở `storage/student-photos/`, không nằm trong SQL; sao lưu ảnh cùng database.
 
 ## Kiểm tra
 
@@ -36,4 +33,4 @@ SHA-256 của file người dùng cung cấp, trước khi chuẩn hóa tên b�
 
 `f27426a63fb1c3c4dc066a461a974d9de7c9f6d30b9da0f4dede8afbbd5037b5`
 
-Các giá trị dữ liệu trong bản xuất được giữ nguyên. `../install.sql` và `../seed/seed.sql` vẫn cần cho CI và kiểm thử nghiệp vụ; không nhập chúng vào database demo.
+Các giá trị dữ liệu trong bản xuất được giữ nguyên. `../seed/seed.sql` vẫn cần cho CI; `../install.sql` được tự tạo khi kiểm thử; không nhập chúng vào database demo.
