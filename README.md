@@ -54,7 +54,7 @@ Các module còn lại có mức độ hoàn thiện khác nhau; không coi toà
 - [Schema, build SQL và bộ dữ liệu kiểm thử](database/README.md).
 - [Cài và kiểm tra dữ liệu demo](database/demo/README.md).
 
-`database/install.sql` chứa bộ nhỏ 20 học sinh để kiểm thử; **không nhập chồng lên demo lớn**. CI kiểm tra cú pháp, SQL sinh lại, đường dẫn, Excel, phân phòng và UC05–UC15 trên database riêng. Kết quả mỗi lần chạy xem tại GitHub Actions.
+Chạy `php database/build.php` để tạo `database/install.sql` chứa bộ nhỏ 20 học sinh để kiểm thử (file sinh không lưu trên Git); **không nhập chồng lên demo lớn**. CI kiểm tra cú pháp, SQL sinh lại, đường dẫn, Excel, phân phòng và UC05–UC15 trên database riêng. Kết quả mỗi lần chạy xem tại GitHub Actions.
 
 Giữ logic nghiệp vụ trong `services/`, dùng layout `includes/` và CSS/JavaScript trong `assets/`. Không commit cấu hình chứa mật khẩu, dữ liệu học sinh thật hoặc file session/log. Nguồn tài nguyên hình ảnh ghi tại `assets/images/SOURCES.md`.
 
