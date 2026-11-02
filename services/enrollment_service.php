@@ -175,6 +175,7 @@ function layDanhSachTinhTrangNhapHoc(
  * Xem chi tiết kết quả của một thí sinh
  * thuộc danh sách tuyển sinh đã công bố.
  */
+
 function layChiTietTinhTrangNhapHoc(
     string $maKetQua,
     int $namTuyenSinh
@@ -196,19 +197,24 @@ function layChiTietTinhTrangNhapHoc(
         FROM KetQuaXetTuyen kq
 
         INNER JOIN ThiSinh ts
-            ON ts.maThiSinh = kq.maThiSinh
+            ON ts.maThiSinh COLLATE utf8mb4_unicode_ci
+             = kq.maThiSinh COLLATE utf8mb4_unicode_ci
 
         INNER JOIN KetQuaTuyenSinh kts
-            ON kts.maKetQuaXetTuyen = kq.maKetQua
+            ON kts.maKetQuaXetTuyen COLLATE utf8mb4_unicode_ci
+             = kq.maKetQua COLLATE utf8mb4_unicode_ci
 
         INNER JOIN DanhSachKetQuaTuyenSinh ds
-            ON ds.maDanhSach = kts.maDanhSach
+            ON ds.maDanhSach COLLATE utf8mb4_unicode_ci
+             = kts.maDanhSach COLLATE utf8mb4_unicode_ci
 
         LEFT JOIN TruongTHPT thpt
-            ON thpt.maTruongTHPT = kq.maTruongTHPT
+            ON thpt.maTruongTHPT COLLATE utf8mb4_unicode_ci
+             = kq.maTruongTHPT COLLATE utf8mb4_unicode_ci
 
         LEFT JOIN TinhTrangNhapHoc tt
-            ON tt.maKetQua = kq.maKetQua
+            ON tt.maKetQua COLLATE utf8mb4_unicode_ci
+             = kq.maKetQua COLLATE utf8mb4_unicode_ci
 
         WHERE kq.maKetQua = :maKetQua
           AND ds.namTuyenSinh = :nam

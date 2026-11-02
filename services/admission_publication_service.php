@@ -10,37 +10,86 @@ function uc22_danhSachNam(): array
         ->fetchAll(PDO::FETCH_COLUMN);
 }
 
+
 function uc22_danhSach(int $nam): array
 {
-    $stmt = db()->prepare("
-        SELECT ds.maDanhSach, ds.namTuyenSinh, ds.maDot, d.tenDot,
-               ds.trangThaiPheDuyet, ds.trangThaiCongBo,
-               (SELECT COUNT(*) FROM KetQuaTuyenSinh k
+    $sql = "
+        SELECT
+            ds.maDanhSach,
+            ds.namTuyenSinh,
+            ds.maDot,
+
+            (
+                SELECT MIN(d.tenDot)
+                FROM DotTuyenSinh d
+                WHERE d.maDot COLLATE utf8mb4_unicode_ci
+                    = ds.maDot COLLATE utf8mb4_unicode_ci
+            ) AS tenDot,
+
+            ds.trangThaiPheDuyet,
+            ds.trangThaiCongBo,
+
+            (
+                SELECT COUNT(*)
+                FROM KetQuaTuyenSinh k
                 WHERE k.maDanhSach COLLATE utf8mb4_unicode_ci
-                    = ds.maDanhSach COLLATE utf8mb4_unicode_ci) AS tongKetQua
+                    = ds.maDanhSach COLLATE utf8mb4_unicode_ci
+            ) AS tongKetQua
+
         FROM DanhSachKetQuaTuyenSinh ds
-        JOIN DotTuyenSinh d
-          ON d.maDot COLLATE utf8mb4_unicode_ci = ds.maDot COLLATE utf8mb4_unicode_ci
+
         WHERE (:nam = 0 OR ds.namTuyenSinh = :nam2)
-        ORDER BY ds.namTuyenSinh DESC, ds.maDanhSach
-    ");
-    $stmt->execute([':nam' => $nam, ':nam2' => $nam]);
+
+        ORDER BY
+            ds.namTuyenSinh DESC,
+            ds.maDanhSach
+    ";
+
+    $stmt = db()->prepare($sql);
+
+    $stmt->execute([
+        ':nam' => $nam,
+        ':nam2' => $nam
+    ]);
+
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 function uc22_chiTiet(string $maDanhSach): ?array
 {
     $stmt = db()->prepare("
-        SELECT ds.maDanhSach, ds.namTuyenSinh, ds.maDot, d.tenDot,
-               ds.trangThaiPheDuyet, ds.trangThaiCongBo
+        SELECT
+            ds.maDanhSach,
+            ds.namTuyenSinh,
+            ds.maDot,
+
+            (
+                SELECT MIN(d.tenDot)
+                FROM DotTuyenSinh d
+                WHERE d.maDot COLLATE utf8mb4_unicode_ci
+                    = ds.maDot COLLATE utf8mb4_unicode_ci
+            ) AS tenDot,
+
+            ds.trangThaiPheDuyet,
+            ds.trangThaiCongBo
+
         FROM DanhSachKetQuaTuyenSinh ds
-        JOIN DotTuyenSinh d
-          ON d.maDot COLLATE utf8mb4_unicode_ci = ds.maDot COLLATE utf8mb4_unicode_ci
-        WHERE ds.maDanhSach = :ma LIMIT 1
+
+        WHERE ds.maDanhSach = :ma
+
+        LIMIT 1
     ");
-    $stmt->execute([':ma' => $maDanhSach]);
+
+    $stmt->execute([
+        ':ma' => $maDanhSach
+    ]);
+
     $ds = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$ds) return null;
+
+    if (!$ds) {
+        return null;
+    }
+
 
     $stmt = db()->prepare("
         SELECT kq.maKetQua, kq.maThiSinh, ts.hoTen, ts.soBaoDanh,
