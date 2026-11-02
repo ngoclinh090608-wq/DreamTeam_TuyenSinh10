@@ -277,7 +277,6 @@ ui_page_start(
                             <td><?= e($row['soBaoDanh'] ?? '—') ?></td>
                             <td><?= e($row['tenTruongTHPT'] ?? '—') ?></td>
                             <td>
-
                                 <?= e(
                                     $row['diemXetTuyen'] === null
                                         ? '—'
@@ -287,7 +286,10 @@ ui_page_start(
                                         )
                                 ) ?>
 
-
+                                    ? '—'
+                                    : number_format(
+                                        (float)$row['diemXetTuyen'], 2
+                                    ) ?>
                             </td>
                             <td><?= e($ketQua) ?></td>
                             <td>
@@ -342,7 +344,6 @@ ui_page_start(
                     <?= e($chiTiet['tenTruongTHPT'] ?? '—') ?></p>
 
                 <p><strong>Điểm xét tuyển</strong>
-
                 <?= e(
                     $chiTiet['diemXetTuyen'] === null
                         ? '—'
@@ -352,7 +353,10 @@ ui_page_start(
                         )
                 ) ?>
 
-</p>
+                        ? '—'
+                        : number_format(
+                            (float)$chiTiet['diemXetTuyen'], 2
+                        ) ?></p>
 
                 <p><strong>Kết quả xét tuyển</strong>
                     <?= e($ketQuaChiTiet) ?></p>
