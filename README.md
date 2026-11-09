@@ -63,3 +63,7 @@ Giữ logic nghiệp vụ trong `services/`, dùng layout `includes/` và CSS/Ja
 Chọn kỳ thi và điểm thi, sau đó chọn đúng một mục ở **Điểm thi cần tạo phòng** và bấm **Tạo phòng cho điểm thi đã chọn**. Hệ thống chỉ tạo đủ phòng còn thiếu tại điểm đó, mỗi phòng mới 30 chỗ. Không tạo đồng loạt cho các trường hoặc điểm thi khác. Nếu trường chưa có điểm thi, chọn mục **Tạo điểm thi mới** của trường đó trong danh sách; mỗi lần cũng chỉ tạo một điểm.
 
 UC07 lấy thí sinh đăng ký NV1 đúng trường, xếp ABC theo tên gọi, họ và tên đệm; đầy phòng trước mới dùng phòng sau. Mã phòng mới: THPT_5 → P501, P502…; THPT_4 → P401, P402… Mã đã dùng được bỏ qua. Bấm tạo phòng tại điểm đã chọn cũng đổi mã tự sinh dài cũ R…_0001 sang dạng mới, giữ liên kết thí sinh, lô bài và phân công coi thi trong cùng transaction. Không xóa bài thi hoặc điểm cũ.
+
+### UC17: xét tuyển NV1–NV3
+
+Hội đồng tuyển sinh vào `admission/`, phân bổ chỉ tiêu từng NV, cấu hình hệ số/điểm cộng và lựa chọn xử lý bằng điểm, xem trước rồi xác nhận lưu. Snapshot demo mới đã có cấu trúc UC17; máy dùng dữ liệu cũ cần kiểm tra phần còn thiếu; không import lại full SQL. Xem [hướng dẫn UC17 và chạy thử](docs/UC17_XET_TUYEN.md).
