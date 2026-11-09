@@ -17,7 +17,9 @@ def sql(statement):
     env = os.environ.copy()
     env['MYSQL_PWD'] = env.get('DB_PASS', '')
     args = ['mysql', '-h', env.get('DB_HOST', '127.0.0.1'), '-P', env.get('DB_PORT', '3306'), '-u', env.get('DB_USER', 'root'), '--default-character-set=utf8mb4', '-N', db_name]
-    return subprocess.run(args, input=statement, text=True, capture_output=True, check=True, env=env).stdout.strip()
+    # MySQL's batch client requires a statement terminator; MariaDB also accepts EOF.
+    batch = statement.rstrip().rstrip(';') + ';\n'
+    return subprocess.run(args, input=batch, text=True, capture_output=True, check=True, env=env).stdout.strip()
 
 def client():
     return urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
