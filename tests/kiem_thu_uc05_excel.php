@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/test_database.php';
+require_test_database();
 require_once dirname(__DIR__) . '/services/grading_import_service.php';
 $count = 0;
 function check(bool $ok, string $message): void {

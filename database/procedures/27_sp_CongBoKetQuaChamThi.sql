@@ -54,7 +54,10 @@ proc: BEGIN
   END IF;
 
   UPDATE KetQuaChamThi k JOIN BaiThi b ON b.maBaiThi = k.maBaiThi
-  SET k.trangThaiCongBo = p_trangThaiMoi
+  SET k.trangThaiCongBo = p_trangThaiMoi,
+      k.thoiDiemCongBo = CASE WHEN p_trangThaiMoi = 'Đã công bố'
+        THEN COALESCE(k.thoiDiemCongBo, CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+07:00'))
+        ELSE k.thoiDiemCongBo END
   WHERE b.maKyThi = p_maKyThi AND (p_maMonThi IS NULL OR b.maMonThi = p_maMonThi)
     AND k.trangThaiCongBo <> p_trangThaiMoi;
   SET p_soBaiDuocCapNhat = ROW_COUNT();

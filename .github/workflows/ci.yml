@@ -29,7 +29,7 @@ jobs:
       DB_PORT: '3306'
       DB_USER: root
       DB_PASS: root
-      DB_NAME: dreamteam_tuyensinh10
+      DB_NAME: qa_dt_ci
 
     steps:
       - name: Lấy code
@@ -59,7 +59,7 @@ jobs:
       - name: 3. Nhập CSDL từ install.sql
         run: |
           mysql -h 127.0.0.1 -uroot -proot --default-character-set=utf8mb4 < database/install.sql
-          mysql -h 127.0.0.1 -uroot -proot -N -e "SELECT COUNT(*) AS soBang FROM information_schema.tables WHERE table_schema='dreamteam_tuyensinh10'"
+          mysql -h 127.0.0.1 -uroot -proot -N -e "SELECT COUNT(*) AS soBang FROM information_schema.tables WHERE table_schema='qa_dt_ci'"
 
       - name: 4. Chạy web bằng PHP built-in server
         run: |
@@ -97,6 +97,11 @@ jobs:
         env:
           BASE_URL: http://127.0.0.1:8080
         run: php tests/kiem_thu_uc17.php
+
+      - name: Kiểm thử UC03, UC04, UC16, UC18, UC19 và thời hạn phúc khảo
+        env:
+          BASE_URL: http://127.0.0.1:8080
+        run: php tests/kiem_thu_qa_regression.php
 
       - name: Kiểm thử túi bài Excel UC05 và UC06–UC08
         env:

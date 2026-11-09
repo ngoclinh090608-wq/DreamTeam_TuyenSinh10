@@ -67,3 +67,9 @@ UC07 lấy thí sinh đăng ký NV1 đúng trường, xếp ABC theo tên gọi,
 ### UC17: xét tuyển NV1–NV3
 
 Hội đồng tuyển sinh vào `admission/`, phân bổ chỉ tiêu từng NV, cấu hình hệ số/điểm cộng và lựa chọn xử lý bằng điểm, xem trước rồi xác nhận lưu. Snapshot demo mới đã có cấu trúc UC17; máy dùng dữ liệu cũ cần kiểm tra phần còn thiếu; không import lại full SQL. Xem [hướng dẫn UC17 và chạy thử](docs/UC17_XET_TUYEN.md).
+
+### Bản sửa QA: UC03, UC04, phúc khảo và nhập học
+
+Ban tuyển sinh cấp SBD tại **Thí sinh → Cấp số báo danh**; hệ thống giữ nguyên số đã cấp. Học sinh vào Trang cá nhân để mở **Kết quả tuyển sinh**, **Phúc khảo** và **Tình trạng nhập học**, chỉ xem dữ liệu của mình. Hội đồng phúc khảo lưu kết quả tại menu **Phúc khảo** của kỳ thi được phân công.
+
+Phúc khảo mở từ ngày sau công bố điểm trong 7 ngày, theo giờ Việt Nam. Database đã cài cần migration bổ sung thời điểm công bố; không nhập lại database/seed. Xem [hướng dẫn cập nhật an toàn và xử lý điểm đã công bố từ trước](database/README.md#bản-sửa-qa-10112026-công-bố-điểm-và-phúc-khảo).

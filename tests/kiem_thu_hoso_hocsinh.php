@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/test_database.php';
+require_test_database();
 require dirname(__DIR__).'/services/student_profile.php';
 $p=db();
 if(!student_profile_ready())throw new RuntimeException('Student profile tables missing');

@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/test_database.php';
+require_test_database();
 require_once dirname(__DIR__) . '/services/exam_service.php';
 function assert_abc(bool $ok, string $message): void {
     if (!$ok) throw new RuntimeException($message);
