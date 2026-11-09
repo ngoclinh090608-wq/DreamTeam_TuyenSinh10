@@ -49,7 +49,7 @@ assert request(student, '/enrollment/')[0] == 200
 sql("UPDATE DanhSachKetQuaTuyenSinh SET trangThaiPheDuyet='Đã phê duyệt',trangThaiCongBo='Đã công bố' WHERE maDanhSach='QA_LIST'")
 for path in ['/results/?maThiSinh=QA_B&maKetQua=QA_RB', '/enrollment/?maThiSinh=QA_B&maKetQua=QA_RB&nam=2090']:
     status, page, _ = request(student, path)
-    assert status == 200 and 'Trường THPT Mẫu 1' in page and 'Trường THPT Mẫu 2' not in page
+    assert status == 200 and 'Trường THPT Mẫu 1' in page and 'Trường THPT Mẫu 2' not in page, (path, status, re.sub(r'<[^>]*>', ' ', page)[-3500:])
 assert "number_format(" not in request(login('hdtuyensinh', 'dreamteam2026'), '/enrollment/?nam=2090')[1]
 print('PASS HTTP UC04/19: published ownership, forged owner ignored, student enrollment, staff markup')
 sql("UPDATE DanhSachKetQuaTuyenSinh SET trangThaiPheDuyet='Chưa phê duyệt',trangThaiCongBo='Chưa công bố' WHERE maDanhSach='QA_LIST'")
