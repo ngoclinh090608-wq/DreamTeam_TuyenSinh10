@@ -18,7 +18,7 @@ def sql(statement):
     env['MYSQL_PWD'] = env.get('DB_PASS', '')
     args = ['mysql', '-h', env.get('DB_HOST', '127.0.0.1'), '-P', env.get('DB_PORT', '3306'), '-u', env.get('DB_USER', 'root'), '--default-character-set=utf8mb4', '-N', db_name]
     # MySQL's batch client requires a statement terminator; MariaDB also accepts EOF.
-    batch = statement.rstrip().rstrip(';') + ';\n'
+    batch = 'SET NAMES utf8mb4;\nSET autocommit=1;\n' + statement.rstrip().rstrip(';') + ';\nCOMMIT;\n'
     return subprocess.run(args, input=batch, text=True, capture_output=True, check=True, env=env).stdout.strip()
 
 def client():
@@ -49,6 +49,8 @@ assert request(student, '/candidates/cap-so-bao-danh.php')[0] == 403
 assert request(student, '/enrollment/update.php')[0] == 403
 assert request(student, '/enrollment/')[0] == 200
 sql("UPDATE DanhSachKetQuaTuyenSinh SET trangThaiPheDuyet='Đã phê duyệt',trangThaiCongBo='Đã công bố' WHERE maDanhSach='QA_LIST'")
+publication_state = sql("SELECT CONCAT(trangThaiPheDuyet, '|', trangThaiCongBo) FROM DanhSachKetQuaTuyenSinh WHERE maDanhSach='QA_LIST'")
+assert publication_state == 'Đã phê duyệt|Đã công bố', ('publication fixture not committed as UTF-8', db_name, publication_state)
 for path in ['/results/?maThiSinh=QA_B&maKetQua=QA_RB', '/enrollment/?maThiSinh=QA_B&maKetQua=QA_RB&nam=2090']:
     status, page, _ = request(student, path)
     assert status == 200 and 'Trường THPT Mẫu 1' in page and 'Trường THPT Mẫu 2' not in page, (path, status, re.sub(r'<[^>]*>', ' ', page)[-3500:])
