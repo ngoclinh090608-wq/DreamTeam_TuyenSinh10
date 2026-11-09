@@ -23,6 +23,7 @@ const VAI_TRO = [
 /** null = mọi tài khoản đã đăng nhập. */
 const QUYEN_MODULE = [
     'admin'          => null,                                        // Bảng điều khiển
+    'results'        => ['HOC_SINH'],                                // UC4 kết quả đã công bố của chính học sinh
     'candidates'     => ['GVCN', 'BAN_TUYEN_SINH'],                  // Hồ sơ học sinh lớp 9, cấp SBD (UC3)
     'schools'        => ['BAN_TUYEN_SINH'],                          // Quản lý trường THCS, THPT
     'admission-info' => ['HOC_SINH', 'BAN_TUYEN_SINH'],              // UC1 xem thông tin tuyển sinh, giao chỉ tiêu

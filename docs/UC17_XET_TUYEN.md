@@ -34,12 +34,12 @@ Demo có 380 bài chưa chấm và kết quả nhập học/danh sách cũ, nên
 
 ## Kiểm thử
 
-Không chạy bộ test ghi trên demo. Trên database **kiểm thử** `dreamteam_tuyensinh10` đã tạo SQL bằng `php database/build.php` rồi import `database/install.sql`, chạy server riêng và test (Git Bash):
+Không chạy bộ test ghi trên demo. Trên database **kiểm thử riêng** `qa_dt_test` đã tạo SQL bằng `php database/build.php` rồi import `database/install.sql`, chạy server riêng và test (Git Bash):
 
 ```bash
-DB_NAME=dreamteam_tuyensinh10 php -S 127.0.0.1:8081 router.php
+DB_NAME=qa_dt_test php -S 127.0.0.1:8081 router.php
 # Terminal thứ hai, cùng thư mục:
-DB_NAME=dreamteam_tuyensinh10 BASE_URL=http://127.0.0.1:8081 php tests/kiem_thu_uc17.php
+DB_NAME=qa_dt_test BASE_URL=http://127.0.0.1:8081 php tests/kiem_thu_uc17.php
 ```
 
 PHP cần `pdo_mysql`, Python 3 cần nằm trong PATH; DB_HOST/DB_PORT/DB_USER/DB_PASS có thể đặt theo môi trường. Test tạo dữ liệu UC17 riêng rồi dọn lại, bao gồm xét ba NV, hệ số/điểm cộng/phúc khảo, hai phương án bằng điểm, HTTP đăng nhập/phân quyền/CSRF/xem trước, xác nhận lưu, stale preview, rollback và chống sửa kết quả đã duyệt. CI gọi cùng bộ test.

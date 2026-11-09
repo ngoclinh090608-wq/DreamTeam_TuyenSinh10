@@ -6,6 +6,12 @@
 B="${BASE_URL:-http://127.0.0.1:8080}"
 DB_HOST="${DB_HOST:-127.0.0.1}"; DB_PORT="${DB_PORT:-3306}"; DB_USER="${DB_USER:-root}"; DB_PASS="${DB_PASS:-}"; DB_NAME="${DB_NAME:-dreamteam_tuyensinh10}"
 
+# Refuse all shared databases, including the historical default above.
+if [[ ! "$DB_NAME" =~ ^qa_dt_[a-z0-9_]+$ ]]; then
+  echo "Chỉ chạy test ghi dữ liệu trên database riêng qa_dt_* (đặt DB_NAME)." >&2
+  exit 2
+fi
+
 MYSQL=mysql; MYSQLDUMP=mysqldump
 if ! command -v mysql >/dev/null 2>&1 && [ -x /d/xamp/mysql/bin/mysql.exe ]; then
   MYSQL=/d/xamp/mysql/bin/mysql; MYSQLDUMP=/d/xamp/mysql/bin/mysqldump

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 /** UC22: Công bố kết quả tuyển sinh; tất cả mã chuỗi JOIN dùng cùng collation. */
 require_once dirname(__DIR__) . '/config/database.php';
+require_once __DIR__ . '/appeal_service.php';
 
 function uc22_danhSachNam(): array
 {
@@ -161,10 +162,22 @@ function uc22_kiemTra(array $ds): array
     } elseif ($tienDo['daCham'] < $tienDo['tong'] || $tienDo['daCongBo'] < $tienDo['tong']) {
         $loi[] = 'Điểm thi chưa chốt/công bố đầy đủ (' . $tienDo['daCongBo'] . '/' . $tienDo['tong'] . ' bài).';
     }
+    if (appeal_has_publication_time()) {
+        $q = db()->prepare('SELECT g.thoiDiemCongBo FROM BaiThi b JOIN KyThi k ON k.maKyThi=b.maKyThi LEFT JOIN KetQuaChamThi g ON g.maBaiThi=b.maBaiThi WHERE k.maDot=?');
+        $q->execute([$ds['maDot']]);
+        $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
+        foreach ($q as $grade) {
+            $window = appeal_window($grade['thoiDiemCongBo']);
+            if (!$window['end'] || $now < $window['end']) { $loi[] = 'Chưa hết thời hạn phúc khảo 7 ngày hoặc chưa xác định được thời điểm công bố điểm.'; break; }
+        }
+    } else $loi[] = 'Chưa xác định được thời điểm công bố điểm để kiểm tra hạn phúc khảo.';
+    $q = db()->prepare("SELECT COUNT(*) FROM YeuCauPhucKhao y JOIN BaiThi b ON b.maBaiThi=y.maBaiThi JOIN KyThi k ON k.maKyThi=b.maKyThi LEFT JOIN KetQuaPhucKhao r ON r.maYeuCau=y.maYeuCau WHERE k.maDot=? AND (r.maKetQua IS NULL OR y.trangThai<>'Đã xử lý')");
+    $q->execute([$ds['maDot']]);
+    if ((int)$q->fetchColumn() > 0) $loi[] = 'Còn yêu cầu phúc khảo chưa được xử lý.';
     return $loi;
 }
 
-/** Giao dịch chỉ cập nhật trạng thái công bố; không sửa điểm/kết quả xét tuyển. */
+/** Publish and create missing enrollment records atomically; preserve any existing confirmations. */
 function uc22_congBo(string $maDanhSach): void
 {
     if ($maDanhSach === '' || strlen($maDanhSach) > 20) {
@@ -191,6 +204,17 @@ function uc22_congBo(string $maDanhSach): void
         ");
         $stmt->execute([':ma' => $maDanhSach]);
         if ($stmt->rowCount() !== 1) throw new DomainException('Trạng thái danh sách đã thay đổi. Vui lòng tải lại.');
+        $winners = $pdo->prepare("SELECT kq.maKetQua, tt.maTinhTrang
+            FROM KetQuaTuyenSinh k
+            JOIN KetQuaXetTuyen kq ON kq.maKetQua COLLATE utf8mb4_unicode_ci=k.maKetQuaXetTuyen COLLATE utf8mb4_unicode_ci
+            LEFT JOIN TinhTrangNhapHoc tt ON tt.maKetQua COLLATE utf8mb4_unicode_ci=kq.maKetQua COLLATE utf8mb4_unicode_ci
+            WHERE k.maDanhSach=? AND kq.trangThaiXetTuyen='Trúng tuyển'
+            ORDER BY kq.maKetQua FOR UPDATE");
+        $winners->execute([$maDanhSach]);
+        $insertEnrollment = $pdo->prepare("INSERT INTO TinhTrangNhapHoc(maTinhTrang,maKetQua,trangThaiNhapHoc) VALUES(?,?,'Chưa xác nhận')");
+        foreach ($winners->fetchAll() as $winner) {
+            if ($winner['maTinhTrang'] === null) $insertEnrollment->execute(['NH'.bin2hex(random_bytes(8)), $winner['maKetQua']]);
+        }
         $pdo->commit();
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();

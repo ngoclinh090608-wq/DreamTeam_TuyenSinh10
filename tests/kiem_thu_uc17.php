@@ -1,7 +1,8 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__) . '/services/admission_service.php';
-if (getenv('DB_NAME') !== 'dreamteam_tuyensinh10') throw new RuntimeException('Chỉ chạy trên database kiểm thử dreamteam_tuyensinh10, không chạy trên demo.');
+require_once __DIR__ . '/test_database.php';
+require_test_database();
 $checks = 0;
 function check17(bool $condition, string $label): void { global $checks; if (!$condition) throw new RuntimeException($label); $checks++; echo "PASS $label\n"; }
 function rejects17(callable $fn, string $label): void { try { $fn(); } catch (BusinessException $e) { check17(true, $label); return; } throw new RuntimeException('Expected rejection: ' . $label); }
@@ -35,7 +36,7 @@ try {
         foreach (['TOAN','VAN','NN'] as $subject) {
             $paper='U17_B'.$i.$subject;
             $insert('BaiThi',['maBaiThi'=>$paper,'maKyThi'=>'U17_EXAM','maMonThi'=>$subject,'maThiSinh'=>$id,'trangThaiCham'=>'Đã chấm']);
-            $insert('KetQuaChamThi',['maKetQuaChamThi'=>'U17_K'.$i.$subject,'maBaiThi'=>$paper,'diemThi'=>10-$i,'nguoiNhap'=>'Test UC17','trangThaiCongBo'=>'Đã công bố']);
+            $insert('KetQuaChamThi',['maKetQuaChamThi'=>'U17_K'.$i.$subject,'maBaiThi'=>$paper,'diemThi'=>10-$i,'nguoiNhap'=>'Test UC17','trangThaiCongBo'=>'Đã công bố','thoiDiemCongBo'=>'2020-01-02 12:00:00']);
         }
     }
     $command = 'python3 ' . escapeshellarg(__DIR__ . '/kiem_thu_uc17_http.py');
@@ -43,6 +44,10 @@ try {
     check17($httpStatus === 0, 'HTTP preview and permission checks');
     check17((int)$pdo->query("SELECT COUNT(*) FROM KetQuaXetTuyen WHERE maThiSinh LIKE 'U17_TS%'")->fetchColumn() === 0, 'HTTP preview does not persist results');
     $data=uc17_snapshot($pdo);
+    $recent=$data; foreach ($recent['KetQuaChamThi'] as &$grade) if (str_starts_with($grade['maKetQuaChamThi'],'U17_K')) $grade['thoiDiemCongBo']=(new DateTimeImmutable('now',new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d H:i:s'); unset($grade);
+    rejects17(fn()=>uc17_plan($recent,'U17_EXAM',$options),'Checkbox cannot bypass 7-day appeal deadline');
+    $unknown=$data; foreach ($unknown['KetQuaChamThi'] as &$grade) if ($grade['maKetQuaChamThi']==='U17_K1TOAN') $grade['thoiDiemCongBo']=null; unset($grade);
+    rejects17(fn()=>uc17_plan($unknown,'U17_EXAM',$options),'Unknown publication time cannot bypass deadline');
     $plan=uc17_plan($data,'U17_EXAM',$options);
     $winners=array_column(array_filter($plan['rows'],fn($r)=>$r['trangThai']==='Trúng tuyển'),'thuTuNguyenVong','maThiSinh');
     check17($winners===['U17_TS1'=>1,'U17_TS2'=>2,'U17_TS3'=>3], 'NV1, NV2, NV3; no student accepted twice');

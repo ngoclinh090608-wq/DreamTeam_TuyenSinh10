@@ -2,7 +2,9 @@
 // Gộp các file trong tables/ (+ seed) thành install.sql để nhập một lần qua phpMyAdmin.
 // Chạy: php database/build.php
 $dir = __DIR__;
-$sql = "-- install.sql được tạo tự động bởi build.php. Không sửa tay.\nCREATE DATABASE IF NOT EXISTS dreamteam_tuyensinh10 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\nUSE dreamteam_tuyensinh10;\nSET NAMES utf8mb4;\nSET FOREIGN_KEY_CHECKS=0;\n";
+$name = getenv('DB_NAME') ?: 'qa_dt_test';
+if (!preg_match('/\Aqa_dt_[a-z0-9_]+\z/D', $name)) throw new RuntimeException('SQL kiểm thử chỉ được tạo cho database riêng qa_dt_*.');
+$sql = "-- install.sql được tạo tự động bởi build.php. Không sửa tay.\nCREATE DATABASE IF NOT EXISTS `$name` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\nUSE `$name`;\nSET NAMES utf8mb4;\nSET FOREIGN_KEY_CHECKS=0;\n";
 foreach (['tables', 'views', 'functions', 'procedures'] as $d) {
     $files = glob("$dir/$d/*.sql") ?: []; sort($files);
     foreach ($files as $f) $sql .= "\n" . file_get_contents($f);

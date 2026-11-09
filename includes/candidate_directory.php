@@ -20,6 +20,7 @@ $page_title = $isStudent ? 'Nguyện vọng của tôi' : ($wishMode ? 'Danh sá
 require __DIR__ . '/header.php';
 ?>
 <div class="ui-page">
+ <?php if (!$wishMode && has_role($user, ['BAN_TUYEN_SINH'])): ?><p><a class="btn btn-primary" href="<?= e(url('candidates/cap-so-bao-danh.php')) ?>">Cấp số báo danh</a></p><?php endif; ?>
  <div class="page-head"><div><div class="eyebrow"><span></span><?= $wishMode ? 'NGUYỆN VỌNG TUYỂN SINH' : 'HỒ SƠ THÍ SINH' ?></div><h1><?= e($page_title) ?></h1><p><?= $isStudent ? 'Thông tin nguyện vọng gắn với tài khoản học sinh của bạn.' : 'Tra cứu theo mã, họ tên, số báo danh hoặc trường THCS. Dữ liệu được đọc từ cơ sở dữ liệu đang kết nối.' ?></p></div></div>
  <?php if (!$data): ?>
  <div class="ui-notice ui-notice-error" role="alert"><strong>Chưa tải được dữ liệu. Hãy kiểm tra kết nối database và hướng dẫn cài đặt; trang này không thay dữ liệu bằng danh sách minh họa.</strong></div>

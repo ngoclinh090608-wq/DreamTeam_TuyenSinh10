@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once dirname(__DIR__) . '/config/database.php';
 require_once __DIR__ . '/business_exception.php';
+require_once __DIR__ . '/appeal_service.php';
 
 /** UC17: quy tắc đồ án, không dùng thay quy chế tuyển sinh chính thức. */
 function uc17_plan(array $data, string $examId, array $options): array {
@@ -62,6 +63,10 @@ function uc17_plan(array $data, string $examId, array $options): array {
     $papers = []; $required = [];
     foreach ($data['BaiThi'] as $paper) {
         if ($paper['maKyThi'] !== $examId) continue;
+        $publishedAt = $grades[$paper['maBaiThi']]['thoiDiemCongBo'] ?? null;
+        $window = appeal_window($publishedAt);
+        if (!$window['end']) throw new BusinessException('Chưa xác định được thời điểm công bố điểm để kiểm tra hạn phúc khảo.');
+        if (new DateTimeImmutable('now', new DateTimeZone('Asia/Ho_Chi_Minh')) < $window['end']) throw new BusinessException('Chưa hết thời hạn nhận yêu cầu phúc khảo 7 ngày.');
         $required[$paper['maMonThi']] = true;
         $papers[$paper['maThiSinh']][$paper['maMonThi']] = $paper;
     }
@@ -148,10 +153,11 @@ function uc17_snapshot(PDO $pdo, bool $lock = false): array {
         'DanhSachKetQuaTuyenSinh'=>'maDanhSach','KetQuaXetTuyen'=>'maKetQua','KetQuaTuyenSinh'=>'maKetQua',
         'TinhTrangNhapHoc'=>'maTinhTrang'];
     $data = [];
+    $publicationColumn = $pdo->query("SHOW COLUMNS FROM KetQuaChamThi LIKE 'thoiDiemCongBo'")->fetch() ? 'thoiDiemCongBo' : 'NULL AS thoiDiemCongBo';
     foreach ($keys as $table => $key) {
         // XAMPP exports may spell this column DiemThi. Alias the PDO key explicitly.
         $columns = $table === 'KetQuaChamThi'
-            ? 'maKetQuaChamThi, diemThi AS diemThi, nguoiNhap, thoiDiemNhap, trangThaiCongBo, maBaiThi'
+            ? 'maKetQuaChamThi, diemThi AS diemThi, nguoiNhap, thoiDiemNhap, trangThaiCongBo, maBaiThi, ' . $publicationColumn
             : '*';
         $data[$table] = $pdo->query("SELECT $columns FROM $table ORDER BY $key" . ($lock ? ' FOR UPDATE' : ''))->fetchAll();
     }

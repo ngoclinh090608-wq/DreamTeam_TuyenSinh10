@@ -70,9 +70,9 @@ Trong Pull Request sẽ thấy ✅ (qua) hoặc ❌ (lỗi). **Chỉ gộp khi �
 Các bài kiểm thử cần bộ seed nhỏ nguyên gốc trong database **kiểm thử riêng**, không chạy trên demo đang làm việc. Đặt DB_NAME cùng các biến kết nối cho cả PHP server và tiến trình kiểm thử; đặt BASE_URL trỏ tới server đó. Ví dụ Git Bash cho bộ nhỏ mặc định:
 
 ```bash
-DB_NAME=dreamteam_tuyensinh10 php -S 127.0.0.1:8080 router.php
+DB_NAME=qa_dt_test php -S 127.0.0.1:8080 router.php
 # Terminal khác, cùng cấu hình database:
-DB_NAME=dreamteam_tuyensinh10 BASE_URL=http://127.0.0.1:8080 bash tests/kiem_thu_uc09_15.sh
+DB_NAME=qa_dt_test BASE_URL=http://127.0.0.1:8080 bash tests/kiem_thu_uc09_15.sh
 ```
 
 Các script có thao tác ghi, tạo tình huống lỗi và cơ chế khôi phục riêng; vẫn phải dùng database kiểm thử tách biệt. Không dựa vào sao lưu của test để bảo vệ dữ liệu đang làm việc.

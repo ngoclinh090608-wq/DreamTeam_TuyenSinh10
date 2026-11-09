@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/test_database.php';
+require_test_database();
 
 /**
  * Kiểm thử toàn diện chức năng ĐĂNG KÝ TUYỂN SINH LỚP 10 & QUẢN LÝ NGUYỆN VỌNG.

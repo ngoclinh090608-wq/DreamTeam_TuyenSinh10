@@ -280,16 +280,20 @@ function kiemTraCongBo(array $tk): ?array {
 /** Bước 8: chuyển các kết quả của phạm vi sang “Đã công bố”. Trả về số bài được cập nhật. */
 function capNhatTrangThaiCongBo(string $maKyThi, string $maMonThi): int {
     $pdo = db();
+    if (!$pdo->query("SHOW COLUMNS FROM KetQuaChamThi LIKE 'thoiDiemCongBo'")->fetch()) {
+        throw new GradingException('Chưa thể công bố điểm. Vui lòng liên hệ quản trị hệ thống để cập nhật chức năng thời hạn phúc khảo.');
+    }
     $pdo->beginTransaction();
     try {
         $pv = layKetQuaTheoPhamVi($maKyThi, $maMonThi, $pdo, true);
         if ($pv['loiCongBo'] !== null) throw new GradingException($pv['loiCongBo'][0], array_filter([$pv['loiCongBo'][1]]));
         $st = $pdo->prepare(
             'UPDATE KetQuaChamThi k JOIN BaiThi b ON b.maBaiThi = k.maBaiThi
-             SET k.trangThaiCongBo = ?
+             SET k.trangThaiCongBo = ?, k.thoiDiemCongBo = COALESCE(k.thoiDiemCongBo, ?)
              WHERE b.maKyThi = ? AND b.maMonThi = ? AND k.trangThaiCongBo <> ?'
         );
-        $st->execute([GRADING_DA_CONG_BO, $maKyThi, $maMonThi, GRADING_DA_CONG_BO]);
+        $publishedAt = (new DateTimeImmutable('now', new DateTimeZone('Asia/Ho_Chi_Minh')))->format('Y-m-d H:i:s');
+        $st->execute([GRADING_DA_CONG_BO, $publishedAt, $maKyThi, $maMonThi, GRADING_DA_CONG_BO]);
         $n = $st->rowCount();
         $pdo->commit();
         return $n;

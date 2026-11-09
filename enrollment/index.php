@@ -9,7 +9,11 @@ declare(strict_types=1);
 require_once dirname(__DIR__) . '/includes/ui.php';
 require_once dirname(__DIR__) . '/services/enrollment_service.php';
 
-require_role(['HD_TUYEN_SINH']);
+$user = require_role(['HD_TUYEN_SINH', 'HOC_SINH']);
+if (has_role($user, ['HOC_SINH'])) {
+    require dirname(__DIR__) . '/includes/student_enrollment.php';
+    exit;
+}
 
 $danhSach = [];
 $danhSachNam = [];
@@ -286,10 +290,6 @@ ui_page_start(
                                         )
                                 ) ?>
 
-                                    ? '—'
-                                    : number_format(
-                                        (float)$row['diemXetTuyen'], 2
-                                    ) ?>
                             </td>
                             <td><?= e($ketQua) ?></td>
                             <td>

@@ -5,6 +5,7 @@ CREATE TABLE KetQuaChamThi (
   nguoiNhap VARCHAR(100) NOT NULL,
   thoiDiemNhap DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   trangThaiCongBo VARCHAR(50) NOT NULL DEFAULT 'Chưa công bố',
+  thoiDiemCongBo DATETIME NULL,
   maBaiThi VARCHAR(20) NOT NULL,
   PRIMARY KEY (maKetQuaChamThi),
   UNIQUE KEY uq_kqct_baithi (maBaiThi),

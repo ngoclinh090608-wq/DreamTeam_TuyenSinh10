@@ -18,6 +18,12 @@
 B="${BASE_URL:-http://localhost/DreamTeam_TuyenSinh10}"
 DB_HOST="${DB_HOST:-127.0.0.1}"; DB_PORT="${DB_PORT:-3306}"; DB_USER="${DB_USER:-root}"; DB_PASS="${DB_PASS:-}"; DB_NAME="${DB_NAME:-dreamteam_tuyensinh10}"
 
+# Refuse all shared databases, including the historical default above.
+if [[ ! "$DB_NAME" =~ ^qa_dt_[a-z0-9_]+$ ]]; then
+  echo "Chỉ chạy test ghi dữ liệu trên database riêng qa_dt_* (đặt DB_NAME)." >&2
+  exit 2
+fi
+
 # Tìm mysql / mysqldump: trong PATH, nếu không có thì thư mục XAMPP.
 MYSQL=mysql; MYSQLDUMP=mysqldump
 if ! command -v mysql >/dev/null 2>&1 && [ -x /c/xampp/mysql/bin/mysql.exe ]; then
@@ -215,7 +221,7 @@ get "$C?traCuu=1&soPhach=P%400" | kiem UC13 "Mã phách sai định dạng (4.1)
 get "$C?traCuu=1&soPhach=P9999" | kiem UC13 "Không tìm thấy bài (5.1)" "Không tìm thấy bài thi tương ứng với mã phách."
 sql "DELETE FROM LichSuChinhSuaDiem WHERE maKetQuaChamThi='KQC002'; DELETE FROM KetQuaChamThi WHERE maBaiThi='BT002';"
 get "$C?traCuu=1&soPhach=P0023" | kiem UC13 "Bài chưa có kết quả (6.1)" "Bài thi chưa có kết quả chấm thi để cập nhật."
-sql "INSERT INTO KetQuaChamThi VALUES ('KQC002', 9.0, 'CB09', '2026-06-15 10:00:00', 'Đã công bố', 'BT002');"
+sql "INSERT INTO KetQuaChamThi (maKetQuaChamThi,diemThi,nguoiNhap,thoiDiemNhap,trangThaiCongBo,maBaiThi) VALUES ('KQC002', 9.0, 'CB09', '2026-06-15 10:00:00', 'Đã công bố', 'BT002');"
 T=$(tok "$C?soPhach=P0023")
 post "$C" -d "soPhach=P0023&action=kiem_tra&diemMoi=11" --data-urlencode "lyDo@$V/lydo" | kiem UC13 "Điểm > 10 (9.1)" "Điểm cập nhật không hợp lệ."
 post "$C" -d "soPhach=P0023&action=kiem_tra&diemMoi=-1" --data-urlencode "lyDo@$V/lydo" | kiem UC13 "Điểm âm (9.1)" "Điểm cập nhật không hợp lệ."
@@ -271,7 +277,7 @@ post "$U&monThi=NN" -d "action=cong_bo&kyThi=KT2026&monThi=NN" | kiem UC15 "Bấ
 [ "$(gtri "SELECT COUNT(*) FROM KetQuaChamThi k JOIN BaiThi b USING(maBaiThi) WHERE b.maMonThi='NN' AND k.trangThaiCongBo='Đã công bố'")" = 18 ] && ok UC15 "DB: 18 bài NN đã công bố, điểm không đổi" "18" || ko UC15 "DB: 18 bài NN đã công bố" "18" "sai"
 
 # ================= Chung: trang mở được, không lỗi PHP, chặn thư mục nội bộ =================
-for cap in "-:" "-:auth/login.php" "-:results/" "quantri:admin/" "catphach:papers/" "bantuyensinh:councils/" "hdcoithi:assignments/" "hdchamthi:grading/" "hdchamthi:grading/lich-su.php" "hdchamthi:grading/cap-nhat.php" "hdchamthi:grading/thong-ke.php" "bantuyensinh:publication/" "bantuyensinh:publication/diem-thi.php" "hdtuyensinh:publication/tuyen-sinh.php" "gvcn:auth/doi-mat-khau.php"; do
+for cap in "-:" "-:auth/login.php" "SBD0001:results/" "quantri:admin/" "catphach:papers/" "bantuyensinh:councils/" "hdcoithi:assignments/" "hdchamthi:grading/" "hdchamthi:grading/lich-su.php" "hdchamthi:grading/cap-nhat.php" "hdchamthi:grading/thong-ke.php" "bantuyensinh:publication/" "bantuyensinh:publication/diem-thi.php" "hdtuyensinh:publication/tuyen-sinh.php" "gvcn:auth/doi-mat-khau.php"; do
   tk="${cap%%:*}"; p="${cap#*:}"
   if [ "$tk" = "-" ]; then rm -f "$J"; TK_HIEN_TAI=""; elif [ "$tk" != "${TK_HIEN_TAI:-}" ]; then dang_nhap "$tk"; fi
   code=$(curl -s -c "$J" -b "$J" -o "$S/page.html" -w '%{http_code}' "$B/$p")

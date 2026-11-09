@@ -6,6 +6,7 @@
 <?php require __DIR__.'/student_profile_form.php'; ?></section>
 <section class="panel student-wishes"><div class="panel-heading"><div><h2>Nguyện vọng của tôi</h2><p>Trạng thái hồ sơ tuyển sinh</p></div><div class="student-profile-actions" style="gap:8px"><a href="<?= e(url('aspirations/')) ?>" class="btn btn-soft btn-sm">Đăng ký tuyển sinh lớp 10</a><a href="<?= e(url('aspirations/', ['view' => 'student'])) ?>" class="btn btn-soft btn-sm">Quản lý nguyện vọng</a><button type="button" class="btn btn-primary btn-sm" data-student-dialog-open="student-score-dialog">Xem điểm</button><button type="button" class="btn btn-outline btn-sm" data-student-dialog-open="student-exam-dialog">Thông tin thi tuyển</button></div></div>
 <?php require __DIR__ . '/student_wish_progress.php'; ?>
+<div class="student-profile-actions"><a class="btn btn-outline btn-sm" href="<?= e(url('results/')) ?>">Kết quả tuyển sinh</a><a class="btn btn-outline btn-sm" href="<?= e(url('appeals/')) ?>">Phúc khảo</a><a class="btn btn-outline btn-sm" href="<?= e(url('enrollment/')) ?>">Tình trạng nhập học</a></div>
 
 </section></div>
 <?php require __DIR__.'/student_exam_dialogs.php'; ?>

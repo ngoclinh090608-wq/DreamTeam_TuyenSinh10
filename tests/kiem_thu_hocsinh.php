@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/test_database.php';
+require_test_database();
 require dirname(__DIR__) . '/services/live_data.php';
 require dirname(__DIR__) . '/includes/functions.php';
 $p=db();$p->beginTransaction();
