@@ -101,7 +101,13 @@ jobs:
       - name: Kiểm thử UC03, UC04, UC16, UC18, UC19 và thời hạn phúc khảo
         env:
           BASE_URL: http://127.0.0.1:8080
-        run: php tests/kiem_thu_qa_regression.php
+        run: |
+          if ! php tests/kiem_thu_qa_regression.php > /tmp/qa-regression.log 2>&1; then
+            cat /tmp/qa-regression.log
+            python3 -c 'from pathlib import Path; text = Path("/tmp/qa-regression.log").read_text()[-12000:]; print("::error::" + text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A"))'
+            exit 1
+          fi
+          cat /tmp/qa-regression.log
 
       - name: Kiểm thử túi bài Excel UC05 và UC06–UC08
         env:
