@@ -3,6 +3,7 @@ declare(strict_types=1);
 require_once dirname(__DIR__) . '/services/admission_service.php';
 require_once __DIR__ . '/test_database.php';
 require_test_database();
+require_once dirname(__DIR__) . '/services/admission_publication_service.php';
 $checks = 0;
 function check17(bool $condition, string $label): void { global $checks; if (!$condition) throw new RuntimeException($label); $checks++; echo "PASS $label\n"; }
 function rejects17(callable $fn, string $label): void { try { $fn(); } catch (BusinessException $e) { check17(true, $label); return; } throw new RuntimeException('Expected rejection: ' . $label); }
@@ -94,11 +95,19 @@ try {
     passthru($command, $httpStatus);
     putenv('UC17_HTTP_SAVE');
     check17($httpStatus === 0, 'HTTP confirmed save and duplicate rejection');
+    try { uc22_congBo($list); throw new LogicException('Unapproved list published'); }
+    catch (DomainException $e) { check17(str_contains($e->getMessage(),'phê duyệt'),'UC17 to UC22: approval prerequisite enforced'); }
+    // Approval is a test fixture only. No product approval workflow is invented here.
     $pdo->exec("UPDATE DanhSachKetQuaTuyenSinh SET trangThaiPheDuyet='Đã phê duyệt' WHERE maDanhSach='$list'");
+    uc22_congBo($list);
+    check17($pdo->query("SELECT trangThaiCongBo FROM DanhSachKetQuaTuyenSinh WHERE maDanhSach='$list'")->fetchColumn()==='Đã công bố','UC17 to fixture approval to UC22 publication');
+    check17((int)$pdo->query("SELECT COUNT(*) FROM TinhTrangNhapHoc e JOIN KetQuaXetTuyen r ON r.maKetQua=e.maKetQua WHERE r.maThiSinh LIKE 'U17_TS%'")->fetchColumn()===3,'UC17 to UC22: exactly three winner enrollments');
     $preview=uc17_preview('U17_EXAM',$options);rejects17(fn()=>uc17_save($actor,'U17_EXAM',$preview['fingerprint'],$options),'Approved results cannot be overwritten');
     check17((int)$pdo->query("SELECT COUNT(*) FROM XetTuyenLanChay WHERE maKyThi='U17_EXAM'")->fetchColumn()===3,'Only committed runs audited');
 } finally {
     $pdo->exec('DROP TRIGGER IF EXISTS u17_fail');
+    $pdo->exec('DROP TRIGGER IF EXISTS u17_http_fail');
+    $pdo->exec("DELETE e FROM TinhTrangNhapHoc e JOIN KetQuaXetTuyen r ON r.maKetQua=e.maKetQua WHERE r.maThiSinh LIKE 'U17_TS%'");
     $pdo->exec("DELETE FROM XetTuyenLanChay WHERE maKyThi='U17_EXAM'");
     $pdo->exec("DELETE l FROM KetQuaTuyenSinh l JOIN KetQuaXetTuyen x ON x.maKetQua=l.maKetQuaXetTuyen WHERE x.maThiSinh LIKE 'U17_TS%'");
     $pdo->exec("DELETE FROM DanhSachKetQuaTuyenSinh WHERE maDot='U17_DOT'");

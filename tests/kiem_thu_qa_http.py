@@ -54,9 +54,17 @@ assert publication_state == 'Đã phê duyệt|Đã công bố', ('publication f
 for path in ['/results/?maThiSinh=QA_B&maKetQua=QA_RB', '/enrollment/?maThiSinh=QA_B&maKetQua=QA_RB&nam=2090']:
     status, page, _ = request(student, path)
     assert status == 200 and 'Trường THPT Mẫu 1' in page and 'Trường THPT Mẫu 2' not in page, (path, status, re.sub(r'<[^>]*>', ' ', page)[-3500:])
+_, detail, _ = request(student, '/results/?ketQua=QA_RA')
+assert 'Chi tiết' in detail and 'Quay lại' in detail
+assert 'Không tìm thấy kết quả' in request(student,'/results/?ketQua=QA_RB')[1]
+sql("DELETE FROM KetQuaTuyenSinh WHERE maKetQua='QA_LA'")
+assert 'Không tìm thấy kết quả xét tuyển.' in request(student,'/results/')[1]
+sql("INSERT INTO KetQuaTuyenSinh(maKetQua,maDanhSach,maKetQuaXetTuyen) VALUES('QA_LA','QA_LIST','QA_RA')")
+print('PASS F03 HTTP: own result detail, back link, foreign detail denied, published missing result')
 assert "number_format(" not in request(login('hdtuyensinh', 'dreamteam2026'), '/enrollment/?nam=2090')[1]
 print('PASS HTTP UC04/19: published ownership, forged owner ignored, student enrollment, staff markup')
 sql("UPDATE DanhSachKetQuaTuyenSinh SET trangThaiPheDuyet='Chưa phê duyệt',trangThaiCongBo='Chưa công bố' WHERE maDanhSach='QA_LIST'")
+assert 'Kết quả xét tuyển chưa được công bố.' in request(student,'/results/')[1]
 _, page, _ = request(student, '/appeals/')
 form = {'action': 'submit', 'paper': 'QA_PA2', 'reason': '<script>alert(1)</script>', 'csrf_token': 'bad'}
 _, denied, _ = request(student, '/appeals/', form)
@@ -85,10 +93,44 @@ assert '8.50' in request(student, '/results/')[1]
 print('PASS HTTP UC16: assigned council, CSRF, persisted score, duplicate rejection, UC04 reflects final score')
 admin = login('bantuyensinh', 'dreamteam2026')
 _, page, _ = request(admin, '/candidates/cap-so-bao-danh.php')
-form = {'csrf_token': 'bad', 'candidates[]': ['QA_D']}
+form = {'csrf_token': 'bad', 'candidates[]': ['QA_D'], 'confirm': '1'}
 assert 'không hợp lệ' in request(admin, '/candidates/cap-so-bao-danh.php', form)[1]
 assert sql("SELECT soBaoDanh IS NULL FROM ThiSinh WHERE maThiSinh='QA_D'") == '1'
 form['csrf_token'] = token(page)
 assert 'Đã cấp số báo danh cho 1 thí sinh' in request(admin, '/candidates/cap-so-bao-danh.php', form)[1]
 assert 'đã có số báo danh' in request(admin, '/candidates/cap-so-bao-danh.php', form)[1]
 print('PASS HTTP UC03: staff role, CSRF, actual batch submission and repeat rejected')
+
+_, current, _ = request(admin, '/candidates/cap-so-bao-danh.php')
+assert 'scopeFingerprint' in current and 'chưa có SBD' in current
+csv = request(admin, '/candidates/cap-so-bao-danh.php?trangThai=issued&export=1')
+assert csv[0] == 200 and 'QA_D' in csv[1] and 'Số báo danh' in csv[1]
+assert request(student, '/candidates/cap-so-bao-danh.php?export=1')[0] == 403
+_, denied, _ = request(admin, '/candidates/cap-so-bao-danh.php', {'csrf_token':token(current),'candidates[]':['QA_E']})
+assert 'Vui lòng xác nhận' in denied
+_, denied, _ = request(admin, '/candidates/cap-so-bao-danh.php', {'csrf_token':token(current),'action':'issue_scope','confirm':'1','expectedCount':'0','scopeFingerprint':'forged'})
+assert 'Số hồ sơ đã thay đổi' in denied
+print('PASS F02 HTTP: totals, export, export role, confirmation and scope change protection')
+# UC21/22 routes: authenticate with the exact actors and reject writes before touching state.
+assert '/auth/login.php' in request(client(), '/publication/tuyen-sinh.php')[2]
+assert request(student, '/publication/tuyen-sinh.php')[0] == 403
+assert request(admin, '/publication/tuyen-sinh.php')[0] == 403
+assert request(student, '/statistics/')[0] == 403
+status, stats, _ = request(admin, '/statistics/?nam=2090&loai=ketqua')
+assert status == 200 and 'Trúng tuyển' in stats
+status, csv, _ = request(admin, '/statistics/?nam=2090&loai=ketqua&export=csv')
+assert status == 200 and 'Trúng tuyển' in csv
+publication = login('hdtuyensinh', 'dreamteam2026')
+assert request(publication, '/statistics/')[0] == 403
+_, page, _ = request(publication, '/publication/tuyen-sinh.php?maDanhSach=QA_LIST')
+post = {'action':'cong_bo','maDanhSach':'QA_LIST','csrf_token':'bad'}
+assert 'không hợp lệ' in request(publication, '/publication/tuyen-sinh.php', post)[1]
+post['csrf_token'] = token(page)
+assert 'chưa được phê duyệt' in request(publication, '/publication/tuyen-sinh.php', post)[1]
+sql("UPDATE DanhSachKetQuaTuyenSinh SET trangThaiPheDuyet='Đã phê duyệt' WHERE maDanhSach='QA_LIST'; UPDATE KetQuaXetTuyen SET diemXetTuyen=NULL WHERE maKetQua='QA_RA'")
+try:
+    assert 'Dữ liệu kết quả xét tuyển chưa đầy đủ hoặc chưa hợp lệ: QA_RA' in request(publication, '/publication/tuyen-sinh.php', post)[1]
+    assert sql("SELECT trangThaiCongBo FROM DanhSachKetQuaTuyenSinh WHERE maDanhSach='QA_LIST'") == 'Chưa công bố'
+finally:
+    sql("UPDATE KetQuaXetTuyen SET diemXetTuyen=24 WHERE maKetQua='QA_RA'; UPDATE DanhSachKetQuaTuyenSinh SET trangThaiPheDuyet='Chưa phê duyệt' WHERE maDanhSach='QA_LIST'")
+print('PASS F06/F07 HTTP: exact roles, read-only statistics/CSV, UC22 login, CSRF, approval and invalid-record blocks')

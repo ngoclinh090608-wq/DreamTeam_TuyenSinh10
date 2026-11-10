@@ -4,11 +4,23 @@ import html
 import http.cookiejar
 import os
 import re
+import subprocess
 import urllib.error
 import urllib.parse
 import urllib.request
 
 base = os.environ.get('BASE_URL', 'http://127.0.0.1:8080').rstrip('/')
+db_name = os.environ.get('DB_NAME', '')
+assert re.fullmatch(r'qa_dt_[a-z0-9_]+', db_name), 'QA database required'
+
+def sql(statement):
+    env = os.environ.copy()
+    env['MYSQL_PWD'] = env.get('DB_PASS', '')
+    args = ['mysql', '-h', env.get('DB_HOST', '127.0.0.1'), '-P', env.get('DB_PORT', '3306'), '-u', env.get('DB_USER', 'root'), '--default-character-set=utf8mb4', '-N', db_name]
+    # MySQL's batch client requires a statement terminator; MariaDB also accepts EOF.
+    batch = 'SET NAMES utf8mb4;\nSET autocommit=1;\n' + statement.rstrip().rstrip(';') + ';\nCOMMIT;\n'
+    return subprocess.run(args, input=batch, text=True, capture_output=True, check=True, env=env).stdout.strip()
+
 def client():
     return urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
 def request(opener, path, data=None):
@@ -57,6 +69,21 @@ print('PASS UC17 HTTP: login, role, CSRF, allocation form, preview, confirmation
 if os.environ.get('UC17_HTTP_SAVE') == '1':
     _, preview, _ = request(council, '/admission/', form)
     nonce = html.unescape(re.search(r'name="preview" value="([^"]+)"', preview)[1])
+    # F05: real SQL failure through HTTP must preserve the exact server-side preview and nonce.
+    before=sql("SELECT COUNT(*) FROM XetTuyenLanChay WHERE maKyThi='U17_EXAM'")
+    sql("CREATE TRIGGER u17_http_fail BEFORE INSERT ON XetTuyenLanChay FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='F05 injected save failure'")
+    save={'action':'save','exam':'U17_EXAM','csrf_token':token(preview),'preview':nonce,'confirm':'1'}
+    try:
+        status, failed, _ = request(council, '/admission/', save)
+        assert status == 200 and 'Không thể tải/lưu xét tuyển' in failed
+        assert 'Danh sách dự kiến' in failed and 'U17_TS3' in failed and '3 thí sinh dự kiến trúng tuyển' in failed
+        assert f'name="preview" value="{nonce}"' in failed
+        assert sql("SELECT COUNT(*) FROM XetTuyenLanChay WHERE maKyThi='U17_EXAM'") == before
+        # A forged nonce cannot use the saved plan.
+        assert 'Bản xem trước đã hết hạn' in request(council,'/admission/',dict(save,preview='forged'))[1]
+    finally:
+        sql('DROP TRIGGER IF EXISTS u17_http_fail')
+    print('PASS F05 HTTP: failed save preserves preview, same nonce, rollback, forged nonce denied')
     status, saved, _ = request(council, '/admission/', {'action': 'save', 'exam': 'U17_EXAM', 'csrf_token': token(preview), 'preview': nonce, 'confirm': '1'})
     assert status == 200 and 'Xét tuyển thành công' in saved
     assert 'Lịch sử xét tuyển' in saved

@@ -156,6 +156,23 @@ function uc21_thongKe(
     $nguon = uc21_duLieuNguon($nam);
     $daDuThi = uc21_maThiSinhCoBaiThi($nam);
 
+    // Outcome groups are mutually exclusive per student, before applying the outcome filter.
+    // A winning preference is final even if the student's other preferences were rejected/not considered.
+    if ($loai === 'ketqua') {
+        $students = [];
+        foreach ($nguon as $row) $students[$row['maThiSinh']][] = $row;
+        $nguon = [];
+        foreach ($students as $wishes) {
+            $winners = array_values(array_filter($wishes, static fn($row) => $row['trangThaiXetTuyen'] === 'Trúng tuyển'));
+            if (count($winners) > 1) throw new RuntimeException('Dữ liệu có thí sinh trúng tuyển nhiều nguyện vọng.');
+            if ($winners) { $nguon[] = $winners[0]; continue; }
+            $pending = array_values(array_filter($wishes, static fn($row) => $row['trangThaiXetTuyen'] === null || $row['trangThaiXetTuyen'] === 'Chưa xét'));
+            $final = $pending[0] ?? $wishes[0];
+            $final['trangThaiXetTuyen'] = $pending ? 'Chưa xét' : 'Không trúng tuyển';
+            $nguon[] = $final;
+        }
+    }
+
     // Tình trạng nhập học chỉ có ý nghĩa với thí sinh đã trúng tuyển.
     if ($loai === 'nhaphoc') {
         $nguon = array_values(array_filter($nguon, static fn(array $row): bool =>

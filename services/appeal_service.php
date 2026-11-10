@@ -64,11 +64,12 @@ function appeal_requests(array $actor, int $page = 1): array {
     } else throw new BusinessException('Không có quyền xem yêu cầu phúc khảo.');
     $q = db()->prepare("SELECT y.maYeuCau,y.maThiSinh,y.maBaiThi,y.lyDo,y.trangThai,y.ngayYeuCau,
         k.tenKyThi,m.tenMonThi,r.diemTruocPhucKhao,r.diemSauPhucKhao,r.ketLuan,
-        r.ngayHoanThanh,m.thangDiem,
+        r.ngayHoanThanh,m.thangDiem,g.diemThi AS diemHienTai,
         (SELECT MAX(bb.noiDung) FROM BienBanPhucKhao bb WHERE bb.maKetQua=r.maKetQua) AS bienBan,
         (SELECT MAX(mc.thongTinMinhChung) FROM MinhChungPhucKhao mc WHERE mc.maKetQua=r.maKetQua) AS minhChung
         FROM YeuCauPhucKhao y JOIN BaiThi b ON b.maBaiThi=y.maBaiThi
         JOIN KyThi k ON k.maKyThi=b.maKyThi JOIN MonThi m ON m.maMonThi=b.maMonThi
+        LEFT JOIN KetQuaChamThi g ON g.maBaiThi=b.maBaiThi
         LEFT JOIN KetQuaPhucKhao r ON r.maYeuCau=y.maYeuCau WHERE $scope
         ORDER BY y.ngayYeuCau DESC,y.maYeuCau DESC LIMIT 200 OFFSET ?");
     foreach ($params as $i => $value) $q->bindValue($i + 1, $value, PDO::PARAM_STR);
@@ -106,7 +107,7 @@ function appeal_complete(array $actor, string $request, string $scoreRaw, string
     if (($actor['vaiTro'] ?? '') !== 'HD_PHUC_KHAO' || empty($actor['maCanBo'])) throw new BusinessException('Chỉ Hội đồng phúc khảo được lưu kết quả.');
     $conclusion = trim($conclusion); $evidence = trim($evidence); $minutes = trim($minutes); $scoreRaw = trim($scoreRaw);
     if ($request === '' || strlen($request) > 20 || !preg_match('/\A\d{1,3}(?:\.\d{1,2})?\z/D', $scoreRaw)) throw new BusinessException('Điểm phúc khảo phải là số không âm, tối đa hai chữ số thập phân.');
-    if ($conclusion === '' || mb_strlen($conclusion) > 100 || $evidence === '' || mb_strlen($evidence) > 255 || $minutes === '' || mb_strlen($minutes) > 1000) throw new BusinessException('Vui lòng nhập kết luận (tối đa 100), minh chứng (255) và biên bản (1000 ký tự).');
+    if ($conclusion === '' || mb_strlen($conclusion) > 100 || mb_strlen($evidence) > 255 || mb_strlen($minutes) > 1000) throw new BusinessException('Vui lòng nhập kết luận (tối đa 100); minh chứng tối đa 255 và biên bản tối đa 1000 ký tự.');
     $pdo = db(); $pdo->beginTransaction();
     try {
         $q = $pdo->prepare('SELECT b.maKyThi FROM YeuCauPhucKhao y JOIN BaiThi b ON b.maBaiThi=y.maBaiThi WHERE y.maYeuCau=?');
@@ -125,11 +126,13 @@ function appeal_complete(array $actor, string $request, string $scoreRaw, string
         $score = (float)$scoreRaw;
         if ($score > (float)$row['thangDiem']) throw new BusinessException('Điểm vượt quá thang điểm của môn thi.');
         if (abs($score / GRADING_BUOC_DIEM - round($score / GRADING_BUOC_DIEM)) > 0.00001) throw new BusinessException('Điểm phúc khảo phải theo bước nhảy ' . GRADING_BUOC_DIEM . ' điểm.');
+        $changed = $score !== (float)$row['diemThi'];
+        if ($changed && ($evidence === '' || $minutes === '')) throw new BusinessException('Điểm thay đổi cần có đầy đủ biên bản và minh chứng.');
         $id = 'PK' . bin2hex(random_bytes(8));
         $pdo->prepare('INSERT INTO KetQuaPhucKhao(maKetQua,maYeuCau,diemTruocPhucKhao,diemSauPhucKhao,ketLuan,maCanBo) VALUES(?,?,?,?,?,?)')->execute([$id,$request,$row['diemThi'],$score,$conclusion,$actor['maCanBo']]);
-        $pdo->prepare('INSERT INTO MinhChungPhucKhao(maMinhChung,thongTinMinhChung,maKetQua) VALUES(?,?,?)')->execute(['MC'.bin2hex(random_bytes(8)),$evidence,$id]);
-        $pdo->prepare('INSERT INTO BienBanPhucKhao(maBienBan,maKetQua,noiDung,nguoiLap) VALUES(?,?,?,?)')->execute(['BB'.bin2hex(random_bytes(8)),$id,$minutes,(string)($actor['hoTen'] ?? $actor['maCanBo'])]);
-        if ($score !== (float)$row['diemThi']) {
+        if ($evidence !== '') $pdo->prepare('INSERT INTO MinhChungPhucKhao(maMinhChung,thongTinMinhChung,maKetQua) VALUES(?,?,?)')->execute(['MC'.bin2hex(random_bytes(8)),$evidence,$id]);
+        if ($minutes !== '') $pdo->prepare('INSERT INTO BienBanPhucKhao(maBienBan,maKetQua,noiDung,nguoiLap) VALUES(?,?,?,?)')->execute(['BB'.bin2hex(random_bytes(8)),$id,$minutes,(string)($actor['hoTen'] ?? $actor['maCanBo'])]);
+        if ($changed) {
             $pdo->prepare('UPDATE KetQuaChamThi SET diemThi=? WHERE maKetQuaChamThi=?')->execute([$score,$row['maKetQuaChamThi']]);
             $pdo->prepare('INSERT INTO LichSuChinhSuaDiem(maLichSu,diemTruocChinhSua,diemSauChinhSua,nguoiThucHien,lyDoChinhSua,maKetQuaChamThi) VALUES(?,?,?,?,?,?)')->execute(['LP'.bin2hex(random_bytes(8)),$row['diemThi'],$score,(string)($actor['hoTen'] ?? $actor['maCanBo']),'Phúc khảo '.$request.': '.$conclusion,$row['maKetQuaChamThi']]);
         }

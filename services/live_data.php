@@ -197,9 +197,9 @@ function live_student_admission_info(string $query = ''): ?array {
                 WHERE i.trangThaiCongBo='Đã công bố'";
         $params = [];
         if ($query !== '') {
-            $sql .= " AND (p.tenTruongTHPT LIKE ? ESCAPE '!' OR k.tenKhuVuc LIKE ? ESCAPE '!')";
+            $sql .= " AND (p.tenTruongTHPT LIKE ? ESCAPE '!' OR p.maTruongTHPT LIKE ? ESCAPE '!' OR k.tenKhuVuc LIKE ? ESCAPE '!' OR k.quanHuyen LIKE ? ESCAPE '!')";
             $like = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $query) . '%';
-            $params = [$like, $like];
+            $params = [$like, $like, $like, $like];
         }
         $st = db()->prepare($sql . ' ORDER BY d.namTuyenSinh DESC,p.maTruongTHPT,i.maThongTin');
         $st->execute($params);

@@ -60,6 +60,7 @@ ui_flashes(); if ($error) ui_notice('error', $error);
 <h3><?= e($row['maYeuCau']) ?> · <?= e($row['tenMonThi']) ?></h3>
 <p><?= e(catalog_display_name($row['tenKyThi'])) ?><?= !$isStudent ? ' · ' . e($row['maThiSinh']) : '' ?> · <?= e($row['trangThai']) ?></p>
 <p>Lý do: <?= e($row['lyDo'] ?? '') ?></p>
+<p>Điểm hiện tại: <strong><?= $row['diemHienTai'] === null ? 'Chưa có điểm' : e(number_format((float)$row['diemHienTai'], 2)) ?></strong></p>
 <?php if ($row['diemSauPhucKhao'] !== null): ?>
 <p>Điểm trước phúc khảo: <strong><?= e(number_format((float)$row['diemTruocPhucKhao'], 2)) ?></strong> · Điểm sau phúc khảo: <strong><?= e(number_format((float)$row['diemSauPhucKhao'], 2)) ?></strong></p>
 <p>Kết luận: <?= e($row['ketLuan']) ?></p><p>Minh chứng: <?= e($row['minhChung'] ?? '') ?></p><p>Biên bản: <?= e($row['bienBan'] ?? '') ?></p>
@@ -68,8 +69,9 @@ ui_flashes(); if ($error) ui_notice('error', $error);
 <?= csrf_field() ?><input type="hidden" name="action" value="complete"><input type="hidden" name="request" value="<?= e($row['maYeuCau']) ?>">
 <div class="field"><label for="<?= e($formId) ?>-score">Điểm sau phúc khảo (0 – <?= e($row['thangDiem']) ?>, bước <?= e((string)GRADING_BUOC_DIEM) ?>)</label><input id="<?= e($formId) ?>-score" name="score" type="number" min="0" max="<?= e($row['thangDiem']) ?>" step="<?= e((string)GRADING_BUOC_DIEM) ?>" required></div>
 <div class="field"><label for="<?= e($formId) ?>-conclusion">Kết luận</label><input id="<?= e($formId) ?>-conclusion" name="conclusion" maxlength="100" required></div>
-<div class="field"><label for="<?= e($formId) ?>-evidence">Thông tin minh chứng đã đối chiếu</label><textarea id="<?= e($formId) ?>-evidence" name="evidence" maxlength="255" required></textarea></div>
-<div class="field"><label for="<?= e($formId) ?>-minutes">Nội dung biên bản</label><textarea id="<?= e($formId) ?>-minutes" name="minutes" maxlength="1000" required></textarea></div>
+<p>Biên bản và minh chứng chỉ bắt buộc khi điểm thay đổi.</p>
+<div class="field"><label for="<?= e($formId) ?>-evidence">Thông tin minh chứng đã đối chiếu</label><textarea id="<?= e($formId) ?>-evidence" name="evidence" maxlength="255"></textarea></div>
+<div class="field"><label for="<?= e($formId) ?>-minutes">Nội dung biên bản</label><textarea id="<?= e($formId) ?>-minutes" name="minutes" maxlength="1000"></textarea></div>
 <button type="submit" class="btn btn-primary">Xác nhận lưu kết quả phúc khảo</button>
 </form></details>
 <?php endif; ?></article>

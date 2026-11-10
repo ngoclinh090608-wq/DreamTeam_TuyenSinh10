@@ -56,7 +56,7 @@ function uc22_danhSach(int $nam): array
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function uc22_chiTiet(string $maDanhSach): ?array
+function uc22_chiTiet(string $maDanhSach, bool $lock = false): ?array
 {
     $stmt = db()->prepare("
         SELECT
@@ -93,22 +93,30 @@ function uc22_chiTiet(string $maDanhSach): ?array
 
 
     $stmt = db()->prepare("
-        SELECT kq.maKetQua, kq.maThiSinh, ts.hoTen, ts.soBaoDanh,
+        SELECT k.maKetQuaXetTuyen AS maLienKet, kq.maKetQua, kq.maThiSinh, ts.hoTen, ts.soBaoDanh,
                kq.diemXetTuyen, kq.trangThaiXetTuyen,
-               th.tenTruongTHPT
+               kq.maNguyenVong, kq.maTruongTHPT, th.tenTruongTHPT,
+               nv.maNguyenVong AS nguyenVongTonTai, nv.maThiSinh AS chuNguyenVong,
+               nv.thuTuNguyenVong, nv.maTruongTHPT AS truongNguyenVong,
+               nt.maTruongTHPT AS truongNguyenVongTonTai,
+               qd.namTuyenSinh AS namNguyenVong, qd.soLuongNguyenVongToiDa,
+               ts.maThiSinh AS thiSinhTonTai
         FROM KetQuaTuyenSinh k
-        JOIN KetQuaXetTuyen kq
+        LEFT JOIN KetQuaXetTuyen kq
           ON kq.maKetQua COLLATE utf8mb4_unicode_ci
            = k.maKetQuaXetTuyen COLLATE utf8mb4_unicode_ci
-        JOIN ThiSinh ts
+        LEFT JOIN ThiSinh ts
           ON ts.maThiSinh COLLATE utf8mb4_unicode_ci
            = kq.maThiSinh COLLATE utf8mb4_unicode_ci
         LEFT JOIN TruongTHPT th
           ON th.maTruongTHPT COLLATE utf8mb4_unicode_ci
            = kq.maTruongTHPT COLLATE utf8mb4_unicode_ci
+        LEFT JOIN NguyenVong nv ON nv.maNguyenVong COLLATE utf8mb4_unicode_ci = kq.maNguyenVong COLLATE utf8mb4_unicode_ci
+        LEFT JOIN TruongTHPT nt ON nt.maTruongTHPT COLLATE utf8mb4_unicode_ci = nv.maTruongTHPT COLLATE utf8mb4_unicode_ci
+        LEFT JOIN QuyDinhNguyenVong qd ON qd.maQuyDinh COLLATE utf8mb4_unicode_ci = nv.maQuyDinh COLLATE utf8mb4_unicode_ci
         WHERE k.maDanhSach = :ma
         ORDER BY ts.hoTen, ts.maThiSinh
-    ");
+    " . ($lock ? ' FOR UPDATE' : ''));
     $stmt->execute([':ma' => $maDanhSach]);
     $ds['ketQua'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $ds['tong'] = count($ds['ketQua']);
@@ -155,6 +163,38 @@ function uc22_kiemTra(array $ds): array
     }
     if ($ds['tong'] === 0) $loi[] = 'Danh sách chưa có kết quả xét tuyển.';
     if ($ds['chuaXet'] > 0) $loi[] = 'Còn ' . $ds['chuaXet'] . ' kết quả chưa xét tuyển.';
+    $winners = [];
+    foreach ($ds['ketQua'] as $row) {
+        $id = (string)($row['maLienKet'] ?? $row['maKetQua'] ?? '');
+        $invalid = !$row['maKetQua'] || !$row['thiSinhTonTai'] || !$row['nguyenVongTonTai']
+            || $row['chuNguyenVong'] !== $row['maThiSinh'] || !$row['truongNguyenVongTonTai']
+            || (int)$row['namNguyenVong'] !== (int)$ds['namTuyenSinh']
+            || (int)$row['thuTuNguyenVong'] < 1 || (int)$row['thuTuNguyenVong'] > min(3, (int)$row['soLuongNguyenVongToiDa'])
+            || !is_numeric($row['diemXetTuyen']) || !is_finite((float)$row['diemXetTuyen']) || (float)$row['diemXetTuyen'] < 0
+            || !in_array($row['trangThaiXetTuyen'], ['Trúng tuyển', 'Không trúng tuyển'], true);
+        if ($row['trangThaiXetTuyen'] === 'Trúng tuyển') {
+            $invalid = $invalid || !$row['maTruongTHPT'] || !$row['tenTruongTHPT']
+                || $row['maTruongTHPT'] !== $row['truongNguyenVong'];
+            if (isset($winners[$row['maThiSinh']])) $invalid = true;
+            $winners[$row['maThiSinh']] = $row['maKetQua'];
+        } elseif ($row['maTruongTHPT'] !== null && $row['maTruongTHPT'] !== ''
+            && $row['maTruongTHPT'] !== $row['truongNguyenVong']) $invalid = true;
+        if ($invalid) $loi[] = 'Dữ liệu kết quả xét tuyển chưa đầy đủ hoặc chưa hợp lệ: ' . $id . '.';
+    }
+    $dot = db()->prepare('SELECT namTuyenSinh FROM DotTuyenSinh WHERE maDot=?' . (db()->inTransaction() ? ' FOR UPDATE' : ''));
+    $dot->execute([$ds['maDot']]);
+    if ((int)$dot->fetchColumn() !== (int)$ds['namTuyenSinh']) $loi[] = 'Năm tuyển sinh của danh sách không khớp đợt tuyển sinh.';
+    if ($winners) {
+        $other = db()->prepare("SELECT r.maThiSinh,r.maKetQua FROM KetQuaTuyenSinh l
+            JOIN DanhSachKetQuaTuyenSinh d ON d.maDanhSach=l.maDanhSach
+            JOIN KetQuaXetTuyen r ON r.maKetQua=l.maKetQuaXetTuyen
+            WHERE d.maDot=? AND d.maDanhSach<>? AND r.trangThaiXetTuyen='Trúng tuyển'
+              AND (d.trangThaiPheDuyet='Đã phê duyệt' OR d.trangThaiCongBo='Đã công bố')" . (db()->inTransaction() ? ' FOR UPDATE' : ''));
+        $other->execute([$ds['maDot'], $ds['maDanhSach']]);
+        foreach ($other as $row) if (isset($winners[$row['maThiSinh']]) && $winners[$row['maThiSinh']] !== $row['maKetQua']) {
+            $loi[] = 'Thí sinh đã trúng tuyển ở kết quả khác: ' . $row['maThiSinh'] . '.';
+        }
+    }
 
     $tienDo = uc22_tienDoChamThi((string)$ds['maDot']);
     if ($tienDo['tong'] === 0) {
@@ -190,7 +230,7 @@ function uc22_congBo(string $maDanhSach): void
         $lock->execute([':ma' => $maDanhSach]);
         if (!$lock->fetch()) throw new DomainException('Không tìm thấy danh sách kết quả.');
 
-        $ds = uc22_chiTiet($maDanhSach);
+        $ds = uc22_chiTiet($maDanhSach, true);
         if ($ds === null) throw new DomainException('Không tìm thấy danh sách kết quả.');
         $loi = uc22_kiemTra($ds);
         if ($loi) throw new DomainException(implode(' ', $loi));

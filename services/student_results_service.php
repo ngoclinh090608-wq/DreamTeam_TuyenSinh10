@@ -39,3 +39,15 @@ function student_published_admissions(array $actor): array {
     $q->execute([student_results_owner($actor)]);
     return $q->fetchAll();
 }
+
+/** Determine publication for the student's registration year, not for an unrelated newer cohort. */
+function student_admission_publication_state(array $actor): string {
+    $owner = student_results_owner($actor);
+    $q = db()->prepare('SELECT MAX(q.namTuyenSinh) FROM NguyenVong n JOIN QuyDinhNguyenVong q ON q.maQuyDinh=n.maQuyDinh WHERE n.maThiSinh=?');
+    $q->execute([$owner]); $year = $q->fetchColumn();
+    if ($year === null || $year === false) $year = db()->query('SELECT MAX(namTuyenSinh) FROM DotTuyenSinh')->fetchColumn();
+    $q = db()->prepare("SELECT 1 FROM DanhSachKetQuaTuyenSinh WHERE namTuyenSinh=?
+        AND trangThaiPheDuyet='Đã phê duyệt' AND trangThaiCongBo='Đã công bố' LIMIT 1");
+    $q->execute([$year]);
+    return $q->fetchColumn() ? 'missing' : 'unpublished';
+}

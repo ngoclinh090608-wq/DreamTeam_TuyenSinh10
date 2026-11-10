@@ -20,6 +20,10 @@ try {
         if (ui_input('action') === 'save') {
             $preview = $_SESSION['uc17_preview'] ?? null;
             if (!$preview || $preview['exam'] !== $examId || !hash_equals($preview['nonce'], ui_input('preview')) || time()-$preview['time'] > 1800) throw new BusinessException('Bản xem trước đã hết hạn; vui lòng tính lại.');
+            // Restore only a server-created preview after nonce/owner-session/expiry checks.
+            $plan = $preview['plan'] ?? null;
+            $options = $preview['options'];
+            $bonusText = implode("\n", array_map(static fn($id, $bonus) => $id . ', ' . ($bonus['priority'] ?? 0) . ', ' . ($bonus['encouragement'] ?? 0), array_keys($options['bonuses']), array_values($options['bonuses'])));
             if (ui_input('confirm') !== '1') throw new BusinessException('Vui lòng xác nhận đã kiểm tra danh sách dự kiến.');
             $id = uc17_save($actor, $examId, $preview['fingerprint'], $preview['options']);
             unset($_SESSION['uc17_preview']);
@@ -41,7 +45,7 @@ try {
             $options['bonuses'][$cells[0]] = ['priority'=>$cells[1], 'encouragement'=>$cells[2]];
         }
         $plan = uc17_preview($examId, $options);
-        if (!$plan['unresolved']) $_SESSION['uc17_preview'] = ['exam'=>$examId,'options'=>$options,'fingerprint'=>$plan['fingerprint'],'nonce'=>bin2hex(random_bytes(16)),'time'=>time()];
+        if (!$plan['unresolved']) $_SESSION['uc17_preview'] = ['exam'=>$examId,'options'=>$options,'plan'=>$plan,'fingerprint'=>$plan['fingerprint'],'nonce'=>bin2hex(random_bytes(16)),'time'=>time()];
     }
     $stmt = db()->prepare('SELECT * FROM XetTuyenLanChay WHERE maKyThi=? ORDER BY thoiGian DESC,maLan DESC LIMIT 10');
     $stmt->execute([$examId]); $history = $stmt->fetchAll();
@@ -70,7 +74,7 @@ if ($error !== '') ui_notice('error',$error);
 <div class="field"><label for="bonuses">Điểm ưu tiên/khuyến khích đã được xác minh (tùy chọn)</label><textarea id="bonuses" name="bonuses" rows="4" placeholder="TS001, 1.5, 0.5"><?= e($bonusText ?? '') ?></textarea><p>Định dạng mỗi dòng: mã thí sinh, điểm ưu tiên, điểm khuyến khích. Không khai báo nghĩa là 0; số thập phân dùng dấu chấm. Các giá trị và người xác nhận được lưu vết khi xét tuyển.</p></div>
 <p><label><input type="checkbox" name="closed" value="1"<?= !empty($options['closed']) ? ' checked' : '' ?> required> Tôi xác nhận dữ liệu điểm chính thức đã chốt.</label></p>
 <p><label><input type="checkbox" name="appealsEnded" value="1"<?= !empty($options['appealsEnded']) ? ' checked' : '' ?> required> Tôi xác nhận giai đoạn phúc khảo đã kết thúc.</label></p>
-<p>Hệ thống kiểm tra thêm điểm đã chấm/công bố và các yêu cầu phúc khảo đã có kết quả. Hai xác nhận trên do Hội đồng chịu trách nhiệm vì dữ liệu hiện tại chưa có lịch đóng phúc khảo.</p>
+<p>Hệ thống kiểm tra thời hạn phúc khảo 7 ngày từ ngày sau công bố điểm và yêu cầu phúc khảo còn chờ xử lý. Nếu dữ liệu đổi sau xem trước, cần tính lại trước khi lưu.</p>
 <button class="btn btn-primary" type="submit"<?= !$schools ? ' disabled' : '' ?>>Chạy xét tuyển và xem trước</button>
 </form></section>
 <?php if ($plan): ?>
