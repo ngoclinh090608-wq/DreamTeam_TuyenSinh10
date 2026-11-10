@@ -81,6 +81,11 @@ jobs:
           python3 tests/kiem_thu_uc05_navigation.py
           python3 tests/kiem_thu_api.py
 
+      - name: Kiểm thử tra cứu điểm công khai
+        env:
+          BASE_URL: http://127.0.0.1:8080
+        run: php tests/kiem_thu_public_scores.php
+
       - name: Kiểm thử đọc Excel và giao dịch UC05
         run: php tests/kiem_thu_uc05_excel.php
 
