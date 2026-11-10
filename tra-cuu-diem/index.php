@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } catch (BusinessException $e) { $error = $e->getMessage(); }
     catch (Throwable $e) { error_log('public score lookup: '.$e->getMessage()); $error = 'Không thể tra cứu lúc này. Vui lòng thử lại sau.'; }
 }
-$page_title = 'Tra cứu điểm thi'; $layout = 'public';
+$page_title = 'Tra cứu điểm thi'; $layout = 'public'; $public_active = 'scores';
 require dirname(__DIR__) . '/includes/header.php';
 ?>
 <main id="main" class="portal-main"><div class="container">

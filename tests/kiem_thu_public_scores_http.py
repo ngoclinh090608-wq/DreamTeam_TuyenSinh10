@@ -9,7 +9,11 @@ c=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.
 def request(path,data=None):
     r=c.open(base+path,None if data is None else urllib.parse.urlencode(data).encode());return r.read().decode(),r.url,r.headers
 page,url,headers=request('/tra-cuu-diem/')
-assert '/auth/login.php' not in url and 'Không cần đăng nhập' in request('/')[0]
+assert '/auth/login.php' not in url
+home=request('/')[0]
+nav=re.search(r'id="public-nav".*?</nav>',home,re.S)[0]
+labels=[html.unescape(re.sub(r'<[^>]+>','',x)).strip() for x in re.findall(r'<a\b[^>]*>(.*?)</a>',nav,re.S)]
+assert labels[4]=='Tra cứu điểm thi' and labels[5]=='Đăng nhập'
 assert headers['Cache-Control']=='no-store'
 token=html.unescape(re.search(r'name="csrf_token" value="([^"]+)"',page)[1])
 form={'sbd':number,'ngaySinh':birth,'csrf_token':'bad'}
