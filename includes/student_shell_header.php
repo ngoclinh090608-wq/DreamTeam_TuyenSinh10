@@ -1,11 +1,15 @@
 <?php
 $studentShellUser = current_user();
 $studentNavigation = [
-    ['admin', 'admin/', 'Hồ sơ tuyển sinh', '♙'],
+    ['admin', 'admin/', 'Hồ sơ của tôi', '♙'],
+    ['aspirations', 'aspirations/', 'Đăng ký nguyện vọng', '✓'],
+    ['results', 'results/', 'Điểm thi & kết quả', '⌕'],
+    ['appeals', 'appeals/', 'Phúc khảo', '▧'],
+    ['enrollment', 'enrollment/', 'Tình trạng nhập học', '▤'],
     ['student-help', 'admission-info/huong-dan.php', 'Hướng dẫn', '▤'],
     ['admission-info', 'admission-info/', 'Văn bản', '▧'],
 ];
-$studentActiveTab = in_array($active, ['admin', 'aspirations', 'appeals', 'enrollment'], true) ? 'admin' : $active;
+$studentActiveTab = $active;
 ?>
 <header class="student-site-header">
  <div class="student-header-inner">

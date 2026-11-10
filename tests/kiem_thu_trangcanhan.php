@@ -16,7 +16,7 @@ foreach (['Thông tin của tôi', 'Nguyện vọng của tôi', (string)$fileId
 foreach (['class="sidebar"', 'Mở menu quản trị', 'metric-grid', 'Hồ sơ dự kiến', 'Nguyện vọng 1 so với chỉ tiêu', 'Số học sinh theo trường THCS', 'Bảng điều khiển'] as $forbidden) {
     if (str_contains($html, $forbidden)) throw new RuntimeException('Management content leaked into student page: ' . $forbidden);
 }
-foreach (['student-site-header', 'student-portal-nav', 'Hồ sơ tuyển sinh', 'Văn bản', 'Hướng dẫn', 'Đổi mật khẩu', 'Đăng xuất', 'csrf_token'] as $required) {
+foreach (['student-site-header', 'student-portal-nav', 'Hồ sơ của tôi', 'Văn bản', 'Hướng dẫn', 'Đổi mật khẩu', 'Đăng xuất', 'csrf_token'] as $required) {
     if (!str_contains($html, $required)) throw new RuntimeException('Student portal shell missing: ' . $required);
 }
 echo "PASS student portal shell, account actions and personal dashboard without management sidebar\n";
@@ -24,9 +24,9 @@ echo "PASS student portal shell, account actions and personal dashboard without 
 $dom = new DOMDocument(); libxml_use_internal_errors(true); $dom->loadHTML($html);
 $xpath = new DOMXPath($dom); $tabPaths = [];
 foreach ($xpath->query('//nav[@class="student-portal-nav"]/a') as $tab) $tabPaths[] = $tab->getAttribute('href');
-if ($tabPaths !== [url('admin/'),url('admission-info/huong-dan.php'),url('admission-info/')]) throw new RuntimeException('Student must have exactly three navigation tabs');
+if ($tabPaths !== [url('admin/'),url('aspirations/'),url('results/'),url('appeals/'),url('enrollment/'),url('admission-info/huong-dan.php'),url('admission-info/')]) throw new RuntimeException('Student navigation must include authenticated student functions');
 if (str_contains($html, 'class="quick-links"')) throw new RuntimeException('Extra student dashboard menu remains');
-echo "PASS exactly three tabs; preferences, published scores and status stay inside personal profile\n";
+echo "PASS student navigation includes profile, preferences, results, appeals, enrollment and guidance\n";
 
 foreach (['student-score-dialog','student-exam-dialog'] as $dialogId) {
     if ($xpath->query('//dialog[@id="'.$dialogId.'"]')->length!==1 || $xpath->query('//button[@data-student-dialog-open="'.$dialogId.'"]')->length!==1) throw new RuntimeException('Modal or trigger missing: '.$dialogId);

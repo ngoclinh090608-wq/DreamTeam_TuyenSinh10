@@ -55,9 +55,7 @@ $studentShell = $layout === 'dashboard' && function_exists('current_user') && ha
           ['home', '', 'Trang chủ'],
           ['info', 'admission-info/huong-dan.php', 'Thông tin tuyển sinh'],
           ['schools', 'schools/danh-sach.php', 'Danh sách trường'],
-          ['aspirations', 'aspirations/', 'Đăng ký nguyện vọng'],
-          ['scores', 'results/?view=diem-thi', 'Tra cứu điểm thi'],
-          ['results', 'results/?view=tuyen-sinh', 'Kết quả tuyển sinh'],
+          ['guide', 'admission-info/huong-dan.php#guides', 'Hướng dẫn'],
           ['login', 'auth/login.php', 'Đăng nhập'],
         ] as [$nav_key, $nav_path, $nav_label]): ?>
           <a href="<?= e(url($nav_path)) ?>"<?= $public_active === $nav_key ? ' class="is-current" aria-current="page"' : '' ?>><?= e($nav_label) ?></a>
