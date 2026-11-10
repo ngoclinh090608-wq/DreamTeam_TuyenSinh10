@@ -10,11 +10,11 @@ function student_profile_input(string $name,string $label,string $value,string $
 ?>
 <?php foreach(flash_take() as $notice): ?><div class="ui-notice ui-notice-<?= ($notice['type'] ?? '') === 'success' ? 'success' : 'error' ?>" role="status"><?= e($notice['message']) ?></div><?php endforeach; ?>
 <?php if(!$profileData['ready']): ?><div class="notice notice-blue" role="alert">Các trường bổ sung chưa sẵn sàng lưu. Vui lòng liên hệ quản trị hệ thống để cập nhật cấu trúc hồ sơ.</div><?php endif; ?>
-<form id="student-profile-save" method="post" action="<?= e(url('admin/')) ?>" enctype="multipart/form-data" class="student-profile-form">
+<form id="student-profile-save" method="post" action="<?= e(url('admin/')) ?>" class="student-profile-form">
 <?= csrf_field() ?>
 <fieldset<?= !$profileData['ready'] ? ' disabled' : '' ?>>
 <div class="student-photo-name">
- <div class="student-photo-box"><?php if(!empty($extra['anhHoSo'])): ?><img src="<?= e(url('auth/student-photo.php')) ?>" alt="Ảnh hồ sơ của bạn" width="100" height="125"><?php else: ?><img class="student-default-avatar" data-student-default-avatar data-avatar-male="<?= e(url('assets/images/student-avatar-male.svg')) ?>" data-avatar-female="<?= e(url('assets/images/student-avatar-female.svg')) ?>" data-avatar-neutral="<?= e(url('assets/images/student-avatar-neutral.svg')) ?>" src="<?= e(url('assets/images/student-avatar-'.$defaultAvatarKind.'.svg')) ?>" alt="<?= e($defaultAvatarLabel) ?>" width="100" height="125"><?php endif; ?><label for="profile-photo">Ảnh hồ sơ</label><input type="file" id="profile-photo" name="anhHoSo" accept="image/jpeg,image/png,image/webp"><small>JPG, PNG, WebP · tối đa 2 MB</small></div>
+ <div class="student-photo-box"><img class="student-default-avatar" data-student-default-avatar data-avatar-male="<?= e(url('assets/images/student-avatar-male.svg')) ?>" data-avatar-female="<?= e(url('assets/images/student-avatar-female.svg')) ?>" data-avatar-neutral="<?= e(url('assets/images/student-avatar-neutral.svg')) ?>" src="<?= e(url('assets/images/student-avatar-'.$defaultAvatarKind.'.svg')) ?>" alt="<?= e($defaultAvatarLabel) ?>" width="100" height="125"><p>Ảnh hồ sơ</p></div>
  <dl class="student-profile-fields">
   <div><dt>Họ đệm</dt><dd><?= e($profileFamilyName) ?></dd></div>
   <div><dt>Tên</dt><dd><?= e($profileGivenName) ?></dd></div>
