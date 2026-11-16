@@ -53,7 +53,7 @@ $studentShell = $layout === 'dashboard' && function_exists('current_user') && ha
         <?php $public_active = $public_active ?? ($page_title === 'Trang chủ' ? 'home' : ($page_title === 'Đăng nhập' ? 'login' : ''));
         foreach ([
           ['home', '', 'Trang chủ'],
-          ['info', 'admission-info/huong-dan.php', 'Thông tin tuyển sinh'],
+          ['info', 'admission-info/', 'Thông tin tuyển sinh'],
           ['schools', 'schools/danh-sach.php', 'Danh sách trường'],
           ['guide', 'admission-info/huong-dan.php#guides', 'Hướng dẫn'],
           ['scores', 'tra-cuu-diem/', 'Tra cứu điểm thi'],

@@ -20,6 +20,7 @@ function exam_tabs(string $current): void {
     if (has_role($u, ['BAN_TUYEN_SINH', 'QUAN_TRI'])) {
         $tabs['tao-phong.php'] = 'Tạo phòng thi · UC06';
         $tabs['phan-phong.php'] = 'Phân phòng thi · UC07';
+        $tabs['cap-so-bao-danh.php'] = 'Cấp số báo danh · UC03';
     }
 
     if (has_role($u, ['HD_RA_DE', 'BAN_TUYEN_SINH', 'QUAN_TRI'])) {

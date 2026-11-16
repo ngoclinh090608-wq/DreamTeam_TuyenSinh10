@@ -10,11 +10,11 @@ final class ApiException extends RuntimeException
 {
     /** @param string[] $details */
     public function __construct(
-        public readonly int $status,
-        public readonly string $errorCode,
+        public int $status,
+        public string $errorCode,
         string $message,
-        public readonly array $details = [],
-        public readonly array $headers = []
+        public array $details = [],
+        public array $headers = []
     ) {
         parent::__construct($message);
     }
@@ -112,6 +112,15 @@ try {
         api_success(array_map(static fn(array $row): array => [
             'id' => $row[0], 'name' => $row[1], 'region' => $row[2], 'quota' => (int)$row[3],
         ], $schools));
+    }
+
+    if ($segments === ['admission-notices']) {
+        api_method('GET');
+        $q = is_string($_GET['q'] ?? null) ? trim($_GET['q']) : '';
+        $region = is_string($_GET['region'] ?? null) ? trim($_GET['region']) : '';
+        $notices = live_student_admission_info($q, ['region' => $region]);
+        if ($notices === null) throw new ApiException(503, 'DATABASE_UNAVAILABLE', 'Không thể tải thông tin tuyển sinh tại thời điểm hiện tại.');
+        api_success($notices);
     }
 
     if ($segments === ['exams']) {

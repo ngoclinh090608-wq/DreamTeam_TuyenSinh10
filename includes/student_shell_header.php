@@ -7,7 +7,7 @@ $studentNavigation = [
     ['appeals', 'appeals/', 'Phúc khảo', '▧'],
     ['enrollment', 'enrollment/', 'Tình trạng nhập học', '▤'],
     ['student-help', 'admission-info/huong-dan.php', 'Hướng dẫn', '▤'],
-    ['admission-info', 'admission-info/', 'Văn bản', '▧'],
+    ['admission-info', 'admission-info/', 'Xem thông tin tuyển sinh', '▧'],
 ];
 $studentActiveTab = $active;
 ?>

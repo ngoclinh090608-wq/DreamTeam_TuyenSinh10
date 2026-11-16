@@ -59,6 +59,14 @@ function form_dang_nhap(string $tab, string $nhan, string $goiY, string $nut, st
     <?php form_dang_nhap('admin', 'Tên đăng nhập', 'Nhập tên đăng nhập', 'Đăng nhập cán bộ', $tab === 'admin' ? $tenDangNhap : '', $next); ?>
   </section>
   <p class="field-note">Sử dụng tài khoản được cấp. Nếu quên mật khẩu, vui lòng liên hệ cán bộ phụ trách hoặc quản trị hệ thống.</p>
+  <div style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--border);font-size:12px;color:var(--muted)">
+    <strong>Tài khoản thử nghiệm (Mật khẩu: <code>dreamteam2026</code>):</strong>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+      <button type="button" class="btn btn-soft btn-sm" onclick="document.getElementById('admin-user').value='bantuyensinh';document.getElementById('admin-password').value='dreamteam2026';document.getElementById('admin-tab').click();">Ban Tuyển sinh</button>
+      <button type="button" class="btn btn-soft btn-sm" onclick="document.getElementById('admin-user').value='quantri';document.getElementById('admin-password').value='dreamteam2026';document.getElementById('admin-tab').click();">Quản trị viên</button>
+      <button type="button" class="btn btn-soft btn-sm" onclick="document.getElementById('student-user').value='SBD0001';document.getElementById('student-password').value='dreamteam2026';document.getElementById('student-tab').click();">Thí sinh (SBD0001)</button>
+    </div>
+  </div>
  </div></div>
 </main>
 <?php require dirname(__DIR__) . '/includes/footer.php'; ?>

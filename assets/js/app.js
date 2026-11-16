@@ -136,4 +136,92 @@
    studentGender.addEventListener('change',syncStudentAvatar);
    syncStudentAvatar();
  }
+
+  // UC01: Xem thông tin tuyển sinh lớp 10 - Live filter & interactions
+  const admissionSearchInput = $('[data-admission-live-search]');
+  const admissionContainer = $('[data-admission-container]');
+  if (admissionContainer) {
+    let activeRegion = admissionContainer.dataset.activeRegion || 'all';
+    let activeSchool = 'all';
+
+    function runAdmissionFilter() {
+      const q = (admissionSearchInput?.value || '').trim().toLocaleLowerCase('vi');
+      let visibleCount = 0;
+      let totalQuota = 0;
+
+      $$('[data-admission-item]', admissionContainer).forEach(item => {
+        const itemRegion = item.dataset.region || '';
+        const itemSchool = item.dataset.school || '';
+        const itemText = item.textContent.toLocaleLowerCase('vi');
+
+        const matchRegion = activeRegion === 'all' || itemRegion === activeRegion;
+        const matchSchool = activeSchool === 'all' || itemSchool === activeSchool;
+        const matchSearch = q === '' || itemText.includes(q);
+
+        const isVisible = matchRegion && matchSchool && matchSearch;
+        item.hidden = !isVisible;
+        if (isVisible) {
+          visibleCount++;
+          totalQuota += parseInt(item.dataset.quota || '0', 10);
+        }
+      });
+
+      const countEl = $('[data-admission-count]', admissionContainer);
+      if (countEl) countEl.textContent = `${visibleCount} trường THPT`;
+
+      const quotaEl = $('[data-admission-total-quota]', admissionContainer);
+      if (quotaEl) quotaEl.textContent = totalQuota.toLocaleString('vi-VN');
+
+      const notFoundPanel = $('#admission-notfound-client');
+      if (notFoundPanel) {
+        notFoundPanel.hidden = visibleCount > 0;
+        const queryDisplay = notFoundPanel.querySelector('[data-search-keyword-display]');
+        if (queryDisplay) queryDisplay.textContent = q || 'bộ lọc đã chọn';
+      }
+
+      const resultsGrid = $('[data-admission-grid]', admissionContainer);
+      if (resultsGrid) resultsGrid.hidden = visibleCount === 0;
+      const resultsTable = $('[data-admission-table-wrap]', admissionContainer);
+      if (resultsTable) resultsTable.hidden = visibleCount === 0;
+    }
+
+    admissionSearchInput?.addEventListener('input', runAdmissionFilter);
+
+    $$('[data-region-filter-btn]').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        activeRegion = btn.dataset.regionFilterBtn;
+        $$('[data-region-filter-btn]').forEach(b => {
+          const isActive = b === btn;
+          b.classList.toggle('active', isActive);
+          b.setAttribute('aria-pressed', String(isActive));
+        });
+        runAdmissionFilter();
+      });
+    });
+
+    const schoolSelect = $('[data-school-select-filter]');
+    schoolSelect?.addEventListener('change', () => {
+      activeSchool = schoolSelect.value;
+      runAdmissionFilter();
+    });
+
+    $$('[data-reset-search-btn]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (admissionSearchInput) {
+          admissionSearchInput.value = '';
+          admissionSearchInput.focus();
+        }
+        activeRegion = 'all';
+        activeSchool = 'all';
+        if (schoolSelect) schoolSelect.value = 'all';
+        $$('[data-region-filter-btn]').forEach(b => {
+          const isAll = b.dataset.regionFilterBtn === 'all';
+          b.classList.toggle('active', isAll);
+          b.setAttribute('aria-pressed', String(isAll));
+        });
+        runAdmissionFilter();
+      });
+    });
+  }
 })();

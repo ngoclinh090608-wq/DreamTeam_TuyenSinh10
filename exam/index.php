@@ -40,6 +40,12 @@ exam_tabs('index.php');
 
 <div class="ui-cards" style="margin-bottom: 2rem;">
   <?php if (has_role($nguoiDung, ['BAN_TUYEN_SINH', 'QUAN_TRI'])): ?>
+    <a class="panel" href="<?= e(url('candidates/cap-so-bao-danh.php')) ?>">
+      <span class="quick-icon">🔢</span>
+      <strong>Cấp số báo danh cho thí sinh</strong>
+      <p>Đánh số báo danh tự động theo quy tắc A–B–C sau khi chốt thời gian đăng ký và hoàn tất phân phòng thi.</p>
+      <span class="uc-tag">UC03</span>
+    </a>
     <a class="panel" href="<?= e(url('exam/tao-phong.php')) ?>">
       <span class="quick-icon">⊞</span>
       <strong>Tạo thông tin phòng thi</strong>
